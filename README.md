@@ -9,8 +9,8 @@
 The goal of `expertsurv` is to incorporate expert opinion into an
 analysis of time to event data. `expertsurv` uses many of the core
 functions of the `survHE` package (Baio 2020). Technical details of the
-implementation are detailed in (Anonymous) and will not be repeated
-here.
+implementation are detailed in (Cooney and White 2021) and will not be
+repeated here.
 
 The key function is `fit.models.expert` and operates almost identically
 to the `fit.models` function of `survHE`.
@@ -18,10 +18,10 @@ to the `fit.models` function of `survHE`.
 ## Installation
 
 You can install the released version of expertsurv from
-[GitHub](https://github.com/Anon19820/expertsurv) with:
+[GitHub](https://github.com/Philip-Cooney/expertsurv) with:
 
 ``` r
-devtools::install_github("Anon19820/expertsurv")
+devtools::install_github("Philip-Cooney/expertsurv")
 ```
 
 ## Expert Opinion on Survival at timepoints
@@ -246,8 +246,8 @@ presented in this README) have been tested for compatibility. Other
 functions should (in theory) be compatible (again by adding `survHE::`
 to the relevant function), however, I have not tested all these
 potential use cases. If you run in issues, bugs or just features which
-you feel would be useful, please let me know (Anon) and I will
-investigate and update as required.
+you feel would be useful, please let me know (<phcooney@tcd.ie>) and I
+will investigate and update as required.
 
 Additionally I have made modifications to some of the `survHE` functions
 to accommodate JAGS models (by changing the namespace of the `survHE`
@@ -265,6 +265,78 @@ used as the plug-in estimate for the log-likelihood, while we use the
 posterior mean as per the definition of DIC by (Spiegelhalter et al.
 2002), noting that both estimates should be very similar.
 
+## Survival curves implied by Expert Opinion alone
+
+In some situations it may be of interest to see the range of predicted
+survival functions given the expert opinion. The easiest solution is to
+simulate two or more observations. In order to remove the effect of
+these data points we supply the following argument to the
+`fit.models.expert` function which essentially sets the likelihood
+contribution to zero for these points:
+
+    a0 = rep(0.001,nrow(df1))
+
+Using Stan and JAGS to simulate these “posteriors” is inefficient and
+because of lack of identifiability (due to having no data), Markov Chain
+Monte Carlo diagnostics will suggest there is a problem. A more
+efficient approach for the Weibull distribution is sketched out below
+and (similar to (Ouwens 2018)) would be to:
+
+-   Simulate times from the Survival distribution
+-   Simulate values of the shape from a vague distribution
+-   Reexpress the scale in terms of the shape
+
+As we can see the 90% credible intervals are very wide, narrowing only
+at the timepoint at which there is expert opinion.
+
+
+    nsims <- 10000
+    Surv_samp <- rbeta(nsims, 10, 100)
+    ancs <- runif(nsims, 0, 10) #shape
+    time_expert <- 14
+    loc <- exp((ancs*log(time_expert)-log(-log(Surv_samp)))/ancs)
+
+    time <- c(0:20)
+    res <- cbind(ancs,loc)
+
+    St <- apply(res, 1, function(x){pweibull(time,x[1],x[2], lower.tail = F )})
+    St_sum <- apply(St, 1, quantile, probs = c(0.1, 0.9), na.rm = T)
+
+    plot(y = St_sum[1,], x = time, type= "l", xlab = "Time", ylab = "St",
+    main = "90% interval for survival with St from Beta(10,100)")
+    lines(y = St_sum[2,], x = time )
+
+<div class="figure">
+
+<img src="Survival without Data.png" alt="Predicted survival without data" width="480" />
+<p class="caption">
+Predicted survival without data
+</p>
+
+</div>
+
+## Model Diagnostics
+
+As this is a Bayesian analysis convergence diagnostics should be
+performed. Poor convergence can be observed for many reasons, however,
+because of our use of expert opinion my be a symptom of conflict between
+the observed data and the expert’s opinion.
+
+Default priors should work in most situations, but still need to be
+considered. At a minimum the Bayesian results without expert opinion
+should be compared against the maximum likelihood estimates. If
+considerable differences are present the prior distributions should be
+investigated.
+
+Because the analysis is done in JAGS and Stan we can leverage the
+`ggmcmc` package:
+
+    #For Stan Models # Log-Normal, RP, Exponential, Weibull
+    ggmcmc(ggs(as.mcmc(example1$models$`Gen. Gamma`)), file = "Gengamma.pdf")
+
+    #For JAGS Models # Gamma, Gompertz, Generalized Gamma
+    ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
+
 ## References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
@@ -275,6 +347,14 @@ Baio, Gianluca. 2020. “<span class="nocase">survHE</span>: Survival
 Analysis for Health Economic Evaluation and Cost-Effectiveness
 Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
 <https://doi.org/10.18637/jss.v095.i14>.
+
+</div>
+
+<div id="ref-Cooney.2021" class="csl-entry">
+
+Cooney, Philip, and Arthur White. 2021. “Utilizing Expert Opinion to
+Inform Extrapolation of Survival Models.”
+<http://arxiv.org/abs/2112.02288>.
 
 </div>
 
@@ -290,6 +370,16 @@ Scientific.” *The American Statistician* 73 (sup1): 69–81.
 
 Oakley, Jeremy. 2021. *SHELF: Tools to Support the Sheffield Elicitation
 Framework*. <https://CRAN.R-project.org/package=SHELF>.
+
+</div>
+
+<div id="ref-Ouwens.2018" class="csl-entry">
+
+Ouwens, Mario. 2018. “Use of Clinical Opinion in the Estimation of
+Survival Extrapolation Distributions.” *ISPOR EU 2018 - Use of Clinical
+Opinion in the Estimation of Survival Extrapolation Distributions*.
+ISPOR.
+<https://www.ispor.org/docs/default-source/presentations/91714pdf.pdf?sfvrsn=a5b2756f_0>.
 
 </div>
 
