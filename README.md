@@ -9,7 +9,7 @@
 The goal of `expertsurv` is to incorporate expert opinion into an
 analysis of time to event data. `expertsurv` uses many of the core
 functions of the `survHE` package (Baio 2020). Technical details of the
-implementation are detailed in (Cooney and White 2021) and will not be
+implementation are detailed in (Anon) and will not be
 repeated here.
 
 The key function is `fit.models.expert` and operates almost identically
@@ -18,10 +18,10 @@ to the `fit.models` function of `survHE`.
 ## Installation
 
 You can install the released version of expertsurv from
-[GitHub](https://github.com/Philip-Cooney/expertsurv) with:
+[GitHub](https://github.com/Anon19820/expertsurv) with:
 
 ``` r
-devtools::install_github("Philip-Cooney/expertsurv")
+devtools::install_github("Anon19820/expertsurv")
 ```
 
 ## Expert Opinion on Survival at timepoints
@@ -246,7 +246,7 @@ presented in this README) have been tested for compatibility. Other
 functions should (in theory) be compatible (again by adding `survHE::`
 to the relevant function), however, I have not tested all these
 potential use cases. If you run in issues, bugs or just features which
-you feel would be useful, please let me know (<phcooney@tcd.ie>) and I
+you feel would be useful, please let me know (<anon.email>) and I
 will investigate and update as required.
 
 Additionally I have made modifications to some of the `survHE` functions
@@ -347,14 +347,6 @@ Baio, Gianluca. 2020. “<span class="nocase">survHE</span>: Survival
 Analysis for Health Economic Evaluation and Cost-Effectiveness
 Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
 <https://doi.org/10.18637/jss.v095.i14>.
-
-</div>
-
-<div id="ref-Cooney.2021" class="csl-entry">
-
-Cooney, Philip, and Arthur White. 2021. “Utilizing Expert Opinion to
-Inform Extrapolation of Survival Models.”
-<http://arxiv.org/abs/2112.02288>.
 
 </div>
 
