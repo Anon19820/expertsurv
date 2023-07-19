@@ -111,14 +111,14 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
      upper_bound = Inf
    }
   
-  #undebug(expertsurv:::fitdist_mod)
-  fit.eval <- expertsurv:::fitdist_mod(input_mat[,2:ncol(input_mat), drop = F],
+  
+  fit.eval <- fitdist_mod(input_mat[,2:ncol(input_mat), drop = F],
                           probs = input_mat[,1], upper = upper_bound, lower = lower_bound, 
                           expertnames = paste0("Expert_",1:(ncol(input_mat)-1)),
                           mode = mode, trunc = St_indic)
  # browser()
   
-  plts_pool <- expertsurv:::makePoolPlot(fit= fit.eval,
+  plts_pool <- makePoolPlot(fit= fit.eval,
                             xl =lower_bound,
                             xu =upper_bound,
                             d = dist,
