@@ -1,6 +1,6 @@
 Package: expertsurv
 Title: Incorporate Expert Opinion with Parametric Survival Models
-Version: 1.1.0
+Version: 1.2.0
 Authors@R: 
     c(person(given = "Philip",
            family = "Cooney",
@@ -56,6 +56,12 @@ Suggests:
     knitr,
     rjags,
     R2jags,
-    xlsx
+    xlsx,
+	shiny, 
+	shinyWidgets,
+	shinycssloaders,
+	shinyjs,
+	shinyMatrix,
+	shinybusy
 VignetteBuilder: knitr
 RdMacros: Rdpack

@@ -155,6 +155,28 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 }
 
 
+#' Elicit survival judgements interactively and estimate survival models
+#' 
+#' Opens up a web browser (using the shiny package), from which you can specify
+#' judgements and fit distributions for multiple timepoints and experts.
+#' Plots of the fitted density functions are provided overlayed on the survival data (where appropriate).  
+#' 
+#' Once the elicitation is complete the analysis can be run.
+#' Click "Download R objects" to download the ``expertsurv`` object generated from the analysis. 
+#' Click "Download report" to generate a report including plots and parameter values for the parametric survival models. 
+#' 
+#'
+#'
+#' @author Philip Cooney <phcooney@@tcd.ie>
+#' @examples
+#' 
+#' \dontrun{
+#' 
+#' elicit_surv()
+#' 
+#' }
+#' @import shiny
+#' @export
 elicit_surv <- function (){
   
   #Fixes required for expertsurv implemented in this file!!
@@ -164,13 +186,13 @@ elicit_surv <- function (){
   #Fix the lik_lno function the likelihood was incorrect for the compute ICS_stan
   
   ## Load Packages
-  list.of.packages <- need<-c("expertsurv", "dplyr", "shiny", "ggplot2", "ggfortify", "shinyWidgets", "survminer","shinycssloaders", "shinyjs", "shinyMatrix", "readxl", "shinybusy") #needed libraries
-  res <- lapply(list.of.packages, require, character.only = TRUE)
-  not.loaded <-   list.of.packages[which(sapply(res, unlist) ==F)]
-  not.loaded2 <- lapply(not.loaded, require, character.only = TRUE)
-  not.installed <-   not.loaded2[which(sapply(not.loaded2, unlist) ==F)]
-  #load the packages
-  if(length(not.installed)) install.packages(not.loaded)
+  # list.of.packages <- need<-c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy") #needed libraries
+  # res <- lapply(list.of.packages, require, character.only = TRUE)
+  # not.loaded <-   list.of.packages[which(sapply(res, unlist) ==F)]
+  # not.loaded2 <- lapply(not.loaded, require, character.only = TRUE)
+  # not.installed <-   not.loaded2[which(sapply(not.loaded2, unlist) ==F)]
+  # #load the packages
+  #if(length(not.installed)) install.packages(not.loaded)
   
   options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
   
@@ -190,8 +212,8 @@ elicit_surv <- function (){
                                wellPanel(
                                  #fluidRow(column(3, downloadButton("report", "Download report")),
                                  #column(2, offset = 1, actionButton("exit", "Quit"))),
-                                 fileInput('df_upload', 'Choose Excel data file to upload',
-                                           accept = c(".xlsx")),
+                                 fileInput('df_upload', 'Choose .csv data file to upload',
+                                           accept = c(".csv")),
                                  varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
                                  p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
                                  numericInput("n_expert", "Number of Experts", value = 1, min = 1),
@@ -363,7 +385,7 @@ elicit_surv <- function (){
     
     observeEvent(input$df_upload,{
       inFile <- input$df_upload
-      df_upload <- readxl::read_excel(inFile$datapath)
+      df_upload <- utils::read.csv(inFile$datapath)
       value$df_upload <- df_upload
       #varSelectInput("variables", "Variable:", df_upload, multiple = TRUE),
       vars <- names(df_upload)
