@@ -1,0 +1,80 @@
+---
+title: "Parametric Results"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+date: "`r format(Sys.time(), '%d %B %Y, %H:%M')`"
+fontsize: 11pt
+header-includes:
+ \usepackage{float}
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE,
+                      fig.pos = 'H',
+                      fig.align = 'center',
+                      fig.height = 6,
+                      fig.width = 10)
+library("expertsurv")
+```
+
+
+```{r echo = FALSE, fig.cap = "Survival Function for Parametric Models"}
+
+params$surv_plt
+
+```
+
+
+```{r, echo = FALSE, fig.cap = "Goodness of Fit for Parametric Models"}
+
+params$gof_plt
+
+```
+
+
+```{r echo = FALSE, fig.cap = "Expert Opinion at timepoint(s)"}
+
+if(params$opinion_type != "no_expert"){
+
+  surv_expert <- list()
+
+  for(i in 1:params$n_timepoint){
+          surv_expert[[i]] <- params[[paste0("expert_plot",i)]] 
+  }
+
+ggarrange(plotlist=surv_expert,
+                      #labels = ,
+                      ncol = 1, nrow = params$n_timepoint)
+  
+  
+}
+
+
+```
+
+# Parameter Results
+
+
+```{r, results='asis'}
+  #https://stackoverflow.com/questions/69935356/r-markdown-use-for-loop-to-generate-text-and-display-figure-table
+
+for(i in 1:length(fit$models)){
+    cat("### Parameter Values ", names(fit$models)[i], "\n")
+  if(fit$method =="mle"){
+    df_mod <- do.call(expertsurv:::get_stats_mle, args = list(fit,mod =i ))
+  }else{
+    df_mod <- do.call(expertsurv:::get_stats_hmc, args = list(fit,mod =i))
+  }
+  
+  tb_mod <- knitr::kable(df_mod, caption = paste0("Table ",names(fit$models)[i]),digits = 3)
+  cat("\n")
+  print(tb_mod)
+  cat("\n")
+  
+}
+
+
+```

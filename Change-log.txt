@@ -2,8 +2,12 @@ Changelog:
 
 #CRAN version
 
-CRAN commit is develCRAN
+For convience I have the CRAN submission version to Anon Github. 
 Removed src;Look at Andrew Johnson comment who says that I don't actually need to upload the src to Github as it only works for my computer.
+
+Fixed issue with Lognormal likelihood calculation
+Fixed issue with flexsurvreg implmentation of spline based models.
+Fixed error with norm_err_mod and other distributions. 
 
 #To Do:
 1- Fix the integrator function in flexsurv. Can often fail, can use analytical expression I used for JAGS

@@ -721,40 +721,39 @@ runMLE <- function (x, exArgs){
   x <- manipulate_distributions(x)$distr
   expert_opinion_flex <- list()
   
+  # formula_temp <- update(formula, paste(all.vars(formula, 
+  #                                                data)[1], "~", all.vars(formula, data)[2], "+."))
+  # mf <- tibble::as_tibble(model.frame(formula_temp, data)) %>% 
+  #   dplyr::rename(time = 1, event = 2) %>% rename_if(is.factor, 
+  #                                                    .funs = ~gsub("as.factor[( )]", "", .x)) %>%
+  #   dplyr::rename_if(is.factor,.funs = ~gsub("[( )]", "", .x)) %>% 
+  #   dplyr::bind_cols(tibble::as_tibble(stats::model.matrix(formula_temp,data)) %>%
+  #                      dplyr::select(contains("Intercept"))) %>% 
+  #   dplyr::select(time, event, contains("Intercept"), 
+  #                 everything()) %>% tibble::rownames_to_column("ID")
   
   
-  formula_temp <- update(formula, paste(all.vars(formula, 
-                                                 data)[1], "~", all.vars(formula, data)[2], "+."))
-  mf <- tibble::as_tibble(model.frame(formula_temp, data)) %>% 
-    dplyr::rename(time = 1, event = 2) %>% rename_if(is.factor, 
-                                                     .funs = ~gsub("as.factor[( )]", "", .x)) %>% dplyr::rename_if(is.factor, 
-                                                                                                                   .funs = ~gsub("[( )]", "", .x)) %>% dplyr::bind_cols(tibble::as_tibble(stats::model.matrix(formula_temp, 
-                                                                                                                                                                                                              data)) %>% dplyr::select(contains("Intercept"))) %>% 
-    dplyr::select(time, event, contains("Intercept"), 
-                  everything()) %>% tibble::rownames_to_column("ID")
-  
-  
-  if (ncol(mf) == 4) {
-    expert_opinion_flex$id_St <- 1
-  }
-  else if (ncol(mf) == 5) {
-    if (exArgs$opinion_type == "survival") {
-      expert_opinion_flex$id_St <- min(which(mf[, 5] == exArgs$id_St))
-    }
-    else {
-      expert_opinion_flex$id_trt <- min(which(mf[, 5] == exArgs$id_trt))
-      if (length(unique(mf[, 5] %>% pull())) == 2) {
-        expert_opinion_flex$id_comp <- min(which(mf[, 5] != exArgs$id_trt))
-      }
-      else {
-        expert_opinion_flex$id_comp <- min(which(mf[, 5] == exArgs$id_comp))
-      }
-    }
-  }
-  else {
-    message("We do not allow more than one covariate (i.e. treatment) in the analysis - although it is technically possible")
-    stop()
-  }
+  # if (ncol(mf) == 4) {
+  #   expert_opinion_flex$id_St <- 1
+  # }
+  # else if (ncol(mf) == 5) {
+  #   if (exArgs$opinion_type == "survival") {
+  #     expert_opinion_flex$id_St <- min(which(mf[, 5] == exArgs$id_St))
+  #   }
+  #   else {
+  #     expert_opinion_flex$id_trt <- min(which(mf[, 5] == exArgs$id_trt))
+  #     if (length(unique(mf[, 5] %>% pull())) == 2) {
+  #       expert_opinion_flex$id_comp <- min(which(mf[, 5] != exArgs$id_trt))
+  #     }
+  #     else {
+  #       expert_opinion_flex$id_comp <- min(which(mf[, 5] == exArgs$id_comp))
+  #     }
+  #   }
+  # }
+  # else {
+  #   message("We do not allow more than one covariate (i.e. treatment) in the analysis - although it is technically possible")
+  #   stop()
+  # }
   
   
   if (exArgs$opinion_type != "survival") {
@@ -765,7 +764,21 @@ runMLE <- function (x, exArgs){
   if (exArgs$opinion_type == "survival") {
     expert_opinion_flex$St_indic <- 1
     times <- exArgs$times_expert
+    if(is.null(exArgs$id_St)){
+      expert_opinion_flex$id_St <- 1
+    }else{
+      expert_opinion_flex$id_St <- exArgs$id_St
+    }
   }
+  if(exArgs$opinion_type == "mean"){
+  if(is.null(exArgs$id_trt|exArgs$id_comp)){
+    message("You need to supply the location within the dataframe row number of a treatment and a comparator arm to arguments id_trt and id_comp")
+    stop()
+  }
+  expert_opinion_flex$id_trt <- exArgs$id_trt
+  expert_opinion_flex$id_comp <- exArgs$id_comp
+  }
+  
   expert_opinion_flex$param_expert <- make_data_expert(exArgs$param_expert, 
                                                        times)
   expert_opinion_flex$times <- times
