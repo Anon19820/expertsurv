@@ -197,162 +197,162 @@ elicit_surv <- function (){
   options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
   
   
-  runApp(list(ui = fluidPage(useShinyjs(),
-                             #add_busy_bar(color = "blue"),
-                             # add_busy_gif(
-                             #   src = "https://jeroen.github.io/images/banana.gif",
-                             #   height = 70, width = 70
-                             # ),
-                             add_busy_spinner(spin = "semipolar"),
-                             # tags$style('.container-fluid {
-                             #               background-color: #7b8cde;
-                             #}'),
-                             titlePanel("ShinyExpertsurv"),
-                             sidebarPanel(
-                               wellPanel(
-                                 #fluidRow(column(3, downloadButton("report", "Download report")),
-                                 #column(2, offset = 1, actionButton("exit", "Quit"))),
-                                 fileInput('df_upload', 'Choose .csv data file to upload',
-                                           accept = c(".csv")),
-                                 varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
-                                 p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
-                                 numericInput("n_expert", "Number of Experts", value = 1, min = 1),
-                                 numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
-                                # numericInput("scale1", "Scale for density", value = 1),
-                                 numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,#max(df$time)*2,
-                                                                                                             digits = 0)),
-                                 checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
-                                
-                                 checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
-                                
-                                
-                                selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
-                                             choices = c("Linear Pool" = "linear pool",
-                                                         "Logarithmic Pool"= "log pool"), 
-                                             selected = "linear pool"),
-                                 selectInput(inputId ="dist_select", label = "Select the best fitting distribution for Expert Pooling", 
-                                             choices = c("Best Fitting" = "best",
-                                                         "Normal"= "normal",
-                                                         "T-distribution" = "t",
-                                                         "Gamma" = "gamma",
-                                                         "Log-Normal" = "lognormal",
-                                                         "Beta" = "beta"), 
-                                             selected = "best"),
-                                 actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")
-                                 
-                               ),
-                               
-                               hr(),
-                               
-                               tabsetPanel(id = "Timepoints",
-                                           tabPanel("Timepoints1",
-                                                    numericInput(paste0("time1"), label= "Timepoint", value= 1),
-                                                    textInput('quant_vec1', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
-                                                    
-                                                    helpText("Enter the judgements in the table below,
+  shiny::runApp(list(ui = fluidPage(shinyjs::useShinyjs(),
+                                    #add_busy_bar(color = "blue"),
+                                    # add_busy_gif(
+                                    #   src = "https://jeroen.github.io/images/banana.gif",
+                                    #   height = 70, width = 70
+                                    # ),
+                                    shinybusy::add_busy_spinner(spin = "semipolar"),
+                                    # tags$style('.container-fluid {
+                                    #               background-color: #7b8cde;
+                                    #}'),
+                                    titlePanel("ShinyExpertsurv"),
+                                    sidebarPanel(
+                                      wellPanel(
+                                        #fluidRow(column(3, downloadButton("report", "Download report")),
+                                        #column(2, offset = 1, actionButton("exit", "Quit"))),
+                                        fileInput('df_upload', 'Choose .csv data file to upload',
+                                                  accept = c(".csv")),
+                                        varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
+                                        p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
+                                        numericInput("n_expert", "Number of Experts", value = 1, min = 1),
+                                        numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
+                                        # numericInput("scale1", "Scale for density", value = 1),
+                                        numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,#max(df$time)*2,
+                                                                                                                    digits = 0)),
+                                        checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
+                                        
+                                        checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
+                                        
+                                        
+                                        selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
+                                                    choices = c("Linear Pool" = "linear pool",
+                                                                "Logarithmic Pool"= "log pool"), 
+                                                    selected = "linear pool"),
+                                        selectInput(inputId ="dist_select", label = "Select the best fitting distribution for Expert Pooling", 
+                                                    choices = c("Best Fitting" = "best",
+                                                                "Normal"= "normal",
+                                                                "T-distribution" = "t",
+                                                                "Gamma" = "gamma",
+                                                                "Log-Normal" = "lognormal",
+                                                                "Beta" = "beta"), 
+                                                    selected = "best"),
+                                        actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")
+                                        
+                                      ),
+                                      
+                                      hr(),
+                                      
+                                      tabsetPanel(id = "Timepoints",
+                                                  tabPanel("Timepoints1",
+                                                           numericInput(paste0("time1"), label= "Timepoint", value= 1),
+                                                           textInput('quant_vec1', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
+                                                           
+                                                           helpText("Enter the judgements in the table below,
                                                               one column per expert. Enter quantile values corresponding to the cumulative probabilities. 
                                                              Enter Most Likely Values (i.e. Mode) for each expert if included."),
-                                                    matrixInput(
-                                                      inputId = "matrix1",
-                                                      value = m_default_gen(),
-                                                      class = "numeric",
-                                                      cols = list(names = TRUE,
-                                                                  editableNames = FALSE),
-                                                      rows = list(names = FALSE,
-                                                                  editableNames = FALSE)),
-                                                    matrixInput(
-                                                      inputId = "matrix1_mode",
-                                                      value = m_default_gen2(),
-                                                      class = "numeric",
-                                                      cols = list(names = TRUE,
-                                                                  editableNames = FALSE),
-                                                      rows = list(names = TRUE,
-                                                                  editableNames = FALSE)),
-         
-                                                    
-                                                    plotOutput(paste0("expert_plot1"))),
-                                           
-                                           tabPanel("Timepoints2",
-                                                    numericInput(paste0("time2"), label= "Timepoint", value= 1),
-                                                    textInput('quant_vec2', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
-                                                    helpText("Enter the judgements in the table below, one column per expert. Enter quantile values corresponding to the cumulative probabilities."),
-                                                    
-                                                    matrixInput(
-                                                      inputId = "matrix2",
-                                                      value = m_default_gen(),
-                                                      class = "numeric",
-                                                      cols = list(names = TRUE,
-                                                                  editableNames = FALSE),
-                                                      rows = list(names = FALSE,
-                                                                  editableNames = FALSE)),
-                                                    matrixInput(
-                                                      inputId = "matrix2_mode",
-                                                      value = m_default_gen2(),
-                                                      class = "numeric",
-                                                      cols = list(names = TRUE,
-                                                                  editableNames = FALSE),
-                                                      rows = list(names = TRUE,
-                                                                  editableNames = FALSE)),
-         
-                                                    plotOutput(paste0("expert_plot2")))
-                               )),
-                             mainPanel(
-                               #withSpinner(tableOutput('tb'), type = 2),
-                               h3("Kaplan-Meier Survival Plot"),
-                               plotOutput(paste0("plot_km_expert1")),
-                      fluidRow(column(selectInput("opinion_type", label = "Choose opinion type", 
-                                           choices = c("Survival at timepoint(s)" = "survival",
-                                                       "Mean difference between survival"= "mean",
-                                                       "No expert opinion" = "no_expert"), 
-                                           selected = "survival"), width = 3),
-                               
-                               column(selectInput("stat_type", label = "Choose statistical approach", 
-                                           choices = c("Frequentist" = "mle","Bayesian" = "hmc"), 
-                                           selected = "mle"), width = 3),
-                               column(pickerInput(
-                                 inputId = "param_mod", 
-                                 label = "Choose models:", 
-                                 choices = c("Exponential" = "exp",
-                                             "Weibull" = "wei",
-                                             "Gompertz" = "gomp",
-                                             "Log-Logistic"= "llo",
-                                             "Log-normal" = "lno",
-                                             "Generalized-Gamma" = "gga",
-                                             "Royston-Parmar" = "rps"), 
-                                 options = list(
-                                   `actions-box` = TRUE, 
-                                   size = 10,
-                                   `selected-text-format` = "count > 3"
-                                 ), 
-                                 multiple = TRUE,
-                                 selected  = c("exp", "wei")
-                               ), width = 3),
-                               column(selectInput("id_trt", label = "Select treatment ID corresponding to expert opinion",
-                                                  choices =  character(0)), width = 3)),
-                      
-                      fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
-                               column(selectInput("gof_type", label = "Choose goodness of fit measure", 
-                                           choices = c("AIC" = "aic","BIC" = "bic"), 
-                                           selected = "AIC"), width = 3),
-                               column(selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots", 
-                                           choices = c("Yes" = "yes",
-                                                       "No"= "no"), 
-                                           selected = "no"), width = 3)),  
-                               
-                               plotOutput("plot_gof"),
-                      
-                      fluidRow(column(textInput('file_name', 'Enter filename for saved output', "Output-File"),
-                                      width =3),
-                               column(selectInput("outFormat",label = "Report format", 
-                                                  choices = list(html = "html_document", 
-                                                                 pdf = "pdf_document", Word = "word_document")), width = 3)),
-                      fluidRow(column(downloadButton("save_output", "Download R objects"), width = 3),
-                               column(downloadButton("report","Download report"),width = 3))
-                             )                          
+                                                           shinyMatrix::matrixInput(
+                                                             inputId = "matrix1",
+                                                             value = m_default_gen(),
+                                                             class = "numeric",
+                                                             cols = list(names = TRUE,
+                                                                         editableNames = FALSE),
+                                                             rows = list(names = FALSE,
+                                                                         editableNames = FALSE)),
+                                                           shinyMatrix::matrixInput(
+                                                             inputId = "matrix1_mode",
+                                                             value = m_default_gen2(),
+                                                             class = "numeric",
+                                                             cols = list(names = TRUE,
+                                                                         editableNames = FALSE),
+                                                             rows = list(names = TRUE,
+                                                                         editableNames = FALSE)),
+                                                           
+                                                           
+                                                           plotOutput(paste0("expert_plot1"))),
+                                                  
+                                                  tabPanel("Timepoints2",
+                                                           numericInput(paste0("time2"), label= "Timepoint", value= 1),
+                                                           textInput('quant_vec2', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
+                                                           helpText("Enter the judgements in the table below, one column per expert. Enter quantile values corresponding to the cumulative probabilities."),
+                                                           
+                                                           shinyMatrix::matrixInput(
+                                                             inputId = "matrix2",
+                                                             value = m_default_gen(),
+                                                             class = "numeric",
+                                                             cols = list(names = TRUE,
+                                                                         editableNames = FALSE),
+                                                             rows = list(names = FALSE,
+                                                                         editableNames = FALSE)),
+                                                           shinyMatrix::matrixInput(
+                                                             inputId = "matrix2_mode",
+                                                             value = m_default_gen2(),
+                                                             class = "numeric",
+                                                             cols = list(names = TRUE,
+                                                                         editableNames = FALSE),
+                                                             rows = list(names = TRUE,
+                                                                         editableNames = FALSE)),
+                                                           
+                                                           plotOutput(paste0("expert_plot2")))
+                                      )),
+                                    mainPanel(
+                                      #withSpinner(tableOutput('tb'), type = 2),
+                                      h3("Kaplan-Meier Survival Plot"),
+                                      plotOutput(paste0("plot_km_expert1")),
+                                      fluidRow(column(selectInput("opinion_type", label = "Choose opinion type", 
+                                                                  choices = c("Survival at timepoint(s)" = "survival",
+                                                                              "Mean difference between survival"= "mean",
+                                                                              "No expert opinion" = "no_expert"), 
+                                                                  selected = "survival"), width = 3),
+                                               
+                                               column(selectInput("stat_type", label = "Choose statistical approach", 
+                                                                  choices = c("Frequentist" = "mle","Bayesian" = "hmc"), 
+                                                                  selected = "mle"), width = 3),
+                                               column(shinyWidgets::pickerInput(
+                                                 inputId = "param_mod", 
+                                                 label = "Choose models:", 
+                                                 choices = c("Exponential" = "exp",
+                                                             "Weibull" = "wei",
+                                                             "Gompertz" = "gomp",
+                                                             "Log-Logistic"= "llo",
+                                                             "Log-normal" = "lno",
+                                                             "Generalized-Gamma" = "gga",
+                                                             "Royston-Parmar" = "rps"), 
+                                                 options = list(
+                                                   `actions-box` = TRUE, 
+                                                   size = 10,
+                                                   `selected-text-format` = "count > 3"
+                                                 ), 
+                                                 multiple = TRUE,
+                                                 selected  = c("exp", "wei")
+                                               ), width = 3),
+                                               column(selectInput("id_trt", label = "Select treatment ID corresponding to expert opinion",
+                                                                  choices =  character(0)), width = 3)),
+                                      
+                                      fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
+                                               column(selectInput("gof_type", label = "Choose goodness of fit measure", 
+                                                                  choices = c("AIC" = "aic","BIC" = "bic"), 
+                                                                  selected = "AIC"), width = 3),
+                                               column(selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots", 
+                                                                  choices = c("Yes" = "yes",
+                                                                              "No"= "no"), 
+                                                                  selected = "no"), width = 3)),  
+                                      
+                                      plotOutput("plot_gof"),
+                                      
+                                      fluidRow(column(textInput('file_name', 'Enter filename for saved output', "Output-File"),
+                                                      width =3),
+                                               column(selectInput("outFormat",label = "Report format", 
+                                                                  choices = list(html = "html_document", 
+                                                                                 pdf = "pdf_document", Word = "word_document")), width = 3)),
+                                      fluidRow(column(downloadButton("save_output", "Download R objects"), width = 3),
+                                               column(downloadButton("report","Download report"),width = 3))
+                                    )                          
   ),
   server = function(input, output, session) {
     
-    hide("incl_psa")
+    shinyjs::hide("incl_psa")
     
     value <- reactiveValues(
       m_default = m_default_gen(),
@@ -372,14 +372,14 @@ elicit_surv <- function (){
     
     
     observeEvent(input$MLV_opt,{
-        if(input$MLV_opt){
-          show("matrix1_mode")
-          show("matrix2_mode")
-        }else{
-          hide("matrix1_mode")
-          hide("matrix2_mode")
-          
-        }
+      if(input$MLV_opt){
+        shinyjs::show("matrix1_mode")
+        shinyjs::show("matrix2_mode")
+      }else{
+        shinyjs::hide("matrix1_mode")
+        shinyjs::hide("matrix2_mode")
+        
+      }
       
     })
     
@@ -389,239 +389,239 @@ elicit_surv <- function (){
       value$df_upload <- df_upload
       #varSelectInput("variables", "Variable:", df_upload, multiple = TRUE),
       vars <- names(df_upload)
- 
+      
       # Update select input immediately after clicking on the action button. 
       updateSelectInput(session, "variables","Variable:", choices = vars)
-       
+      
     })
     observeEvent(input$expert_opt,{
       #browser()
       if(input$expert_opt){
-        show("pool_type_eval")
-        show("dist_select")
-        show("MLV_opt")
+        shinyjs::show("pool_type_eval")
+        shinyjs::show("dist_select")
+        shinyjs::show("MLV_opt")
       }else{
-        hide("pool_type_eval")
-        hide("dist_select")
-        hide("MLV_opt")
+        shinyjs::hide("pool_type_eval")
+        shinyjs::hide("dist_select")
+        shinyjs::hide("MLV_opt")
       }
     })
     
-
+    
     
     observeEvent({
       input$update_expert
-#      input$variables
-      },{
+      #      input$variables
+    },{
       #browser()
       #df_upload %>% dplyr::select(!!!input$variables)
       #browser()
       if(length(input$variables) >= 2 ){
         df_work <- value$df_upload %>% dplyr::select(!!!input$variables)
         
-      #browser()    
-      if(length(input$variables) == 2){
-        df_work$arm <- 1
-      }
-        
-      colnames(df_work) <- c("time", "status", "arm")
-      trt_vec <- unique(df_work[["arm"]])
-      
-      prev_input <- input$opinion_type
-      
-      
-      if(length(trt_vec) == 1){
-        #browser()
-        result.km <- survfit(Surv(time, status) ~ 1, data = df_work, conf.type="log-log")
-        km.data <- data.frame(cbind(result.km[[c("time")]],
-                                    result.km[[c("surv")]],
-                                    result.km[[c("upper")]],
-                                    result.km[[c("lower")]],
-                                    arm = 1))
-
-      
-        
-        if(!any(prev_input %in% c("survival","no_expert"))){
-          prev_input <- character(0)
+        #browser()    
+        if(length(input$variables) == 2){
+          df_work$arm <- 1
         }
         
-        updateSelectInput(session,"opinion_type",choices = c("Survival at timepoint(s)" = "survival",
-                                                             "No expert opinion" = "no_expert"), selected  = prev_input)
-        hide("id_trt") #hide id_trt panel
-        value$id_trt <- NULL
+        colnames(df_work) <- c("time", "status", "arm")
+        trt_vec <- unique(df_work[["arm"]])
         
-        df_work$arm <- 1
-      }else{
-        #browser()
-        show("id_trt") #hide id_trt panel
-        trt_vec_char <- as.character(trt_vec)
-       
-        updateSelectInput(inputId = "id_trt", choices = trt_vec_char,selected = head(trt_vec_char,1) )
-
-        km.data <- NULL
-        for(i in unique(df_work$arm)){
-          df_temp <- df_work %>% filter(arm == i)
-          result.km_temp <- survfit(Surv(time, status) ~ 1, data = df_temp, conf.type="log-log")
-          km.data_temp <- data.frame(cbind(result.km_temp[[c("time")]],
-                                           result.km_temp[[c("surv")]],
-                                           result.km_temp[[c("upper")]],
-                                           result.km_temp[[c("lower")]],
-                                           arm = i))
+        prev_input <- input$opinion_type
+        
+        
+        if(length(trt_vec) == 1){
+          #browser()
+          result.km <- survfit(Surv(time, status) ~ 1, data = df_work, conf.type="log-log")
+          km.data <- data.frame(cbind(result.km[[c("time")]],
+                                      result.km[[c("surv")]],
+                                      result.km[[c("upper")]],
+                                      result.km[[c("lower")]],
+                                      arm = 1))
           
-          km.data <-  rbind(km.data,km.data_temp)
-        }
-        
-        updateSelectInput(session,"opinion_type",
-                          choices = c("Survival at timepoint(s)" = "survival",
-                                      "Mean difference between survival"= "mean",
-                                      "No expert opinion" = "no_expert"),
-                          selected = prev_input)
-        
-      }
-      
-      colnames(km.data) <- c("Time", "Survival", "upper", "lower", "arm")
-      
-      value$km.data <- km.data
-      value$df_work <- df_work
-      value$id_trt <- input$id_trt
-      #Need to adjust for arm
-      
-      plot_fit <- ggplot(value$km.data, aes(x = Time,y =Survival, col = factor(arm)))+
-        geom_step()+
-        ylim(0,1)+
-        xlim(0, input$xlim)+
-        geom_step(aes(x  = Time, y =upper, col = factor(arm)))+
-        geom_step(aes(x  = Time, y =lower, col = factor(arm)))+
-        theme_light()#+
-      #scale_x_continuous(expand = c(0, 0))+#, breaks=seq(0, 30, 2)) + 
-      #scale_y_continuous(expand = c(0, 0))#, breaks=seq(0, 1, 0.05))
-      
-      
-   #### If expert opinion is avialble   
-   
-      
-        
-      if(!any(is.na(input[["matrix1"]][,2]))){ # If Expert opinions are not NA values
-        
-        times_expert_vec <- c()
-        df.linear_all <- NULL
-        param_expert <- list()
-        df.linear <- list()
-        scale_vec <- c()
-        final_scale <- 0.2 # We want the difference between the final time and density to be less than 0.2
-        #browser()
-        for(i in 1:input$n_timepoint){ #Update
           
-          #browser()
-          #want to allow for zeros
-          #browser()
-          #browser()
-          if(input$opinion_type == "survival"){
-            St_opinion = 1
-          }else{
-            St_opinion = 0
+          
+          if(!any(prev_input %in% c("survival","no_expert"))){
+            prev_input <- character(0)
           }
-       
           
-          if(input$MLV_opt){
-            output_pool <- return_pooled_info(input[[paste0("matrix",i)]], St_indic = St_opinion,dist = input$dist_select, mode =input[[paste0("matrix",i,"_mode")]][1,])
+          updateSelectInput(session,"opinion_type",choices = c("Survival at timepoint(s)" = "survival",
+                                                               "No expert opinion" = "no_expert"), selected  = prev_input)
+          shinyjs::hide("id_trt") #hide id_trt panel
+          value$id_trt <- NULL
+          
+          df_work$arm <- 1
+        }else{
+          #browser()
+          shinyjs::show("id_trt") #hide id_trt panel
+          trt_vec_char <- as.character(trt_vec)
+          
+          updateSelectInput(inputId = "id_trt", choices = trt_vec_char,selected = head(trt_vec_char,1) )
+          
+          km.data <- NULL
+          for(i in unique(df_work$arm)){
+            df_temp <- df_work %>% filter(arm == i)
+            result.km_temp <- survfit(Surv(time, status) ~ 1, data = df_temp, conf.type="log-log")
+            km.data_temp <- data.frame(cbind(result.km_temp[[c("time")]],
+                                             result.km_temp[[c("surv")]],
+                                             result.km_temp[[c("upper")]],
+                                             result.km_temp[[c("lower")]],
+                                             arm = i))
             
-          }else{
-            output_pool <- return_pooled_info(input[[paste0("matrix",i)]], St_indic = St_opinion,dist = input$dist_select)
-            
+            km.data <-  rbind(km.data,km.data_temp)
           }
           
-         if(input$opinion_type == "survival"){
-            output_pool[[2]] <- output_pool[[2]]+ xlim(c(0,1)) #If survival we want to truncate.
-          }
-          if(input$n_expert == 1){
-            output_pool[[2]][["layers"]][[3]] <-NULL
-            output_pool[[2]][["layers"]][[2]] <-NULL
-          }         
-          
-          
-          value[[paste0("expert_plot",i)]] <- output_pool[[2]]
-          
-          
-          times_expert = input[[paste0("time",i)]]
-          times_expert_vec <- c(times_expert_vec, times_expert)
-          
-          #browser()
-          
-          df.curr <-  subset(output_pool[[2]]$data, ftype == input$pool_type_eval) %>% rename(y = x)
-                 
-          scale_vec <- c(scale_vec,final_scale*(input$xlim-times_expert)/max(df.curr$fx))
-          
-          #df.linear <- subset(output_pool[[2]]$data, ftype == input$pool_type_eval) %>% rename(y = x) %>% 
-          #  mutate(x = times_expert + fx, 
-          #         times_expert = times_expert)
-          #df.linear_all <- rbind(df.linear_all, df.linear)
-          
-          df.linear[[i]] <- df.curr
-          
-          output_pool[[1]][,"dist"] <- gsub("normal", "norm", output_pool[[1]][,"dist"])
-          
-          param_expert[[i]] <- output_pool[[1]]
+          updateSelectInput(session,"opinion_type",
+                            choices = c("Survival at timepoint(s)" = "survival",
+                                        "Mean difference between survival"= "mean",
+                                        "No expert opinion" = "no_expert"),
+                            selected = prev_input)
           
         }
         
-        for(i in 1:input$n_timepoint){
-          df.linear[[i]] <- df.linear[[i]] %>% 
+        colnames(km.data) <- c("Time", "Survival", "upper", "lower", "arm")
+        
+        value$km.data <- km.data
+        value$df_work <- df_work
+        value$id_trt <- input$id_trt
+        #Need to adjust for arm
+        
+        plot_fit <- ggplot(value$km.data, aes(x = Time,y =Survival, col = factor(arm)))+
+          geom_step()+
+          ylim(0,1)+
+          xlim(0, input$xlim)+
+          geom_step(aes(x  = Time, y =upper, col = factor(arm)))+
+          geom_step(aes(x  = Time, y =lower, col = factor(arm)))+
+          theme_light()#+
+        #scale_x_continuous(expand = c(0, 0))+#, breaks=seq(0, 30, 2)) + 
+        #scale_y_continuous(expand = c(0, 0))#, breaks=seq(0, 1, 0.05))
+        
+        
+        #### If expert opinion is avialble   
+        
+        
+        
+        if(!any(is.na(input[["matrix1"]][,2]))){ # If Expert opinions are not NA values
+          
+          times_expert_vec <- c()
+          df.linear_all <- NULL
+          param_expert <- list()
+          df.linear <- list()
+          scale_vec <- c()
+          final_scale <- 0.2 # We want the difference between the final time and density to be less than 0.2
+          #browser()
+          for(i in 1:input$n_timepoint){ #Update
+            
+            #browser()
+            #want to allow for zeros
+            #browser()
+            #browser()
+            if(input$opinion_type == "survival"){
+              St_opinion = 1
+            }else{
+              St_opinion = 0
+            }
+            
+            
+            if(input$MLV_opt){
+              output_pool <- return_pooled_info(input[[paste0("matrix",i)]], St_indic = St_opinion,dist = input$dist_select, mode =input[[paste0("matrix",i,"_mode")]][1,])
+              
+            }else{
+              output_pool <- return_pooled_info(input[[paste0("matrix",i)]], St_indic = St_opinion,dist = input$dist_select)
+              
+            }
+            
+            if(input$opinion_type == "survival"){
+              output_pool[[2]] <- output_pool[[2]]+ xlim(c(0,1)) #If survival we want to truncate.
+            }
+            if(input$n_expert == 1){
+              output_pool[[2]][["layers"]][[3]] <-NULL
+              output_pool[[2]][["layers"]][[2]] <-NULL
+            }         
+            
+            
+            value[[paste0("expert_plot",i)]] <- output_pool[[2]]
+            
+            
+            times_expert = input[[paste0("time",i)]]
+            times_expert_vec <- c(times_expert_vec, times_expert)
+            
+            #browser()
+            
+            df.curr <-  subset(output_pool[[2]]$data, ftype == input$pool_type_eval) %>% rename(y = x)
+            
+            scale_vec <- c(scale_vec,final_scale*(input$xlim-times_expert)/max(df.curr$fx))
+            
+            #df.linear <- subset(output_pool[[2]]$data, ftype == input$pool_type_eval) %>% rename(y = x) %>% 
+            #  mutate(x = times_expert + fx, 
+            #         times_expert = times_expert)
+            #df.linear_all <- rbind(df.linear_all, df.linear)
+            
+            df.linear[[i]] <- df.curr
+            
+            output_pool[[1]][,"dist"] <- gsub("normal", "norm", output_pool[[1]][,"dist"])
+            
+            param_expert[[i]] <- output_pool[[1]]
+            
+          }
+          
+          for(i in 1:input$n_timepoint){
+            df.linear[[i]] <- df.linear[[i]] %>% 
               mutate(x = times_expert_vec[i] + fx*min(scale_vec), 
                      times_expert = times_expert_vec[i])
-          df.linear_all <- rbind(df.linear_all, df.linear[[i]])
+            df.linear_all <- rbind(df.linear_all, df.linear[[i]])
+          }
+          
+          
+          
+          value$param_expert <- param_expert
+          value$timepoint_expert <- times_expert_vec
+          value$df.linear_all <- df.linear_all
+          
+          if(input$opinion_type == "survival"){
+            plot_fit <- plot_fit+
+              geom_ribbon(data = df.linear_all, aes(x = x, y = y, xmin= x, xmax =times_expert, group=times_expert), 
+                          fill = "sky blue", alpha = 0.5, colour = "grey")
+          }
+          
+          
         }
         
-
+        output$plot_km_expert1<- renderPlot(plot_fit)
         
-        value$param_expert <- param_expert
-        value$timepoint_expert <- times_expert_vec
-        value$df.linear_all <- df.linear_all
-        
-        if(input$opinion_type == "survival"){
-          plot_fit <- plot_fit+
-            geom_ribbon(data = df.linear_all, aes(x = x, y = y, xmin= x, xmax =times_expert, group=times_expert), 
-                        fill = "sky blue", alpha = 0.5, colour = "grey")
-        }
-        
-        
-      }
-      
-      output$plot_km_expert1<- renderPlot(plot_fit)
-      
       }  
       
     })
     
     
-
+    
     observeEvent(input$n_timepoint, {
       
       if(input$n_timepoint > 1){
-        showTab(inputId = "Timepoints", target = "Timepoints1")
-        showTab(inputId = "Timepoints", target = "Timepoints2")
+        shiny::showTab(inputId = "Timepoints", target = "Timepoints1")
+        shiny::showTab(inputId = "Timepoints", target = "Timepoints2")
       }
       if(input$n_timepoint == 1){
-        showTab(inputId = "Timepoints", target = "Timepoints1")
-        hideTab(inputId = "Timepoints", target = "Timepoints2")
+        shiny::showTab(inputId = "Timepoints", target = "Timepoints1")
+        shiny::hideTab(inputId = "Timepoints", target = "Timepoints2")
       }
     })
     
     observeEvent(input$opinion_type,{
-      hide("plot_gof")
+      shinyjs::hide("plot_gof")
       if(input$opinion_type == "survival"){
         
         updateSelectInput(session,"id_trt", label = "Select treatment ID corresponding to expert opinion")
         
         
-        show("time1")
+        shinyjs::show("time1")
         if(input$n_timepoint > 1){
-          showTab(inputId = "Timepoints", target = "Timepoints1")
-          showTab(inputId = "Timepoints", target = "Timepoints2")
+          shiny::showTab(inputId = "Timepoints", target = "Timepoints1")
+          shiny::showTab(inputId = "Timepoints", target = "Timepoints2")
         }
         if(input$n_timepoint == 1){
-          showTab(inputId = "Timepoints", target = "Timepoints1")
-          hideTab(inputId = "Timepoints", target = "Timepoints2")
+          shiny::showTab(inputId = "Timepoints", target = "Timepoints1")
+          shiny::hideTab(inputId = "Timepoints", target = "Timepoints2")
         }
         
       }
@@ -629,53 +629,53 @@ elicit_surv <- function (){
       if(input$opinion_type == "mean"){
         
         updateSelectInput(session,"id_trt", label = "Select treatment ID corresponding to expert opinion - Mean difference of selected treatment vs other treatment")
-        showTab(inputId = "Timepoints", target = "Timepoints1")
-        hide("time1")
-        hideTab(inputId = "Timepoints", target = "Timepoints2")
+        shiny::showTab(inputId = "Timepoints", target = "Timepoints1")
+        shinyjs::hide("time1")
+        shiny::hideTab(inputId = "Timepoints", target = "Timepoints2")
       }
       
       if(input$opinion_type == "no_expert"){
-        hideTab(inputId = "Timepoints", target = "Timepoints1")
-        hideTab(inputId = "Timepoints", target = "Timepoints2")
+        shiny::hideTab(inputId = "Timepoints", target = "Timepoints1")
+        shiny::hideTab(inputId = "Timepoints", target = "Timepoints2")
       }
       
       if(input$opinion_type == "survival" | input$opinion_type == "mean"){
-        show("n_expert")
+        shinyjs::show("n_expert")
         if(input$opinion_type == "survival" ){
-          show("n_timepoint") 
+          shinyjs::show("n_timepoint") 
         }else{
-          hide("n_timepoint")
+          shinyjs::hide("n_timepoint")
         }
         
-        show("expert_opt")
+        shinyjs::show("expert_opt")
         #browser()
         if(input$expert_opt){
-          show("pool_type_eval")
-          show("dist_select")
-          show("MLV_opt")
+          shinyjs::show("pool_type_eval")
+          shinyjs::show("dist_select")
+          shinyjs::show("MLV_opt")
         }else{
-          hide("pool_type_eval")
-          hide("dist_select")
-          hide("MLV_opt")
+          shinyjs::hide("pool_type_eval")
+          shinyjs::hide("dist_select")
+          shinyjs::hide("MLV_opt")
         }
         
         if(is.null(value$id_trt)){
-      
-          hide("id_trt")
+          
+          shinyjs::hide("id_trt")
         }else{
-          show("id_trt")
+          shinyjs::show("id_trt")
         }
         
         
       }else{ #No Expert Opinion
-        hide("n_expert")
-        hide("n_timepoint")
-        hide("expert_opt")
-        hide("MLV_opt")
-        hide("pool_type_eval")
-        hide("dist_select")
-        hide("id_trt")
-      
+        shinyjs::hide("n_expert")
+        shinyjs::hide("n_timepoint")
+        shinyjs::hide("expert_opt")
+        shinyjs::hide("MLV_opt")
+        shinyjs::hide("pool_type_eval")
+        shinyjs::hide("dist_select")
+        shinyjs::hide("id_trt")
+        
       }
       
     })
@@ -688,12 +688,12 @@ elicit_surv <- function (){
       # browser()
       if(input$n_expert == 1){
         #shinyjs::hideElement(id = "pool_type_eval")
-        hide("pool_type_eval")
+        shinyjs::hide("pool_type_eval")
         
       }else{
         #shinyjs::showElement(id = "pool_type_eval")
-        show("pool_type_eval")
-          }
+        shinyjs::show("pool_type_eval")
+      }
       
       for(i in 1:2){ #Modify this force it to me 2 which is the max number of timepoints
         mat_exist <- input[[paste0("matrix",i)]]
@@ -714,10 +714,10 @@ elicit_surv <- function (){
           mat_exist_mode <- mat_exist_mode[,1:(input$n_expert),drop = F]
         }
         colnames(mat_exist) <- c("Cum Prob", paste0("Expert_", 1:input$n_expert))
-        updateMatrixInput(session, paste0("matrix",i), value=mat_exist )
+        shinyMatrix::updateMatrixInput(session, paste0("matrix",i), value=mat_exist )
         
         colnames(mat_exist_mode) <-  paste0("Expert_", 1:input$n_expert)
-        updateMatrixInput(session, paste0("matrix",i,"_mode"), value=mat_exist_mode )
+        shinyMatrix::updateMatrixInput(session, paste0("matrix",i,"_mode"), value=mat_exist_mode )
       }
       value$n_expert_prev <- input$n_expert
       
@@ -755,15 +755,15 @@ elicit_surv <- function (){
               new_mat[(length(retain_quant_index)+1):nrow(new_mat),1] <- quant_num[change_quant_index]
             }
           }
-          updateMatrixInput(session, paste0("matrix",i), value=new_mat)
+          shinyMatrix::updateMatrixInput(session, paste0("matrix",i), value=new_mat)
           
         }
       }})
     
-
+    
     
     observeEvent(input$run_analysis, {
-
+      
       id_trt_work<- min(which(as.character(value$df_work[["arm"]]) == input$id_trt))
       if(input$opinion_type == "mean"){
         id_comp_work<- min(which(as.character(value$df_work[["arm"]]) != input$id_trt))
@@ -785,16 +785,16 @@ elicit_surv <- function (){
       if(!is.null(value$param_expert)& input$opinion_type != "no_expert"){
         
         mod_fit  <- try({fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
-                                      distr=input$param_mod,
-                                      method=input$stat_type,
-                                      pool_type = input$pool_type_eval,#"log pool", 
-                                      opinion_type = input$opinion_type,
-                                      times_expert = timepoint_expert_work, 
-                                      param_expert = value$param_expert,
-                                      id_trt = id_trt_work,
-                                      id_comp = id_comp_work,
-                                      id_St  = id_trt_work,
-                                      k = 1)})
+                                           distr=input$param_mod,
+                                           method=input$stat_type,
+                                           pool_type = input$pool_type_eval,#"log pool", 
+                                           opinion_type = input$opinion_type,
+                                           times_expert = timepoint_expert_work, 
+                                           param_expert = value$param_expert,
+                                           id_trt = id_trt_work,
+                                           id_comp = id_comp_work,
+                                           id_St  = id_trt_work,
+                                           k = 1)})
         
         # if(class(mod_fit)=="try-error"){
         #   paste('Model estimation failed; Note Frequentist approach is typically much more "fragile" when expert opinion is in conflict with the data.')
@@ -802,7 +802,7 @@ elicit_surv <- function (){
         
         
         value$mod_fit <- mod_fit
-       }
+      }
       
       if(input$opinion_type == "no_expert"){
         
@@ -860,8 +860,8 @@ elicit_surv <- function (){
             geom_step(value$km.data, mapping = aes(x = Time,y =Survival, col = factor(arm)),inherit.aes = FALSE)+
             geom_step(value$km.data, mapping = aes(x = Time,y =lower, col = factor(arm)),inherit.aes = FALSE)+
             geom_step(value$km.data, mapping = aes(x = Time,y =upper, col = factor(arm)),inherit.aes = FALSE)
-        
-          }
+          
+        }
         
       }else{
         
@@ -877,7 +877,7 @@ elicit_surv <- function (){
         
       }  
     })
-
+    
     
     value$plot_gof <- eventReactive(value$mod_fit,{
       #browser()
@@ -889,20 +889,20 @@ elicit_surv <- function (){
         output[[paste0("expert_plot",i)]] <- renderPlot(value[[paste0("expert_plot",i)]])
         
       }
-    
-      hide("plot_gof")
+      
+      shinyjs::hide("plot_gof")
     })
     
     
     observeEvent(input$run_analysis, {
-     # browser()
+      # browser()
       output$plot_km_expert1 <- renderPlot(
         value$plot_km_expert1())
       
       output$plot_gof <- renderPlot(
         value$plot_gof())
       
-      show("plot_gof")
+      shinyjs::show("plot_gof")
       
     })
     
@@ -925,7 +925,7 @@ elicit_surv <- function (){
     
     output$save_output <- downloadHandler(filename = paste0(input$file_name,".rds"),
                                           content = function(file){
-                                     #browser()
+                                            #browser()
                                             list_output <- list(model = value$mod_fit)
                                             #Need to fix this code chunk
                                             if(input$opinion_type != "no_expert"){
@@ -973,7 +973,7 @@ elicit_surv <- function (){
                           xlim = input$xlim,
                           n_timepoint = input$n_timepoint,
                           opinion_type = input$opinion_type)
-   
+      
       if(input$opinion_type != "no_expert"){
         for(i in 1:input$n_timepoint){
           list_output[[paste0("expert_plot",i)]] <- value[[paste0("expert_plot",i)]] 
@@ -982,12 +982,12 @@ elicit_surv <- function (){
       pathway <- "C:\\Users\\phili\\OneDrive\\PhD\\R_packages_2023\\expertsurv\\inst\\Report\\"
       tempReport <- file.path(paste0(tempdir(), "\\Generate-Report.Rmd"))
       file.copy(paste0(pathway,"Generate-Report.Rmd"), tempReport, overwrite = TRUE)
-
+      
       # rmarkdown::render(tempReport, output_file = file, #File Name
       #                   params = params, output_format = input$outFormat,
       #                   envir = new.env(parent = globalenv()))
       
-     
+      
       
       template <- use_parameters(tempReport, names(list_output),
                                  is.file = TRUE)
@@ -996,7 +996,7 @@ elicit_surv <- function (){
       rmarkdown::render(tempReport, output_file = file, #File Name
                         params = list_output, output_format = input$outFormat,
                         envir = new.env(parent = globalenv()))
-   
+      
       
     })
     

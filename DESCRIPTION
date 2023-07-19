@@ -62,6 +62,7 @@ Suggests:
 	shinycssloaders,
 	shinyjs,
 	shinyMatrix,
-	shinybusy
+	shinybusy,
+	ggpubr
 VignetteBuilder: knitr
 RdMacros: Rdpack
