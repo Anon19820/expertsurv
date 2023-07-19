@@ -16,6 +16,7 @@ export(make.surv)
 export(model.fit.plot)
 export(plot_expert_opinion)
 export(psa.plot)
+export(elicit_surv)
 
 import(flexsurv)
 import(ggplot2)
