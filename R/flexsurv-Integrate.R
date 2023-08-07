@@ -157,8 +157,7 @@ logLikFactory <- function (Y, X = 0, weights, bhazard, rtrunc, dlist, inits,
         param_expert_mat <- abind::adrop(expert_opinion$param_expert[, 
                                                                      , q, drop = F], drop = 3)
         
-        #Will need to fix for CRAN!!!
-        LL_expert[q] <- expertsurv:::expert_log_dens(psurv_expert[q], 
+        LL_expert[q] <- expert_log_dens(psurv_expert[q], 
                                                      df = param_expert_mat, expert_opinion$pool, 
                                                      k_norm = expert_opinion$k_norm[q], St_indic = expert_opinion$St_indic)
       }

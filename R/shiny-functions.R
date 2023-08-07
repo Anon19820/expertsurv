@@ -178,13 +178,7 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 #' @import shiny
 #' @export
 elicit_surv <- function (){
-  
-  #Fixes required for expertsurv implemented in this file!!
-  #Fixes - fix error_mod_normal
-  #Fix DLSsurvspline was accessed in the wrong order with test.deriv
-  #Fix this mess in runMLE where id_trt and id_St don't work -- Fixed - pargSurv/expert wasn't reading the correct ids.
-  #Fix the lik_lno function the likelihood was incorrect for the compute ICS_stan
-  
+
   ## Load Packages
   # list.of.packages <- need<-c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy") #needed libraries
   # res <- lapply(list.of.packages, require, character.only = TRUE)
