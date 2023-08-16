@@ -1,7 +1,7 @@
 # FUNCTION ----
 `%!in%` = Negate(`%in%`)
 
-#NAMESPACE HACK FOR CRAN; won't let me use SHELF::: :-(
+#NAMESPACE HACK FOR CRAN; won't let me use SHELF 3 times :
 logt.error <-utils::getFromNamespace("logt.error", "SHELF")
 gamma.error<-utils::getFromNamespace("gamma.error", "SHELF")
 lognormal.error<-utils::getFromNamespace("lognormal.error", "SHELF")
@@ -436,7 +436,7 @@ plotfit <- function (fit, d = "best", xl = -Inf, xu = Inf, ql = NA, qu = NA,
           lp = FALSE, ex = NA, sf = 3, ind = TRUE, lpw = 1, fs = 12, 
           lwd = 1, xlab = "x", ylab = expression(f[X](x)), legend_full = TRUE, 
           percentages = FALSE, returnPlot = FALSE){
-#NAMESPACE HACK FOR CRAN; won't let me use SHELF::: :-(
+#NAMESPACE HACK FOR CRAN; three times :
 logt.error <-utils::getFromNamespace("logt.error", "SHELF")
 gamma.error<-utils::getFromNamespace("gamma.error", "SHELF")
 lognormal.error<-utils::getFromNamespace("lognormal.error", "SHELF")
@@ -1337,8 +1337,6 @@ fit.models <- function (formula = NULL, data, distr = NULL, method = "mle", exAr
     
     stop("INLA is not implemented in expertsurv")
     
-    # res <-format_output_fit.models(lapply(distr, function(x) survHE:::runINLA(x, 
-    #                                                                   exArgs)), method, distr, formula, data)
   }
   if (method == "hmc") {
     if(any(distr %in% c("gam", "gomp", "gga"))){
