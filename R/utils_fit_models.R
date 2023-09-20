@@ -169,7 +169,7 @@ manipulate_distributions <- function(x){
 }
 
 ### Little function to compute the log-likelihood (for the obs vs censored cases)
-compute.loglik <- function(f,s) {
+compute_loglik <- function(f,s) {
   loglik <- (apply(log(f),1,sum) + apply(log(s),1,sum))
   return(loglik)
 }

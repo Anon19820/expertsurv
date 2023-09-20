@@ -30,7 +30,7 @@ normal.error_mod <- function (parameters, values, probabilities, weights, mode,t
   return(res1)
 }
 
-t.error_mod <- function (parameters, values, probabilities, weights, degreesfreedom, 
+t_error_mod <- function (parameters, values, probabilities, weights, degreesfreedom, 
                          mode,trunc=FALSE){ 
   
   if(trunc){ #Survival Trunc
@@ -289,7 +289,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     }
     
     
-    t.fit <- stats::optim(c(m, 0.5 * log(v)), t.error_mod, 
+    t.fit <- stats::optim(c(m, 0.5 * log(v)), t_error_mod, 
                           values = vals[inc, i], probabilities = probs[inc, 
                                                                        i], weights = weights[inc, i], degreesfreedom = tdf[i], 
                           mode = mode[i],trunc = trunc)

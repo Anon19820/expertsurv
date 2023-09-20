@@ -344,7 +344,7 @@ flexsurvreg <- function (formula, anc = NULL, data, weights, bhazard, rtrunc,
                          aux = NULL, cl = 0.95, integ.opts = NULL, sr.control = survival::survreg.control(),
                          hessian = TRUE, hess.control = NULL, expert_opinion = NULL, ...){
   
-  #NAMESPACE HACK FOR CRAN; won't let me use flexsurv::: :-(
+  #NAMESPACE HACK FOR CRAN; won't let me use 3 times :
   
   buildTransformer <-utils::getFromNamespace("buildTransformer", "flexsurv")
   buildAuxParms <-utils::getFromNamespace("buildAuxParms", "flexsurv")

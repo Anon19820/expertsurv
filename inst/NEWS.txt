@@ -1,3 +1,14 @@
+Version 1.3.0 (2023-09-20)
+-------------------------
+
+Now that rstan 2.26 is available on CRAN we need to update the deprecated syntax in the package's Stan models, otherwise it will fail to install with an upcoming version of RStan.
+The following updates have been made:
+•	New array syntax
+More information about the deprecated and removed syntax in Stan can be found here:
+•	https://mc-stan.org/docs/functions-reference/deprecated-functions.html
+•	https://mc-stan.org/docs/functions-reference/removed-functions.html
+
+
 Version 1.2.0 (2023-07-21)
 -------------------------
 
