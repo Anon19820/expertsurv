@@ -6,22 +6,22 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of $\texttt{expertsurv}$ is to incorporate expert opinion into
-an analysis of time to event data. $\texttt{expertsurv}$ uses many of
-the core functions of the $\texttt{survHE}$ package (Baio 2020).
-Technical details of the implementation are detailed in (Cooney and
-White 2023) and will not be repeated here.
+The goal of `expertsurv` is to incorporate expert opinion into an
+analysis of time to event data. `expertsurv` uses many of the core
+functions of the `survHE` package (Baio 2020) and also the `flexsurv`
+package (Jackson 2016). Technical details of the implementation are
+detailed in (Cooney and White 2023) and will not be repeated here.
 
 The key function is `fit.models.expert` and operates almost identically
-to the `fit.models` function of $\texttt{survHE}$.
+to the `fit.models` function of `survHE`.
 
 ## Installation
 
 You can install the released version of expertsurv from
-[GitHub](https://github.com/Philip-Cooney/expertsurv) with:
+[CRAN](https://cran.r-project.org/web/packages/expertsurv/) with:
 
 ``` r
-devtools::install_github("Philip-Cooney/expertsurv")
+install("expertsurv")
 ```
 
 ## Expert Opinion on Survival at timepoints
@@ -74,18 +74,17 @@ timepoint_expert <- 14
 
 If we wanted opinions at multiple timepoints we just include append
 another list (i.e. param_expert_example1\[\[2\]\] with the relevant
-parameters) and specify timepoint_expert as a vector of length 2 with
+parameters) and specify `timepoint_expert` as a vector of length 2 with
 the second element being the second timepoint.
 
 For details on assigning distributions to elicited probabilities and
-quantiles see the $\texttt{SHELF}$ package (Oakley 2021) and for an
-overview on methodological approaches to eliciting expert opinion see
-(O’Hagan 2019). We can see both the individual and pooled distributions
-using the following code (note that we could have used the output of the
-`fitdist` function from $\texttt{SHELF}$ if we actually elicited
-quantiles from an expert):
+quantiles see the `SHELF` package (Oakley 2021) and for an overview on
+methodological approaches to eliciting expert opinion see (O’Hagan
+2019). We can see both the individual and pooled distributions using the
+following code (note that we could have used the output of the `fitdist`
+function from `SHELF` if we actually elicited quantiles from an expert):
 
-    plot_opinion1<- plot_expert_opinion(param_expert_example1[[1]], 
+    plot_opinion1 <- plot_expert_opinion(param_expert_example1[[1]], 
                         weights = param_expert_example1[[1]]$wi)
     ggsave("Vignette_Example 1 - Expert Opinion.png")
 
@@ -93,10 +92,16 @@ For the log pool we have a uni-modal distribution (in contrast to the
 bi-modal linear pool) which has a $95\%$ credible interval between
 $9.0−11.9\%$ calculated with the function below:
 
-![Expert prior
-distributions](inst/image/Vignette_Example_1_Expert_Opinion.png)
-
     cred_int_val <- cred_int(plot_opinion1,val = "log pool", interval = c(0.025, 0.975))
+
+<div class="figure" style="text-align: center">
+
+<img src="inst/image/Vignette_Example_1_Expert_Opinion.png" alt="Expert prior distributions" width="70%" />
+<p class="caption">
+Expert prior distributions
+</p>
+
+</div>
 
 We load and fit the data as follows (in this example considering just
 the Weibull and Gompertz models), with `pool_type = "log pool"`
@@ -112,7 +117,7 @@ the penalized maximum likelihood estimates in the next section.
 
     example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
                                             distr=c("wph", "gomp"),
-                                            method="hmc",
+                                            method="bayes",
                                             iter = 5000,
                                             pool_type = "log pool", 
                                             opinion_type = "survival",
@@ -134,27 +139,38 @@ referring to the $95\%$ confidence region for the experts prior belief).
       scale_y_continuous(expand = c(0, 0), limits = c(0, NA), breaks=seq(0, 1, 0.05))+
       geom_segment(aes(x = 14, y = cred_int_val[1], xend = 14, yend = cred_int_val[2]))
 
-![Model Comparison](inst/image/Vignette_Example_1_DIC.png)
+<div class="figure" style="text-align: center">
 
-![Survival function with Expert
-prior](inst/image/Vignette_Example_1.png)
+<img src="inst/image/Vignette_Example_1_DIC.png" alt="Model Comparison" width="70%" />
+<p class="caption">
+Model Comparison
+</p>
+
+</div>
+
+<div class="figure" style="text-align: center">
+
+<img src="inst/image/Vignette_Example_1.png" alt="Survival function with Expert prior" width="70%" />
+<p class="caption">
+Survival function with Expert prior
+</p>
+
+</div>
 
 ## Expert Opinion using Penalized Maximum Likelihood
 
 We can also fit the model by Penalized Maximum Likelihood approaches
-through the $\texttt{flexsurv}$ package (Jackson 2016). All that is
-required that the `method="hmc"` is changed to `method="mle"` with the
-`iter` argument now redundant. One argument that maybe of interest is
-the `method_mle` which is the optimization procedure that
-$\texttt{flexsurv}$ uses. In case the optimization fails, we can
-sometimes obtain convergence with the “Nelder-Mead” algorithm. If the
-procedure is still failing, it may relate to the expert opinion being
-too informative.
+based on code taken from the `flexsurv` package (Jackson 2016). All that
+is required that the `method="bayes"` is changed to `method="mle"` with
+the `iter` argument now redundant. One argument that maybe of interest
+is the `method_mle` which is the optimization procedure that `flexsurv`
+uses. In case the optimization fails, we can sometimes obtain
+convergence with the `Nelder-Mead` algorithm. If the procedure is still
+failing, it may relate to the expert opinion being too informative.
 
 It should be noted that the results will be similar to the Bayesian
-approach when the expert opinion is unimodal (as maximum liklelihood
-produces a point estimate) and relatively more informative, therefore we
-use the logarithmic pool which is unimodal.
+approach when the expert opinion is unimodal and relatively more
+informative, therefore we use the logarithmic pool which is unimodal.
 
 We find that the AIC values also favour the Gompertz model by a large
 factor (not shown) and are very similar to the DIC presented for the
@@ -163,18 +179,19 @@ Bayesian model.
 <!-- ```{r echo = FALSE, fig.cap = "Survival function with Expert Information-Penalized Maximum Likelihood"} -->
 <!-- knitr::include_graphics("inst/image/MLE-Weibull-Gomp.png") -->
 <!-- ``` -->
+<!--$\texttt{expertsurv}$ modifies some of the $\texttt{flexsurv}$ functions, so if you wish to use revert to the original $\texttt{flexsurv}$ functions within the same session you should run the following commands:
 
-$\texttt{expertsurv}$ modifies some of the $\texttt{flexsurv}$
-functions, so if you wish to use revert to the original
-$\texttt{flexsurv}$ functions within the same session you should run the
-following commands:
-
-        unloadNamespace("flexsurv") #Unload flexsurv and associated name spaces
-        require("flexsurv") #reload flexsurv
+```
+    unloadNamespace("flexsurv") #Unload flexsurv and associated name spaces
+    require("flexsurv") #reload flexsurv
+```-->
 
 ## Expert Opinion on Survival of a comparator arm
 
-In this situation we place an opinion on the comparator arm.
+In this situation we place an opinion on the comparator arm. In this
+example `id_St` is used to specify the row number in the data frame of
+the comparator arm, indicating that the covariate pattern for this row
+represents the group for which the expert opinion is provided.
 
     param_expert_example2[[1]] <- data.frame(dist = c("norm"),
                                              wi = c(1),
@@ -194,20 +211,22 @@ unique(data$arm)
                                             method="hmc",
                                             iter = 5000,
                                             opinion_type = "survival",
-                                            id_St = 0, 
+                                            id_St = min(which(data2$arm ==0)), #We want our opinion to refer to the treatment called "0" 
                                             times_expert = timepoint_expert, 
                                             param_expert = param_expert_example2)
 
-We can remove the impact of expert opinion by running the same model in
-the $\texttt{survHE}$ package. Alternatively we note that a
-$\mathcal{Beta}(1,1)$ distribution is uniform on the survival
-probability and does not change the likelihood.
+We can remove the impact of expert opinion omitting the arguments
+relating to `opinion_type,id_St,times_expert,param_expert`, $\dots$ with
+the function.
 
-    param_expert_vague <- list()
-    param_expert_vague[[1]] <- data.frame(dist = "beta", wi = 1, param1 = 1, param2 = 1, param2 = NA)
+<div class="figure" style="text-align: center">
 
-![Survival function with Expert prior (left) and Vague prior
-(right)](inst/image/Vignette_Example_2.png)
+<img src="inst/image/Vignette_Example_2.png" alt="Survival function with Expert prior (left) and Vague prior (right)" width="70%" />
+<p class="caption">
+Survival function with Expert prior (left) and Vague prior (right)
+</p>
+
+</div>
 
 The survival function for “arm 1” has been shifted downwards slightly,
 however the covariate for the accelerated time factor has markedly
@@ -220,7 +239,11 @@ This example illustrates an opinion on the survival difference. For
 illustration we use the Gompertz, noting that a negative shape parameter
 will lead to a proportion of subjects living forever. Clearly the mean
 is not defined in these cases so the code automatically constrains the
-shape to be positive.
+shape to be positive. It should also be noted that there are many
+potential combinations of survival curves which could produce a
+difference in the expected survival of 5 months. If this approach is
+considered, the number of iterations should be quite large to ensure
+convergence.
 
     param_expert3 <- list()
 
@@ -233,48 +256,34 @@ shape to be positive.
                                                          method="hmc",
                                                          iter = 5000,
                                                          opinion_type = "mean",
-                                                         id_trt = 1, # Survival difference is Mean_surv[id_trt]- Mean_surv[id_comp] 
+                                                         id_trt = min(which(data2$arm ==1)), # Survival difference is  Mean_surv[id_trt]- Mean_surv[id_comp] 
+                                                         id_comp = min(which(data2$arm ==0)),
                                                          param_expert = param_expert3)
+                                                         
+                                                         
 
-![Survival difference](inst/image/Vignette_Example_3.png)
+<div class="figure" style="text-align: center">
+
+<img src="inst/image/Vignette_Example_3.png" alt="Survival difference" width="70%" />
+<p class="caption">
+Survival difference
+</p>
+
+</div>
 
 ## Compatability with underlying packages survHE and flexsurv
 
 As stated in the introduction this package relies on many of the core
-functions of the $\texttt{survHE}$ package (Baio 2020). Because we do
-not not implement expert opinion with INLA and because future versions
-of $\texttt{survHE}$ may introduce conflicts with the current
-implementation, we have directly ported the key functions from
-$\texttt{survHE}$ into the package so that $\texttt{expertsurv}$ no
-longer imports $\texttt{survHE}$ (of course all credit for those
-functions goes to (Baio 2020) and co-authors).
-
-In theory the same concern could apply to $\texttt{flexsurv}$ package
-\[flexsurv\], however, this package has been released for some years and
-it is unlikely that the code architecture would change sufficiently to
-cause issues (however, for reference $\texttt{expertsurv}$ was built
-with $\texttt{flexsurv}=\text{v}2.0$).
+functions of the `survHE, flexsurv` packages Jackson (2016). Because
+future versions of `survHE` and `flexsurv` may introduce conflicts with
+the current implementation, we have directly ported the key functions
+from these packages into the package so that `expertsurv` no longer
+imports `survHE,flexsurv` (of course all credit for those functions goes
+to Jackson (2016)).
 
 If you run in issues, bugs or just features which you feel would be
 useful, please let me know (<phcooney@tcd.ie>) and I will investigate
 and update as required.
-
-As mentioned, I have made modifications to some of the
-$\texttt{flexsurv}$ functions to accommodate exper opinion (by changing
-the functions within the namespace of the $\texttt{flexsurv}$
-environment). These should have no impact on the operation of
-$\texttt{flexsurv}$ and these changes are only invoked when
-$\texttt{flexsurv}$ is loaded. However, in the situation where you would
-like to revert to orginal $\texttt{flexsurv}$ functions during the
-session, simply run the following:
-
-
-    unloadNamespace("flexsurv") #Unload flexsurv and associated name spaces
-    require("flexsurv") #reload flexsurv
-
-Care should be taken, however to ensure the packages were successfully
-unloaded as other packages which require $\texttt{flexsurv}$ can block
-the unloading to that package (which will cause an error).
 
 <!-- One practical difference between the packages is the calculation of DIC (Deviance Information Criterion). In  $\texttt{survHE}$ the posterior median is used as the plug-in estimate for the log-likelihood, while we use the posterior mean as per the definition of DIC by [@Spiegelhalter.2003], noting that both estimates should be very similar.  -->
 <!-- ## Survival curves implied by Expert Opinion alone -->
@@ -319,10 +328,10 @@ considerable differences are present the prior distributions should be
 investigated.
 
 Because the analysis is done in JAGS and Stan we can leverage the
-`ggmcmc` package:
+`ggmcmc` package (Fernández-i-Marín 2016):
 
     #For Stan Models # Log-Normal, RP, Exponential, Weibull
-    ggmcmc(ggs(as.mcmc(example1$models$`Gen. Gamma`)), file = "Gengamma.pdf")
+    ggmcmc(ggs(example1$models$`Exponential`), file = "Exponential.pdf")
 
     #For JAGS Models # Gamma, Gompertz, Generalized Gamma
     ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
@@ -344,8 +353,17 @@ Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
 
 Cooney, Philip, and Arthur White. 2023. “Direct Incorporation of Expert
 Opinion into Parametric Survival Models to Inform Survival
-Extrapolation.” *Medical Decision Making* 1 (1): 0272989X221150212.
+Extrapolation.” *Medical Decision Making* 43 (3): 325–36.
 <https://doi.org/10.1177/0272989X221150212>.
+
+</div>
+
+<div id="ref-ggmcmc.2016" class="csl-entry">
+
+Fernández-i-Marín, Xavier. 2016. “<span class="nocase">ggmcmc</span>:
+Analysis of MCMC Samples and Bayesian Inference.” *Journal of
+Statistical Software* 70 (9): 1–20.
+<https://doi.org/10.18637/jss.v070.i09>.
 
 </div>
 

@@ -89,7 +89,7 @@ make.surv <- function(fit,mod=1,t=NULL,newdata=NULL,nsim=1,...) {
     )
     # Computes the survival curves - first in matrix form with all the simulations
     # Needs to add more inputs for the case of hmc/rps
-    if(fit$method=="hmc" & dist=="rps") {
+    if(fit$method=="bayes" & dist=="rps") {
       exArgs$data.stan <- fit$misc$data.stan[[mod]]
       t[t==0] <- min(0.00001,min(t[t>0]))
     }

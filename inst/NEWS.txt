@@ -8,6 +8,8 @@ More information about the deprecated and removed syntax in Stan can be found he
 •	https://mc-stan.org/docs/functions-reference/deprecated-functions.html
 •	https://mc-stan.org/docs/functions-reference/removed-functions.html
 
+Also included in a new vignette on the Shiny application.
+
 
 Version 1.2.0 (2023-07-21)
 -------------------------

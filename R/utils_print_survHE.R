@@ -29,10 +29,10 @@ get_stats_mle <- function(x,mod) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Exponential
 #' @noRd 
-rescale_stats_hmc_exp <- function(table,x) {
+rescale_stats_bayes_exp <- function(table,x) {
   rate <- matrix(table[grep("rate",rownames(table)),],ncol=4)
   rownames(rate) <- "rate"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(rate,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -49,12 +49,12 @@ rescale_stats_hmc_exp <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC WeibullAFT
 #' @noRd 
-rescale_stats_hmc_wei <- function(table,x) {
+rescale_stats_bayes_wei <- function(table,x) {
   scale <- matrix(table[grep("scale",rownames(table)),],ncol=4)
   rownames(scale) <- "scale"
   shape <- matrix(table[grep("alpha",rownames(table)),],ncol=4)
   rownames(shape) <- "shape"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(shape,scale,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -71,12 +71,12 @@ rescale_stats_hmc_wei <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC WeibullPH
 #' @noRd 
-rescale_stats_hmc_wph <- function(table,x) {
+rescale_stats_bayes_wph <- function(table,x) {
   scale <- matrix(table[grep("scale",rownames(table)),],ncol=4)
   rownames(scale) <- "scale"
   shape <- matrix(table[grep("alpha",rownames(table)),],ncol=4)
   rownames(shape) <- "shape"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(shape,scale,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -93,12 +93,12 @@ rescale_stats_hmc_wph <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Gompertz
 #' @noRd 
-rescale_stats_hmc_gom <- function(table,x) {
+rescale_stats_bayes_gom <- function(table,x) {
   rate <- matrix(table[grep("rate",rownames(table)),],ncol=4)
   rownames(rate) <- "rate"
   shape <- matrix(table[grep("alpha",rownames(table)),],ncol=4)
   rownames(shape) <- "shape"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(shape,rate,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -115,12 +115,12 @@ rescale_stats_hmc_gom <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC logNormal
 #' @noRd 
-rescale_stats_hmc_lno <- function(table,x) {
+rescale_stats_bayes_lno <- function(table,x) {
   meanlog <- matrix(table[grep("meanlog",rownames(table)),],ncol=4)
   rownames(meanlog) <- "meanlog"
   sdlog <- matrix(table[grep("alpha",rownames(table)),],ncol=4)
   rownames(sdlog) <- "sdlog"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(meanlog,sdlog,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -138,12 +138,12 @@ rescale_stats_hmc_lno <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC logLogistic
 #' @noRd 
-rescale_stats_hmc_llo <- function(table,x) {
+rescale_stats_bayes_llo <- function(table,x) {
   rate <- matrix(table[grep("rate",rownames(table)),],ncol=4)
   rownames(rate) <- "scale"
   shape <- matrix(table[grep("alpha",rownames(table)),],ncol=4)
   rownames(shape) <- "shape"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(shape,rate,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -160,7 +160,7 @@ rescale_stats_hmc_llo <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC GenF
 #' @noRd 
-rescale_stats_hmc_gef <- function(table,x) {
+rescale_stats_bayes_gef <- function(table,x) {
   mu <- matrix(table[grep("beta",rownames(table)),],ncol=4,nrow=1)
   rownames(mu) <- "mu"
   sigma <- matrix(table[grep("sigma",rownames(table)),],ncol=4)
@@ -169,7 +169,7 @@ rescale_stats_hmc_gef <- function(table,x) {
   rownames(Q) <- "Q"
   P <- matrix(table[match("P",rownames(table)),],ncol=4)
   rownames(P) <- "P"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(mu,sigma,Q,P,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -186,14 +186,14 @@ rescale_stats_hmc_gef <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC GenGamma
 #' @noRd 
-rescale_stats_hmc_gga <- function(table,x) {
+rescale_stats_bayes_gga <- function(table,x) {
   mu <- matrix(table[grep("beta",rownames(table)),,drop=FALSE][1,],ncol=4,nrow=1)
   rownames(mu) <- "mu"
   sigma <- matrix(table[grep("sigma",rownames(table)),],ncol=4)
   rownames(sigma) <- "sigma"
   Q <- matrix(table[grep("Q",rownames(table)),],ncol=4)
   rownames(Q) <- "Q"
-  effects=add_effects_hmc(table,x)
+  effects=add_effects_bayes(table,x)
   res <- rbind(mu,sigma,Q,effects)
   if (is.null(dim(res))) {names(res) <- c("mean","se","L95%","U95%")} else {colnames(res) <- c("mean","se","L95%","U95%")}
   return(res)
@@ -210,7 +210,7 @@ rescale_stats_hmc_gga <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Royston-Parmar splines
 #' @noRd 
-rescale_stats_hmc_rps <- function(table,x) {
+rescale_stats_bayes_rps <- function(table,x) {
   gamma <- matrix(table[grep("gamma",rownames(table)),],ncol=4)
   rownames(gamma) <- paste0("gamma",0:(nrow(gamma)-1))
   # If there covariates adds their effects
@@ -237,7 +237,7 @@ rescale_stats_hmc_rps <- function(table,x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Poly-Weibull
 #' @noRd 
-rescale_stats_hmc_pow <- function(table,x) {
+rescale_stats_bayes_pow <- function(table,x) {
   rownames(table)[grep("alpha",rownames(table))]=paste0("shape_",1:length(grep("alpha",rownames(table))))
 
   # Figures out which beta coefficients should be removed (because they are multiplied by a covariate that is constantly 0)
@@ -303,7 +303,7 @@ quiet <- function(x) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Stan
 #' @noRd 
-add_effects_hmc <- function(table,x) {
+add_effects_bayes <- function(table,x) {
   # If there's more than one beta, then there are "effects" (otherwise it's only intercept)
   if(length(grep("beta",rownames(table)))>1) {
     effects <- matrix(table[grep("beta",rownames(table)),],ncol=4)
@@ -342,7 +342,7 @@ original_table_mle <- function(x,mod,digits) {
 #' @references Baio (2020). survHE
 #' @keywords HMC
 #' @noRd 
-original_table_hmc <- function(x,mod,digits) {
+original_table_bayes <- function(x,mod,digits) {
   print(x$models[[mod]],digits=digits)
 }
 
@@ -390,7 +390,7 @@ format_table <- function(x,mod,res,digits){
   cat(paste0("Akaike Information Criterion (AIC)....: ",format(x$model.fitting$aic[[mod]],digits=6,nsmall=3)))
   cat("\n")
   cat(paste0("Bayesian Information Criterion (BIC)..: ",format(x$model.fitting$bic[[mod]],digits=6,nsmall=3)))
-  if(x$method=="inla" | x$method=="hmc") {
+  if(x$method=="inla" | x$method=="bayes") {
     cat("\n")
     cat(paste0("Deviance Information Criterion (DIC)..: ",format(x$model.fitting$dic[[mod]],digits=6,nsmall=3)))
   }

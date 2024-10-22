@@ -5,8 +5,8 @@
 #' \code{Surv(time,event)~treatment[+covariates]} in flexsurv terms, or
 #' \code{inla.surv(time,event)~treatment[+covariates]} in INLA terms.
 #' @param method A string specifying the inferential method (\code{'mle'},
-#' \code{'inla'} or \code{'hmc'}). If \code{method} is set to \code{'hmc'},
-#' then \code{survHE} will write suitable model code in the Stan language
+#' \code{'bayes'}). If \code{method} is set to \code{'bayes'},
+#' then \code{survHE} will write suitable model code in the Stan language or JAGS
 #' (according to the specified distribution), prepare data and initial values
 #' and then run the model.
 #' @param data A data frame containing the data to be used for the analysis.
@@ -69,7 +69,7 @@ load_availables <- function() {
            "loglogistic" = "llo",
            "rps" = "rps"
     ),
-    hmc=c("Exponential" = "exp",
+    bayes=c("Exponential" = "exp",
           "Gamma" = "gam",
           "GenF" = "gef",
           "GenGamma" = "gga",
@@ -177,7 +177,7 @@ compute_loglik <- function(f,s) {
 #' Helper function to check that the distribution(s) provided by the user are
 #' consistent with the method chosen for inference.
 #' 
-#' \code{'inla'} or \code{'hmc'}). If \code{method} is set to \code{'hmc'},
+#' \code{'inla'} or \code{'bayes'}). If \code{method} is set to \code{'bayes'},
 #' then \code{survHE} will write suitable model code in the Stan language
 #' (according to the specified distribution), prepare data and initial values
 #' and then run the model.
@@ -196,9 +196,9 @@ check_distributions <- function(method,distr) {
   # Uses the helper 'manipulated_distributions' to create the vectors distr, distr3 and labs
   distr3 <- manipulate_distributions(distr)$distr3
   
-  # If 'method' is either 'inla' or 'hmc but we're trying to run a model that is not available, then
+  # If 'method' is either 'inla' or 'bayes but we're trying to run a model that is not available, then
   # falls back to 'mle'
-  if(method %in% c("inla","hmc")) {
+  if(method %in% c("inla","bayes")) {
     if(!all(distr3 %in% availables[[method]])) {
       ####modelsString <- unname(labelTable[availables[[method]]])
       modelsString <- unname(manipulate_distributions(availables[[method]])$labs)
@@ -213,10 +213,10 @@ check_distributions <- function(method,distr) {
   }
   
   # 'mle' can implement all the possible models, excpet the PolyWeibull
-  # In this case, I choose to *stop* execution, rather than falling back to 'hmc'!
+  # In this case, I choose to *stop* execution, rather than falling back to 'bayes'!
   if (method == "mle") {
     if(!all(distr3 %in% availables[[method]])) {
-      stop(paste0("The Poly-Weibull model is only implemented under method='hmc'.
+      stop(paste0("The Poly-Weibull model is only implemented under method='bayes'.
        Please set this option in your call to 'fit.models'"))
     }
   }

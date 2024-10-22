@@ -5,4 +5,5 @@
 ^README\.Rmd
 ^references\.bib
 ^man-roxygen$
-
+^doc$
+^Meta$

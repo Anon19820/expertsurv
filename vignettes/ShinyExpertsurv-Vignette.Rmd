@@ -1,0 +1,84 @@
+---
+title: "Shiny Application for expertsurv"
+output: 
+    bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+bibliography: 
+- references.bib
+vignette: >
+  %\VignetteIndexEntry{Shiny-expertsurv-Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE,echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>")
+
+options(rmarkdown.html_vignette.check_title = FALSE)
+
+```
+
+R packages have many advantages, primarily allowing for easy sharing and documentation of code and  ensuring code follows standardised conventions. Although R packages are more user friendly than a collection of functions, they still require the user to have a working knowledge of R something which most experts will not have.   
+
+As noted by [@Mikkola.2021], there is a need for tools which can embed the elicitation of expert opinion within the statistical workflow. One such tool is Shiny, an open-source R package that provides an elegant and powerful web framework for building web applications using R. Shiny can turn analyses conducted by R into interactive web applications without requiring HTML, CSS, or JavaScript knowledge [@Shiny.2023].
+
+Learning how to interact with a webpage should be a much simpler task for experts and health economists not familiar with R. Furthermore, we can leverage R Markdown to create reproducible reports of the relevant outputs of the $\texttt{expertsurv}$ package in formats such as PDF, HTML and Word. 
+
+The tutorial below provides an overview of the steps required to elicit expert opinion on the survival at a timepoint of 20 months and incorporate these beliefs with survival data. To begin we simply run the following function $\texttt{elicit_surv}()$ which will open up a webpage. 
+
+In Figure \@ref(fig:expertsurv-1) we have the following steps to upload the data:
+
+  * Upload an excel file containing the survival data
+  * Select the columns referring to the time, status and arm (if jointly modelling treatment and comparator)
+  * Set the limit of the for the survival plot (ensuring that Choose opinion type as ''Survival at timepoint(s)''
+  * We assume that there are two experts who we will provide expert opinion 
+  * Once the above parameters are defined select the ''Plot/Update Survival Curves and Expert Opinions''
+
+```{r expertsurv-1, echo = FALSE, fig.cap = "Upload data and generate Kaplan-Meier plot", out.width="100%"}
+knitr::include_graphics("plots/ShinyExpertSurv-1.png")
+
+```
+
+
+<!-- \begin{figure}[H] -->
+<!--     \centering -->
+<!--     \includegraphics[width=\textwidth]{Chapter_8/plots/ShinyExpertSurv-1.png} -->
+<!--     \caption{\texttt{expertsurv}: Upload data and generate Kaplan-Meier plot} -->
+<!--     \label{fig:expertsurv-1} -->
+<!-- \end{figure} -->
+
+In Figure \@ref(fig:expertsurv-2) we have the following steps to elicit the expert's opinions:
+
+  * We set the timepoint at which we elicit expert opinion to 20 months.
+  * Experts will be asked for their beliefs on the median survival at 20 months, the lower $2.5\%$ and upper $97.5\%$ probabilities of the population survival. 
+
+
+Once these steps are complete, we click the ''Plot/Update Survival Curves and Expert Opinions'' button.
+
+```{r expertsurv-2, echo = FALSE, fig.cap = "Expert beliefs about survival at 20 months", out.width="50%"}
+knitr::include_graphics("plots/ShinyExpertSurv-2.png")
+
+```
+
+In Figure \@ref(fig:expertsurv-2) we have the following steps to run the analysis:
+
+  * Several other advanced options relating to the expert opinion are available in the checkbox; these include specifying the most likely value (MLV), the choice of pooling expert opinion (linear or logarithmic pooling - default linear pooling) and the parametric distribution to fit to each individual opinion (default is best fitting). 
+  * We can select which treatment arm relates to the expert's belief (i.e. treatment or comparator).
+  * Selecting Run Analysis will conduct the analysis; and it should be noted that the Bayesian analysis can take a considerable amount of time.
+  * Once the analysis is complete we can download the $\texttt{expertsurv}$ object which can be loaded an R session later.
+  * We can also download the results as a report in one of three formats (HTML, PDF or Word) as shown in Figure \@ref(fig:expertsurv-4).
+
+
+```{r expertsurv-3, echo = FALSE, fig.cap = "Running statistical analysis", out.width="100%"}
+knitr::include_graphics("plots/ShinyExpertSurv-3.png")
+
+```
+
+```{r expertsurv-4, echo = FALSE, fig.cap = "Results generated from the Markdown file", out.width="75%"}
+knitr::include_graphics("plots/ShinyExpertSurv-4.png")
+
+```
+
+## References

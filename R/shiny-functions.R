@@ -165,7 +165,7 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 #' Click "Download R objects" to download the ``expertsurv`` object generated from the analysis. 
 #' Click "Download report" to generate a report including plots and parameter values for the parametric survival models. 
 #' 
-#'
+#' For detailed instructions use \code{browseVignettes("expertsurv")}
 #'
 #' @author Philip Cooney <phcooney@@tcd.ie>
 #' @examples
@@ -301,7 +301,7 @@ elicit_surv <- function (){
                                                                   selected = "survival"), width = 3),
                                                
                                                column(selectInput("stat_type", label = "Choose statistical approach", 
-                                                                  choices = c("Frequentist" = "mle","Bayesian" = "hmc"), 
+                                                                  choices = c("Frequentist" = "mle","Bayesian" = "bayes"), 
                                                                   selected = "mle"), width = 3),
                                                column(shinyWidgets::pickerInput(
                                                  inputId = "param_mod", 
@@ -321,7 +321,7 @@ elicit_surv <- function (){
                                                  multiple = TRUE,
                                                  selected  = c("exp", "wei")
                                                ), width = 3),
-                                               column(selectInput("id_trt", label = "Select treatment ID corresponding to expert opinion",
+                                               column(selectInput("id_trt", label = "Select name of treatment corresponding to expert opinion",
                                                                   choices =  character(0)), width = 3)),
                                       
                                       fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
@@ -757,7 +757,7 @@ elicit_surv <- function (){
     
     
     observeEvent(input$run_analysis, {
-      
+      #browser()
       id_trt_work<- min(which(as.character(value$df_work[["arm"]]) == input$id_trt))
       if(input$opinion_type == "mean"){
         id_comp_work<- min(which(as.character(value$df_work[["arm"]]) != input$id_trt))
@@ -801,18 +801,23 @@ elicit_surv <- function (){
       if(input$opinion_type == "no_expert"){
         
         
-        param_expert_vague <- list()
-        param_expert_vague[[1]] <- data.frame(dist = "beta", wi = 1, param1 = 1, param2 = 1, param2 = NA)
+        #param_expert_vague <- list()
+        #param_expert_vague[[1]] <- data.frame(dist = "beta", wi = 1, param1 = 1, param2 = 1, param2 = NA)
+        
+        # mod_fit  <- fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
+        #                               distr=input$param_mod,
+        #                               method=input$stat_type,
+        #                               pool_type = input$pool_type_eval,#"log pool", 
+        #                               opinion_type = "survival",
+        #                               times_expert = 2, 
+        #                               param_expert = param_expert_vague,
+        #                               k = 1,
+        #                               id_St  = 1)
+        
         
         mod_fit  <- fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
                                       distr=input$param_mod,
-                                      method=input$stat_type,
-                                      pool_type = input$pool_type_eval,#"log pool", 
-                                      opinion_type = "survival",
-                                      times_expert = 2, 
-                                      param_expert = param_expert_vague,
-                                      k = 1,
-                                      id_St  = 1)
+                                      method=input$stat_type)
         
         value$mod_fit <- mod_fit
       }
@@ -973,9 +978,16 @@ elicit_surv <- function (){
           list_output[[paste0("expert_plot",i)]] <- value[[paste0("expert_plot",i)]] 
         }
       }
-      pathway <- "C:\\Users\\phili\\OneDrive\\PhD\\R_packages_2023\\expertsurv\\inst\\Report\\"
+      
+      
+   
+      file_pathway <- system.file("Report", "Generate-Report.Rmd", package = "expertsurv")
+        if (file_pathway == "") {
+          stop("File Generate-Report.Rmd not found.")
+        }
+ 
       tempReport <- file.path(paste0(tempdir(), "\\Generate-Report.Rmd"))
-      file.copy(paste0(pathway,"Generate-Report.Rmd"), tempReport, overwrite = TRUE)
+      file.copy(file_pathway , tempReport, overwrite = TRUE)
       
       # rmarkdown::render(tempReport, output_file = file, #File Name
       #                   params = params, output_format = input$outFormat,
@@ -1001,3 +1013,12 @@ elicit_surv <- function (){
   
   
 }
+
+
+
+# tmpfun <- get("elicit_surv", envir = asNamespace("expertsurv"))
+# environment(elicit_surv) <- environment(tmpfun)
+# attributes(elicit_surv) <- attributes(tmpfun)  
+# assignInNamespace("elicit_surv", elicit_surv, ns="expertsurv")
+
+

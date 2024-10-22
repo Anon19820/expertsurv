@@ -1,4 +1,17 @@
-Changelog:
+Changelog: 2024
+
+Removed the dependence to Flexsurv
+
+Have an option not to include expert_opinion currently it is cumbersome.
+Double check the shiny app.
+Make sure the package doesn't need rstan to run.
+Correct and expand upon the priors.
+Plot the density of the expert opinion on the plot.
+
+Changelog: 2023
+
+# Updated Stan files based on new array syntax
+# Added a new vignette for the shiny application.
 
 #CRAN version
 
@@ -11,7 +24,7 @@ Fixed error with norm_err_mod and other distributions.
 
 #To Do:
 1- Fix the integrator function in flexsurv. Can often fail, can use analytical expression I used for JAGS
-2 - Update with Shiny
+2 - Update with Shiny - Done
 
 
 
@@ -25,6 +38,15 @@ Changed example to highlight the weights need to sum up to 1.
 Tidied up the folder structure and removed uneeded files.
 
 #Notes to self
+
+
+If you ever want to overwrite a package function this is the best way to do it.
+
+tmpfun <- get("make_sim_hmc", envir = asNamespace("survHE"))
+environment(make_sim_hmc) <- environment(tmpfun)
+attributes(make_sim_hmc) <- attributes(tmpfun)  
+assignInNamespace("make_sim_hmc", make_sim_hmc, ns="survHE")
+
 
 To add something to the build ignore use this code usethis::use_build_ignore(c("man-roxygen"))
 same for gitignore  usethis::use_git_ignore(c("src"))

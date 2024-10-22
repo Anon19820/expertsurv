@@ -64,7 +64,7 @@ make_sim_mle <- function(m,t,X,nsim,newdata,dist,summary_stat,...) {
 #' @references Baio (2020). survHE
 #' @keywords HMC Exponential
 #' @noRd 
-rescale_hmc_exp <- function(m,X,linpred){
+rescale_bayes_exp <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # Exponential distribution
   sim <- as.matrix(exp(linpred)) # exp(rstan::extract(m)$beta %*% t(X)); 
@@ -85,7 +85,7 @@ rescale_hmc_exp <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC Weibull AFT
 #' @noRd 
-rescale_hmc_wei <- function(m,X,linpred){
+rescale_bayes_wei <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # Weibull distribution
   shape <- as.numeric(rstan::extract(m)$alpha)
@@ -108,7 +108,7 @@ rescale_hmc_wei <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC Weibull PH
 #' @noRd 
-rescale_hmc_wph <- function(m,X,linpred){
+rescale_bayes_wph <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # Weibull PH distribution
   shape <- as.numeric(rstan::extract(m)$alpha)
@@ -135,7 +135,7 @@ rescale_hmc_wph <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC Generalised F
 #' @noRd 
-rescale_hmc_gef <- function(m,X,linpred){
+rescale_bayes_gef <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # Generalised F distribution
   Q <- as.numeric(rstan::extract(m)$Q)
@@ -161,7 +161,7 @@ rescale_hmc_gef <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC logNormal
 #' @noRd 
-rescale_hmc_lno <- function(m,X,linpred){
+rescale_bayes_lno <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # logNormal distribution
   sdlog <- as.numeric(rstan::extract(m)$alpha)
@@ -184,7 +184,7 @@ rescale_hmc_lno <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC logLogistic
 #' @noRd 
-rescale_hmc_llo <- function(m,X,linpred){
+rescale_bayes_llo <- function(m,X,linpred){
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # logNormal distribution
   shape <- as.numeric(rstan::extract(m)$alpha)
@@ -207,7 +207,7 @@ rescale_hmc_llo <- function(m,X,linpred){
 #' @references Baio (2020). survHE
 #' @keywords HMC Royston-Parmar splines
 #' @noRd 
-rescale_hmc_rps <- function(m,X,linpred) {
+rescale_bayes_rps <- function(m,X,linpred) {
   # Rescales the original simulations to the list sim to be used by 'make.surv'
   # RPS
   gamma <- rstan::extract(m)$gamma
@@ -293,7 +293,7 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
     if(exists("timescale",where=exArgs)) {timescale=exArgs$timescale} else {timescale="log"}
     if(exists("log",where=exArgs)) {log=exArgs$log} else {log=FALSE}
     
-    if(method=="hmc") {
+    if(method=="bayes") {
       knots <- exArgs$data.stan$knots
       mat <- lapply(sim,function(x) {
         gamma=as_tibble(x) %>% select(contains("gamma"))

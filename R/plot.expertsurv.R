@@ -58,7 +58,7 @@
 #' #example can be run for CRAN
 #' example1_bayes <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
 #'                                     distr=c("wph", "exp"),
-#'                                     method="hmc",
+#'                                     method="bayes",
 #'                                     iter = 50,
 #'                                     pool_type = "log pool",
 #'                                     opinion_type = "survival",

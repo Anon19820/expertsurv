@@ -15,6 +15,8 @@ Plots of the fitted density functions are provided overlayed on the survival dat
 Once the elicitation is complete the analysis can be run.
 Click "Download R objects" to download the \code{expertsurv} object generated from the analysis.
 Click "Download report" to generate a report including plots and parameter values for the parametric survival models.
+
+For detailed instructions use \code{browseVignettes("expertsurv")}
 }
 \examples{
 

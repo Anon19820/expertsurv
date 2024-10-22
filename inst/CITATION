@@ -8,7 +8,7 @@ bibentry(
         person("Arthur", "White", email = "arwhite@tcd.ie",
         role = c("ths"))),
      year = "2023",
-     note = "R package version 1.0.0",
+     note = "R package version 1.3.0",
 #     url = "https://CRAN.R-project.org/package=expertsurv",
      key = "expertsurv-package"
    )

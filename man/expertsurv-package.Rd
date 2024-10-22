@@ -11,7 +11,7 @@ used in health economic modelling. Theoretical details are described elsewhere \
 }
 \details{
 \tabular{ll}{ Package: \tab expertsurv \cr Type: \tab Package\cr Version: \tab
-1.0.0\cr Date: \tab 2023-01-27\cr License: \tab MIT + file LICENSE \cr LazyLoad: \tab
+1.3.0\cr Date: \tab 2023-09-22\cr License: \tab MIT + file LICENSE \cr LazyLoad: \tab
 yes\cr } Integrate expert opinions on survival and mean differences in survival with common parametric survival models using either a Bayesian or frequentist framework.
 }
 \examples{
