@@ -1,4 +1,4 @@
-// Weibull survival model (with AFT parameterisation)
+WeibullAF_expert <- "// Weibull survival model (with AFT parameterisation)
 
 functions {
   // Defines the log hazard
@@ -197,3 +197,4 @@ generated quantities {
 
  }
 
+"

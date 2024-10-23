@@ -1,53 +1,57 @@
-// log-Logistic survival model
+logNormal_expert <- "// log-Normal survival model
 
 functions {
-  // Defines the log hazard
-  vector log_h (vector t, real shape, vector scale) {
-    vector[num_elements(t)] log_h_rtn;
-    for (i in 1:num_elements(t)) {
-      log_h_rtn[i] = log(shape)-log(scale[i])+(shape-1)*(log(t[i])-log(scale[i]))-log(1+pow((t[i]/scale[i]),shape));
-    }
-    return log_h_rtn;
-  }
-
   // Defines the log survival
-  vector log_S (vector t, real shape, vector scale) {
+  vector log_S (vector t, vector mean, real sd) {
     vector[num_elements(t)] log_S_rtn;
     for (i in 1:num_elements(t)) {
-      log_S_rtn[i] = -log(1+pow((t[i]/scale[i]),shape));
+      log_S_rtn[i] = log(1-Phi((log(t[i])-mean[i])/sd));
     }
     return log_S_rtn;
   }
 
-  // Defines the  survival indvidual
-  real Sind (real t, real shape, real scale) {
-    real Sind_rtn;
-    Sind_rtn = exp(-log(1+pow((t/scale),shape)));
-    return Sind_rtn;
+  // Defines the log survival indvidual
+  real log_Sind (real t, real mean, real sd) {
+    real log_Sind_rtn;
+    log_Sind_rtn = log(1-Phi((log(t)-mean)/sd));
+    return log_Sind_rtn;
   }
 
   // Defines difference in expected survival
-  real Surv_diff ( real shape, real scale_trt, real scale_comp) {
+  real Surv_diff (real mean_trt, real mean_comp, real sd ) {
     real Surv_diff_rtn;
-    real b;
-    b = pi()/shape;
-    Surv_diff_rtn = (scale_trt-scale_comp)*b/sin(b);
+    real Surv_trt;
+    real Surv_comp;
+
+    Surv_trt = exp(mean_trt + 0.5 * pow(sd,2));
+    Surv_comp = exp(mean_comp + 0.5 * pow(sd,2));
+
+    Surv_diff_rtn = Surv_trt - Surv_comp;
     return Surv_diff_rtn;
   }
 
 
+  // Defines the log hazard
+  vector log_h (vector t, vector mean, real sd) {
+    vector[num_elements(t)] log_h_rtn;
+    vector[num_elements(t)] ls;
+    ls = log_S(t,mean,sd);
+    for (i in 1:num_elements(t)) {
+      log_h_rtn[i] = lognormal_lpdf(t[i]|mean[i],sd) - ls[i];
+    }
+    return log_h_rtn;
+  }
 
   // Defines the sampling distribution
-  real surv_loglogistic_lpdf (vector t, vector d, real shape, vector scale, vector a0) {
+  real surv_lognormal_lpdf (vector t, vector d, vector mean, real sd, vector a0) {
     vector[num_elements(t)] log_lik;
     real prob;
-    log_lik = d .* log_h(t,shape,scale) + log_S(t,shape,scale);
-    prob = dot_product(log_lik,a0);
+    log_lik = d .* log_h(t,mean,sd) + log_S(t,mean,sd);
+    prob = dot_product(log_lik, a0);
     return prob;
   }
 
-
-   real log_density_dist(array[ , ] real params,
+  real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
 
     // Evaluates the log density for a range of distributions
@@ -105,6 +109,9 @@ functions {
       }
 
   }
+
+
+
 }
 
 data {
@@ -113,14 +120,15 @@ data {
   vector[n] d;            // censoring indicator (1=observed, 0=censored)
   int H;                  // number of covariates
   matrix[n,H] X;          // matrix of covariates (with n rows and H columns)
-  vector[H] mu_beta;	  // mean of the covariates coefficients
+  vector[H] mu_beta;	    // mean of the covariates coefficients
   vector<lower=0> [H] sigma_beta;   // sd of the covariates coefficients
-  real<lower=0> a_alpha;
-  real<lower=0> b_alpha;
-  vector[n] a0; //Power prior for the observations
+  real a_alpha;			      // lower bound for the sd of the data
+  real b_alpha;			      // upper bound for the sd of the data
 
+  vector[n] a0; //Power prior for the observations
   int<lower = 0, upper = 1> St_indic; // 1 Expert opinion on survival @ timepoint ; 0 Expert opinion on survival difference
   int n_time_expert;
+
   int id_St;
   int id_trt;
   int id_comp;
@@ -131,12 +139,11 @@ data {
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
 
-
 }
 
 parameters {
   vector[H] beta;         // Coefficients in the linear predictor (including intercept)
-  real<lower=1> alpha;    // shape parameter - Constrainted to be greater than 1 so that the expected value exists
+  real<lower=0> alpha;    // log-sd parameter
 }
 
 transformed parameters {
@@ -146,37 +153,40 @@ transformed parameters {
 
   linpred = X*beta;
   for (i in 1:n) {
-    mu[i] = exp(linpred[i]);
+    mu[i] = linpred[i];
   }
 
   for (i in 1:n_time_expert){
     if(St_indic == 1){
 
-      St_expert[i] = Sind(time_expert[i],alpha,mu[id_St]);
+      St_expert[i] = exp(log_Sind(time_expert[i],mu[id_St],alpha));
 
     }else{
-      St_expert[i] = Surv_diff(alpha,mu[id_trt],mu[id_comp]);
+      St_expert[i] = Surv_diff(mu[id_trt],mu[id_comp], alpha);
     }
   }
 
 }
 
 model {
-  alpha ~ gamma(a_alpha,b_alpha);
+  alpha ~ uniform(a_alpha,b_alpha);
   beta ~ normal(mu_beta,sigma_beta);
-  t ~ surv_loglogistic(d,alpha,mu, a0);
+  t ~ surv_lognormal(d,X*beta,alpha, a0);
 
   for (i in 1:n_time_expert){
+
 
      target += log_density_dist(param_expert[,,i],
                                  St_expert[i],
                                  n_experts[i],
                                  pool_type);
+
   }
 
 }
 
 generated quantities {
-  real rate;                // rate parameter
-  rate = exp(beta[1]);
+  real meanlog;
+  meanlog = beta[1];
 }
+"

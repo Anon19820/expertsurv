@@ -273,10 +273,17 @@ runBAYES <- function (x, exArgs){
   }
   if (exists("refresh", where = exArgs)) {
     refresh = exArgs$refresh
-  }
-  else {
+  }else {
     refresh = max(iter/10, 1)
   }
+  
+  if(exists("compile_mods", where = exArgs)){
+    compile_mods = exArgs$compile_mods
+  }else{
+    compile_mods = NULL
+  }
+  
+  
   d <- names(availables[[method]][match(d3, availables[[method]])])
   data.stan <- make_data_stan(formula, data, d3, exArgs)
   
@@ -326,8 +333,20 @@ runBAYES <- function (x, exArgs){
     
     
   }else{
-    dso <- stanmodels[[paste0(d, "_expert")]]
-    model <- rstan::sampling(dso, data.stan, chains = chains, 
+    # dso <- textConnection(get(paste0(d, "_expert")))
+    # model <- rstan::sampling(dso, data.stan, chains = chains, 
+    #                          iter = iter, warmup = warmup, thin = thin, seed = seed, 
+    #                          control = control, pars = pars, include = include, cores = cores, 
+    #                          init = init, refresh = refresh)
+    browser()
+    if(is.na(match(paste0(d, "_expert"), names(compile_mods)))){
+      stan_code <- get(paste0(d, "_expert"))
+      stan_model <- rstan::stan_model(model_code = stan_code, model_name  = paste0(d, "_expert"))
+    }else{
+      stan_model <- compile_mods[[paste0(d, "_expert")]]
+    }
+
+    model <- rstan::sampling(stan_model, data.stan, chains = chains, 
                              iter = iter, warmup = warmup, thin = thin, seed = seed, 
                              control = control, pars = pars, include = include, cores = cores, 
                              init = init, refresh = refresh)
@@ -363,6 +382,25 @@ runBAYES <- function (x, exArgs){
        dic2 = ics$dic2,waic = ics$waic, pml = ics$pml,  time2run = time_survHE, 
        data.stan = data.stan, save.stan = save.stan, model_name = model_name)
 }
+
+
+
+
+compile_stan <- function(dist_stan = c("exp","wei","wph","rps","llo","lno")){
+  availables_all <- expertsurv:::load_availables()[["bayes"]]
+  availables_stan <- availables_all[match(dist_stan,availables_all)]
+  names_stan <- names(availables_stan)
+  list_stan_model <- list()
+  for(i in 1:length(names_stan)){
+    mode_name_temp <- paste0(names_stan[i],"_expert")
+    stan_code_temp <- get(mode_name_temp)
+    list_stan_model[[mode_name_temp]] <- rstan::stan_model(model_code = stan_code_temp, model_name = mode_name_temp)
+  }
+  
+  return(list_stan_model)
+  
+}
+
 
 #' Helper function to create data in the correct format for rstan
 #' 

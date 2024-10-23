@@ -1,4 +1,4 @@
-// Weibull survival model (with PH parameterisation)
+WeibullPH_expert <- "// Weibull survival model (with PH parameterisation)
 
 functions {
   // Defines the log hazard
@@ -181,3 +181,4 @@ generated quantities {
   real scale;                // scale parameter
   scale = exp(beta[1]);
 }
+"

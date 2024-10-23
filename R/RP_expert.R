@@ -1,45 +1,43 @@
-// Exponential survival model
+RP_expert <- "// Royston-Parmar splines model
 
 functions {
-  // Defines the log hazard
-  vector log_h (vector t, vector rate) {
-    vector[num_elements(t)] log_h_rtn;
-    log_h_rtn = log(rate);
-    return log_h_rtn;
-  }
-
-  // Defines the log survival
-  vector log_S (vector t, vector rate) {
-    vector[num_elements(t)] log_S_rtn;
-    log_S_rtn = -rate .* t;
-    return log_S_rtn;
-  }
-
-  // Defines the log survival indvidual
-  real log_Sind (real t, real rate) {
-	real log_Sind_rtn;
-      log_Sind_rtn = -rate .* t;
-    return log_Sind_rtn;
-  }
-
-  // Defines difference in expected survival
-  real Surv_diff ( real rate_trt, real rate_comp) {
-	real Surv_diff_rtn;
-      Surv_diff_rtn = 1/rate_trt - 1/rate_comp;
-    return Surv_diff_rtn;
-  }
-
-  // Defines the sampling distribution
-  real surv_exponential_lpdf (vector t, vector d, vector rate, vector a0) {
+  real rps_lpdf(vector t, vector d, vector gamma, matrix B, matrix DB, vector linpred, vector a0) {
+    // t = vector of observed times
+    // d = event indicator (=1 if event happened and 0 if censored)
+    // gamma = M+2 vector of coefficients for the flexible part
+    // B = matrix of basis
+    // DB = matrix of derivatives for the basis
+    // linpred = fixed effect part
+    vector[num_elements(t)] eta;
+    vector[num_elements(t)] eta_prime;
     vector[num_elements(t)] log_lik;
-    real prob;
-    log_lik = d .* log_h(t,rate) + log_S(t,rate);
-    prob = dot_product(log_lik, a0);
-    return prob;
+    real lprob;
+
+    eta = B*gamma + linpred;
+    eta_prime = DB*gamma;
+    log_lik = d .* (-log(t) + log(eta_prime) + eta) - exp(eta);
+    lprob = dot_product(log_lik, a0);
+    return lprob;
   }
 
 
-   real log_density_dist(array[ , ] real params,
+
+
+  real Sind( vector gamma, row_vector B, real linpred) {
+    // t = vector of observed times
+    // gamma = M+2 vector of coefficients for the flexible part
+    // B = row_vector of basis
+    // linpred = fixed effect part
+    real eta;
+    real Sind_rtn;
+
+    eta = B*gamma + linpred;
+    Sind_rtn = exp(-exp(eta));
+    return Sind_rtn;
+  }
+
+
+  real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
 
     // Evaluates the log density for a range of distributions
@@ -97,19 +95,21 @@ functions {
 
   }
 
-
 }
 
 data {
-  int n;                  // number of observations
-  vector[n] t;            // observed times
-  vector[n] d;            // censoring indicator (1=observed, 0=censored)
-  int H;                  // number of covariates
-  matrix[n,H] X;          // matrix of covariates (with n rows and H columns)
-  vector[H] mu_beta;	    // mean of the covariates coefficients
+  int<lower=1> n;                   // number of observations
+  int<lower=0> M;                   // number of internal knots for the splines model
+  int<lower=1> H;                   // number of covariates in the (time-independent) linear predictor
+  vector<lower=0>[n] t;             // observed times (including censored values)
+  vector<lower=0,upper=1>[n] d;     // censoring indicator: 1 if fully observed, 0 if censored
+  matrix[n,H] X;                    // matrix of covariates for the (time-independent) linear predictor
+  matrix[n,M+2] B;                  // matrix with basis
+  matrix[n,M+2] DB;                 // matrix with derivatives of the basis
+  vector[H] mu_beta;                // mean of the covariates coefficients
   vector<lower=0> [H] sigma_beta;   // sd of the covariates coefficients
-
-  vector[n] a0; //Power prior for the observations
+  vector[M+2] mu_gamma;             // mean of the splines coefficients
+  vector<lower=0>[M+2] sigma_gamma; // sd of the splines coefficients
 
   int n_time_expert;
   int<lower = 0, upper = 1> St_indic; // 1 Expert opinion on survival @ timepoint ; 0 Expert opinion on survival difference
@@ -124,39 +124,40 @@ data {
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
 
-
+  matrix[n_time_expert,M+2] B_expert;                  // matrix with basis for experts times
+  vector[n] a0; //Power prior for the observations
 }
+
 
 parameters {
-  vector[H] beta;         // Coefficients in the linear predictor (including intercept)
+  vector[M+2] gamma;
+  vector[H] beta;
 }
 
-transformed parameters {
+
+transformed parameters{
   vector[n] linpred;
   vector[n] mu;
   vector[n_time_expert] St_expert;
 
-
   linpred = X*beta;
   for (i in 1:n) {
-    mu[i] = exp(linpred[i]);  // Rate parameter
+    mu[i] = linpred[i];
   }
-
   for (i in 1:n_time_expert){
-  if(St_indic == 1){
+    St_expert[i] = Sind(gamma, row(B_expert,i),mu[id_St]);
 
-		St_expert[i] = exp(log_Sind(time_expert[i],mu[id_St]));
-
-	 }else{
-	   St_expert[i] = Surv_diff(mu[id_trt],mu[id_comp]);
-  	}
   }
+
 }
 
 model {
+  // Priors
+  gamma ~ normal(mu_gamma,sigma_gamma);
   beta ~ normal(mu_beta,sigma_beta);
-  t ~ surv_exponential(d,mu, a0);
 
+  // Data model
+  t ~ rps(d,gamma,B,DB,X*beta, a0);
 
   for (i in 1:n_time_expert){
 
@@ -165,11 +166,6 @@ model {
                                  n_experts[i],
                                  pool_type);
   }
-
-
 }
 
-generated quantities {
-  real rate;                // rate parameter
-  rate = exp(beta[1]);
-}
+"
