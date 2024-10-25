@@ -7,13 +7,6 @@
 pfinal_fmsm(x, newdata = NULL, fromstate, maxt = 1e+05, B = 0, cores = NULL)
 }
 \arguments{
-\item{x}{Object returned by \code{\link{fmsm}}, representing a multi-state
-model formed from transition-specific time-to-event models fitted by
-\code{\link{flexsurvreg}}.}
-
-\item{newdata}{Data frame of covariate values, with one column per
-covariate, and one row per alternative value.}
-
 \item{fromstate}{State from which to calculate the transition probability
 state.  This should refer to the name of a row of the transition matrix
 \code{attr(x,trans)}.}
@@ -21,13 +14,6 @@ state.  This should refer to the name of a row of the transition matrix
 \item{maxt}{Large time to use for forecasting final state probabilities.
 The transition probability from zero to this time is used.  Note
 \code{Inf} will not work. The default is \code{100000}.}
-
-\item{B}{Number of simulations to use to calculate 95\\% confidence intervals
-based on the asymptotic normal distribution of the basic parameter
-estimates. If \code{B=0} then no intervals are calculated.}
-
-\item{cores}{Number of processor cores to use.  If \code{NULL} (the default)
-then a single core is used.}
 }
 \value{
 A data frame with one row per covariate value and destination state,

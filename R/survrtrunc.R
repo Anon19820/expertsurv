@@ -155,8 +155,8 @@ plot.survrtrunc <- function(x, ...){
     plot(x, ...)
 }
 
-##' 
-##' 
+
+##' @exportS3Method NULL
 lines.survrtrunc <- function(x, ...){
     class(x) <- "survfit"
     lines(x, ...)

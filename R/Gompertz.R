@@ -65,8 +65,6 @@ NULL
 ## in eha: shape=lam, gamma=1/scale
 ## log(shape) + x/scale - shape * scale * (exp(x/scale) - 1))
 ## shape/scale labelled wrong way round.
-
-##' @export
 ##' @rdname Gompertz
 dgompertz <- function(x, shape, rate=1, log=FALSE) {
     check_numeric(x=x, shape=shape, rate=rate)
@@ -131,14 +129,11 @@ Hgompertz <- function(x, shape, rate = 1, log = FALSE)
     ret
 }
 
-##' 
-##' @rdname means
+
 rmst_gompertz = function(t, shape, rate=1, start=0){
   rmst_generic(pgompertz, t, start=start, shape=shape, rate=rate)
 }
 
-##' 
-##' @rdname means
 mean_gompertz = function(shape, rate = 1){
   rmst_generic(pgompertz, Inf, start=0, shape=shape, rate=rate)
 }

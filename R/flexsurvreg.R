@@ -1127,7 +1127,7 @@ check_deriv <- function(optpars, Y, X, weights, bhazard, rtrunc, dlist, inits, d
   res
 }
 
-
+##' @exportS3Method NULL
 print.flexsurvreg <- function(x, ...)
 {
     covs <- names(x$datameans)
@@ -1248,7 +1248,7 @@ model.frame.flexsurvreg <- function(formula, ...)
     x$data$m
 }
 
-
+##' @exportS3Method NULL
 model.matrix.flexsurvreg <- function(object, par=NULL, ...)
 {
     x <- object

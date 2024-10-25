@@ -19,11 +19,8 @@ Click "Download report" to generate a report including plots and parameter value
 For detailed instructions use \code{browseVignettes("expertsurv")}
 }
 \examples{
-
 \dontrun{
-
 elicit_surv()
-
 }
 }
 \author{

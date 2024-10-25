@@ -15,8 +15,6 @@
 #' @return ggplot2 object of the survival curve including parameter uncertainty
 #' @author Gianluca Baio
 #' @keywords Survival models Bootstrap Probabilistic sensitivity analysis
-#' @import tibble
-#' @import dplyr
 #' @import ggplot2
 #' @examples
 #' require("dplyr")

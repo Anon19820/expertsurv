@@ -171,7 +171,6 @@ form.msm.newdata <- function(x, newdata=NULL, tvar="trans", trans){
 ##' msfit.flexsurvreg(bexp.list, t=seq(0,12,by=0.1), trans=tmat)
 ##' }
 ##' 
-##' @export
 msfit.flexsurvreg <- function(object, t, newdata=NULL, variance=TRUE, tvar="trans",
                               trans, B=1000){
     tr <- sort(unique(na.omit(as.vector(trans))))
@@ -253,7 +252,6 @@ msfit.flexsurvreg <- function(object, t, newdata=NULL, variance=TRUE, tvar="tran
 ##' 
 ##' @keywords models survival
 ##' 
-##' @export
 pars.fmsm <- function(x, trans, newdata=NULL, tvar="trans")
 {
     if (is.flexsurvlist(x)){
@@ -663,7 +661,7 @@ totlos.fs <- function(x, trans=NULL, t=1, newdata=NULL, ci=FALSE,
     res.t
 }
 
-
+##' @exportS3Method NULL
 print.totlos.fs <- function(x, ...){attr(x, "P") <- NULL; print(unclass(x),...)}
 
 # TODO make pmatrix generic
@@ -1370,7 +1368,7 @@ fmsm <- function(..., trans){
     res
 }
 
-
+##' @exportS3Method NULL
 print.fmsm <- function(x, ...){
     for (i in seq_along(x)){
         cat(names(x)[i], "\n")
@@ -1486,8 +1484,7 @@ simfinal_fmsm_noci <- function(x, newdata=NULL, t=1000, M=100000, probs=c(0.025,
 ##'   column \code{quantity}, and the value of the quantity is in \code{val},
 ##'   with additional columns \code{lower} and \code{upper} giving 95\%
 ##'   confidence intervals for the quantity, if \code{B>0}.
-##'
-
+##' @noRd
 simfinal_fmsm <- function(x, newdata=NULL, probs=c(0.025, 0.5, 0.975), 
                          t=1000, M=100000, B=0, cores=NULL){
     if (x[[1]]$ncoveffs > 0 & is.null(newdata))
@@ -1538,7 +1535,6 @@ pfinal_fmsm_noci <- function(x, newdata=NULL, fromstate, maxt=100000){
 ##' so for other models, \code{pmatrix.fs} or \code{pmatrix.simfs} can be used with a
 ##' large forecast time \code{t}. 
 ##'
-##' @inheritParams simfinal_fmsm
 ##' 
 ##' @param fromstate State from which to calculate the transition probability
 ##'   state.  This should refer to the name of a row of the transition matrix

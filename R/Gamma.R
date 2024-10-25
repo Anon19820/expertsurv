@@ -36,13 +36,12 @@ check.gamma <- function(shape, rate=1){
 }
 
 
-##' @rdname means
+
 mean_gamma <- function(shape, rate=1) {shape / rate}
 
 var.gamma <- function(shape, rate=1) {shape / rate^2}
 
 
-##' @rdname means
 rmst_gamma = function(t, shape, rate=1, start=0){
   rmst_generic(pgamma, t, start=start, shape=shape, rate=rate)
 }

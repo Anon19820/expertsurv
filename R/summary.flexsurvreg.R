@@ -370,7 +370,7 @@ summary_fns <- function(x, type){
     )
 }
 
-##' 
+##' @exportS3Method NULL
 print.summary.flexsurvreg <- function(x, ...){
     if (!inherits(x, "data.frame")){
         for (i in seq_along(x)){

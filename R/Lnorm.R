@@ -1,9 +1,6 @@
 ### Hazard and cumulative hazard functions for R built in
 ### distributions.  Where possible, use more numerically stable
 ### formulae than d/(1-p) and -log(1-p)
-
-##' @export
-##' @rdname hazard
 hlnorm <- function(x, meanlog=0, sdlog=1, log=FALSE){
     h <- dbase("lnorm", log=log, x=x, meanlog=meanlog, sdlog=sdlog)
     for (i in seq_along(h)) assign(names(h)[i], h[[i]])
@@ -14,8 +11,7 @@ hlnorm <- function(x, meanlog=0, sdlog=1, log=FALSE){
     ret
 }
 
-##' 
-##' @rdname hazard
+
 Hlnorm <- function(x, meanlog=0, sdlog=1, log=FALSE){
     h <- dbase("lnorm", log=log, x=x, meanlog=meanlog, sdlog=sdlog)
     for (i in seq_along(h)) assign(names(h)[i], h[[i]])
@@ -33,14 +29,12 @@ check.lnorm <- function(meanlog=0, sdlog=1){
     ret
 }
 
-##' 
-##' @rdname means
+
 mean_lnorm <- function(meanlog=0, sdlog=1){
     exp(meanlog + 0.5*sdlog^2)
 }
 
 
-##' @rdname means
 rmst_lnorm = function(t, meanlog=0, sdlog=1, start=0){
   rmst_generic(plnorm, t, start=start, meanlog=meanlog, sdlog=sdlog)
 }

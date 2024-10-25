@@ -32,7 +32,6 @@
 #' @seealso Something will go here
 #' @references Something will go here
 #' @keywords Parametric survival models
-#' @import dplyr
 #' @import ggplot2
 #' @examples
 #' #' 
@@ -216,8 +215,6 @@ plot_ggplot_expertsurv <- function(exArgs) {
 #' @return \item{surv.curv}{The \code{ggplot2} object with the graph}
 #' @note Something will go here
 #' @author Gianluca Baio
-#' @import tibble
-#' @import dplyr
 #' @keywords Parametric survival models
 #' @noRd 
 make_data_surv <- function(x,mods=1:length(x$models),nsim=1,t=NULL,newdata=NULL,add.km=FALSE) {

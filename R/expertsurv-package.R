@@ -13,7 +13,7 @@
 #' @name expertsurv-package
 #' 
 #' @aliases expertsurv-package expertsurv
-#' @docType package
+#' @docType _PACKAGE
 #' @author 
 #' Philip Cooney Package Creator, Maintainer
 #' @author 

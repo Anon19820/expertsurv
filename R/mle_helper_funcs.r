@@ -97,10 +97,6 @@ get_k_norm <- function(opinion_list, St_indic = 1){ # Only required if log-pooli
 #' @seealso fit.models
 #' @references Baio (2020). survHE
 #' @keywords Parametric survival models Maximum likelihood estimation
-#' @import tibble
-#' @import dplyr
-#' @import stats 
-#' @import flexsurv
 #' @noRd 
 
 runMLE <- function (x, exArgs){

@@ -189,7 +189,7 @@ flexsurvrtrunc <- function(t, tinit, rtrunc, tmax, data=NULL, method="joint", di
     res
 }
 
-##' 
+##' @exportS3Method NULL
 print.flexsurvrtrunc <- function(x, ...)
 {
     cat("Call:\n")

@@ -156,27 +156,22 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 
 
 #' Elicit survival judgements interactively and estimate survival models
-#' 
+#'
 #' Opens up a web browser (using the shiny package), from which you can specify
 #' judgements and fit distributions for multiple timepoints and experts.
-#' Plots of the fitted density functions are provided overlayed on the survival data (where appropriate).  
-#' 
+#' Plots of the fitted density functions are provided overlayed on the survival data (where appropriate).
+#'
 #' Once the elicitation is complete the analysis can be run.
-#' Click "Download R objects" to download the ``expertsurv`` object generated from the analysis. 
-#' Click "Download report" to generate a report including plots and parameter values for the parametric survival models. 
-#' 
+#' Click "Download R objects" to download the ``expertsurv`` object generated from the analysis.
+#' Click "Download report" to generate a report including plots and parameter values for the parametric survival models.
+#'
 #' For detailed instructions use \code{browseVignettes("expertsurv")}
 #'
 #' @author Philip Cooney <phcooney@@tcd.ie>
 #' @examples
-#' 
 #' \dontrun{
-#' 
 #' elicit_surv()
-#' 
 #' }
-#' @import shiny
-#' @export
 elicit_surv <- function (){
 
   ## Load Packages

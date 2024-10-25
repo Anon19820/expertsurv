@@ -78,7 +78,7 @@ rmst_flexsurvmix <- function(x, newdata=NULL, tot=Inf, B=NULL){
 ##' 
 ##' @param probs Vector of alternative quantiles, by default \code{c(0.025, 0.95, 0.975)}
 ##' giving the median and a 95\% interval. 
-##' 
+##' @noRd
 quantile_flexsurvmix <- function(x, newdata=NULL, B=NULL, probs=c(0.025, 0.5, 0.975)){
   cisumm_flexsurvmix(x, newdata=newdata, fnname="q", fnarg="p", fnargval=probs, fnlist=x$dfns, B=B)
   

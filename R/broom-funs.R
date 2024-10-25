@@ -219,6 +219,3 @@ augment.flexsurvreg <- function(x, data = NULL, newdata = NULL,
 
 utils::globalVariables(".pred")
 
-#' @importFrom generics augment
-#' @export
-generics::augment

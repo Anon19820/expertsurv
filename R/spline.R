@@ -88,20 +88,7 @@
 ##' Package splines2. Journal of Data Science, 19(3), 498-517.
 ##'
 ##' @keywords distribution
-##'
-##' @examples
-##' 
-##' ## reduces to the weibull
-##' regscale <- 0.786; cf <- 1.82
-##' a <- 1/regscale; b <- exp(cf)
-##' dweibull(1, shape=a, scale=b)
-##' dsurvspline(1, gamma=c(log(1 / b^a), a)) # should be the same
-##' 
-##' ## reduces to the log-normal
-##' meanlog <- 1.52; sdlog <- 1.11
-##' dlnorm(1, meanlog, sdlog) 
-##' dsurvspline(1, gamma = c(-meanlog/sdlog, 1/sdlog), scale="normal")
-##' # should be the same
+##' @noRd
 ##' @name Survspline
 NULL
 
@@ -340,7 +327,6 @@ mean_survspline = function(gamma, beta=0, X=0, knots=c(-10,10), scale="hazard", 
 ##' 
 ##' @param x Vector of ordinates to compute the basis for.
 ##'
-##' @inheritParams Survspline
 ##' 
 ##' @return A matrix with one row for each ordinate and one column for each
 ##' knot.

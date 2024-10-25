@@ -338,7 +338,7 @@ runBAYES <- function (x, exArgs){
     #                          iter = iter, warmup = warmup, thin = thin, seed = seed, 
     #                          control = control, pars = pars, include = include, cores = cores, 
     #                          init = init, refresh = refresh)
-    browser()
+    #browser()
     if(is.na(match(paste0(d, "_expert"), names(compile_mods)))){
       stan_code <- get(paste0(d, "_expert"))
       stan_model <- rstan::stan_model(model_code = stan_code, model_name  = paste0(d, "_expert"))
@@ -417,11 +417,7 @@ compile_stan <- function(dist_stan = c("exp","wei","wph","rps","llo","lno")){
 #' @seealso fit.models
 #' @references Baio (2020). survHE
 #' @keywords Parametric survival models Bayesian inference Frequentist inference Expert Opinion
-#' @import tibble
 #' @importFrom Rdpack reprompt
-#' @importFrom utils getFromNamespace
-#' @import dplyr
-#' @import stats 
 #' @import survival
 #' @import graphics
 #' @importFrom stringr str_replace_all
@@ -561,33 +557,6 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
     
   }
   
-  # if(ncol(mf) == 4){
-  #   #No covariates
-  #   # Has to be opinion_type survival 
-  #   data.stan$id_St <- 1
-  #   
-  # }else if(ncol(mf) == 5){
-  #   
-  #   if(exArgs$opinion_type == "survival"){
-  #     data.stan$id_St <- min(which(mf[,5] == exArgs$id_St))
-  #   }else{# Survival Difference
-  #     data.stan$id_trt <- min(which(mf[,5] == exArgs$id_trt)) 
-  #     if(length(unique(mf[,5] %>% pull()))==2){
-  #       data.stan$id_comp <- min(which(mf[,5] != exArgs$id_trt)) 
-  #     }else{
-  #       data.stan$id_comp <- min(which(mf[,5] == exArgs$id_comp))  
-  #     }
-  #     
-  #   }
-  #   #put the number in  could put in a combination of numbers
-  # }else{
-  #   message("We do not allow more than one covariate (i.e. treatment) in the analysis - although it is technically possible")
-  #   stop()
-  # }
-  
-  
-  
-  
   param_expert <- exArgs$param_expert
   n.experts <- c()
   
@@ -702,7 +671,6 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
 #' 
 #' @param model The 'rstan' object with the model fit
 #' @param distr3 The 'rstan' object with the model fit
-#' @importFrom loo loo
 #' @return \item{list}{A list containing the modified name of the 
 #' distribution, the acronym (3-letters abbreviation), or the
 #' labels (humane-readable name)}.
@@ -712,7 +680,6 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
 #' @references Baio (2020). survHE
 #' @keywords Parametric survival models Bayesian inference via Hamiltonian
 #' Monte Carlo Bayesian inference via Integrated Nested Laplace Approximation
-#' @noRd 
 compute_ICs_stan <- function (model, distr3, data.stan){
   if (distr3 %!in% c("gam", "gga", "gom")) {
     beta <- rstan::extract(model)$beta

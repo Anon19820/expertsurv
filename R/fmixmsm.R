@@ -12,7 +12,6 @@
 ##'   \code{has_cycle=TRUE}, plus the pathways discovered before the function
 ##'   found the cycle and gave up.
 ##'
-##' @export
 fmixmsm <- function(...){
   args <- list(...)
   starts <- names(args) 
@@ -72,7 +71,6 @@ get_pathways <- function(mod_current, mods, ret){
 ##' @return Data frame of pathway probabilities by covariate value and pathway.
 ##' 
 ##'
-##' @export
 ppath_fmixmsm <- function(x, newdata=NULL, final=FALSE, B=NULL){
     pathways <- attr(x, "pathways")
     if (isTRUE(pathways$has_cycle))

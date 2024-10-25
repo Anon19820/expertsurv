@@ -4,7 +4,7 @@
 \alias{glance.flexsurvreg}
 \title{Glance at a flexsurv model object}
 \usage{
-\method{glance}{flexsurvreg}(x, ...)
+glance.flexsurvreg(x, ...)
 }
 \arguments{
 \item{x}{Output from \code{\link{flexsurvreg}} or \code{\link{flexsurvspline}}, representing a fitted survival model object.}

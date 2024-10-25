@@ -793,7 +793,7 @@ clean_listarg <- function(arg, argname, evnames){
 }
 
 
-##' 
+##' @exportS3Method NULL
 print.flexsurvmix <- function(x, ...)
 {
   cat("Call:\n")

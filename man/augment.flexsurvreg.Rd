@@ -4,7 +4,7 @@
 \alias{augment.flexsurvreg}
 \title{Augment data with information from a flexsurv model object}
 \usage{
-\method{augment}{flexsurvreg}(
+augment.flexsurvreg(
   x,
   data = NULL,
   newdata = NULL,

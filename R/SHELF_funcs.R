@@ -2,14 +2,216 @@
 `%!in%` = Negate(`%in%`)
 
 #NAMESPACE HACK FOR CRAN; won't let me use SHELF 3 times :
-logt.error <-utils::getFromNamespace("logt.error", "SHELF")
-gamma.error<-utils::getFromNamespace("gamma.error", "SHELF")
-lognormal.error<-utils::getFromNamespace("lognormal.error", "SHELF")
-logt.error<-utils::getFromNamespace("logt.error", "SHELF")
-makeGroupPlot<-utils::getFromNamespace("makeGroupPlot", "SHELF")
-makeLinearPoolPlot<-utils::getFromNamespace("makeLinearPoolPlot", "SHELF")
-makeSingleExpertPlot<-utils::getFromNamespace("makeSingleExpertPlot", "SHELF")
-expertdensity<-utils::getFromNamespace("expertdensity", "SHELF")
+
+logt.error <- function(parameters, values, probabilities, weights, degreesfreedom){
+	sum(weights * (pt((log(values) - parameters[1]) / exp(parameters[2]), degreesfreedom) - probabilities)^2)
+}
+
+#' @keywords internal
+gamma.error <-
+function(parameters, values, probabilities, weights){
+	sum(weights * (pgamma(values, exp(parameters[1]), exp(parameters[2])) -probabilities)^2)
+}
+
+lognormal.error <-
+function(parameters, values, probabilities, weights){
+	sum(weights * (plnorm(values, parameters[1], exp(parameters[2])) - probabilities)^2)
+}
+
+logt.error <- function(parameters, values, probabilities, weights, degreesfreedom){
+	sum(weights * (pt((log(values) - parameters[1]) / exp(parameters[2]), degreesfreedom) - probabilities)^2)
+}
+
+makeGroupPlot <- function(fit, pl, pu, d = "best", lwd, xlab, ylab, fs = 12,
+         expertnames = NULL){
+	
+  expert <- NULL # hack to avoid R CMD check NOTE
+  
+	n.experts <- nrow(fit$vals)
+	
+	if(is.null(expertnames)){
+	
+	if(n.experts < 27){
+	  expertnames <- LETTERS[1:n.experts]
+	}
+	
+	if(n.experts > 26){
+	  expertnames <- factor(1:n.experts)
+	}
+	
+	}
+	
+	x <- matrix(0, 200 * n.experts, 1)
+	fx <- x
+	
+	
+	for(i in 1:n.experts){
+		densitydata <- expertdensity(fit, d, ex = i, pl, pu)
+		x[(1+(i-1)*200):(i*200), 1] <- densitydata$x
+		fx[(1+(i-1)*200):(i*200), 1] <-densitydata$fx
+	}
+	df1 <- data.frame(x = x, fx = fx, 
+	                  expert = factor(rep(expertnames, each =200),
+	                                  levels = expertnames))
+	p1 <- ggplot(df1, aes(x = x, y = fx, colour = expert))  +
+	  labs(x = xlab, y = ylab) +
+	  theme(text = element_text(size = fs))
+	
+	if(d == "hist"){
+	  p1 <- p1 + geom_step(size=lwd)
+	}else{
+	  p1 <- p1 + geom_line(size=lwd)
+	}
+	
+	
+	p1
+}
+
+makeLinearPoolPlot <- function(fit, xl, xu, d = "best", w = 1, lwd, xlab, ylab, 
+         legend_full = TRUE, ql = NULL, qu = NULL, 
+         nx = 200, addquantile = FALSE, fs = 12,
+         expertnames = NULL,
+         lpname = "linear pool"){
+	
+  expert <- ftype <- NULL # hack to avoid R CMD check NOTE
+  
+	n.experts <- nrow(fit$vals)
+	
+	if(length(d) == 1){
+	  d <- rep(d, n.experts)
+	}
+	
+	
+	if(is.null(expertnames)){
+	  
+	  if(n.experts < 27){
+	    expertnames <- LETTERS[1:n.experts]
+	  }
+	  
+	  if(n.experts > 26){
+	    expertnames <- 1:n.experts
+	  }
+	  
+	}
+	  
+	nxTotal <- nx + length(c(ql, qu))
+	
+	x <- matrix(0, nxTotal, n.experts)
+	fx <- x
+  if(min(w)<0 | max(w)<=0){stop("expert weights must be non-negative, and at least one weight must be greater than 0.")}
+  
+	if(length(w)==1){
+	  w <- rep(w, n.experts)
+	}
+  
+	weight <- matrix(w/sum(w), nxTotal, n.experts, byrow = T)
+ 
+	
+	for(i in 1:n.experts){
+		densitydata <- expertdensity(fit, d[i], ex = i, xl, xu, ql, qu, nx)
+		x[, i] <- densitydata$x
+		fx[, i] <-densitydata$fx 
+	}
+	
+	fx.lp <- apply(fx * weight, 1, sum)
+	df1 <- data.frame(x = rep(x[, 1], n.experts + 1),
+	                  fx = c(as.numeric(fx), fx.lp),
+	                  expert = factor(c(rep(expertnames,
+	                                        each = nxTotal),
+	                                    rep(lpname, nxTotal)),
+	                                  levels = c(expertnames,
+	                                             lpname)),
+	                  ftype = factor(c(rep("individual",
+	                                       nxTotal * n.experts),
+	                                   rep(lpname, nxTotal)),
+	                                 levels = c("individual",
+	                                            lpname))
+	)
+	df1$expert <- factor(df1$expert, 
+	                     levels = c(expertnames, lpname))
+
+	if(legend_full){
+	  
+	  cols <- scales::hue_pal()(n.experts + 1)
+	  linetypes <- c(rep("dashed", n.experts), "solid")
+	  sizes <- lwd * c(rep(0.5, n.experts), 1.5)
+	  names(cols) <- names(linetypes) <-
+	    names(sizes) <- c(expertnames, lpname )
+	  
+	  p1 <- ggplot(df1, aes(x = x, y = fx, 
+	                        colour = expert, 
+	                        linetype = expert, 
+	                        size = expert)) +
+	    scale_colour_manual(values = cols,
+	                        breaks = c(expertnames, lpname )) +
+	    scale_linetype_manual(values = linetypes,
+	                          breaks = c(expertnames, lpname )) +
+	    scale_size_manual(values = sizes,
+	                      breaks = c(expertnames, lpname ))}else{
+	                       
+	      p1 <- ggplot(df1, aes(x = x, y = fx, 
+	                            colour =  ftype, 
+	                            linetype=ftype, size =ftype)) +
+	        scale_linetype_manual(name = "distribution", values = c("dashed", "solid"))+
+	        scale_size_manual(name = "distribution", values = lwd * c(.5, 1.5)) +
+	        scale_color_manual(name = "distribution", values = c("black", "red"))
+	    }
+
+	if(legend_full){
+		
+	for(i in 1:n.experts){
+	  if(d[i] == "hist"){
+	    p1 <- p1 + geom_step(data = subset(df1, expert == expertnames[i]),
+	                         aes(colour = expert))
+	  }else{
+	    p1 <- p1 + geom_line(data = subset(df1, expert == expertnames[i]),
+	                   aes(colour = expert))
+	  }
+	}
+	}else{
+	  for(i in 1:n.experts){
+	    if(d[i] == "hist"){
+	      p1 <- p1 + geom_step(data = subset(df1, expert == expertnames[i]),
+	                           aes(colour = ftype))
+	    }else{
+	      p1 <- p1 + geom_line(data = subset(df1, expert == expertnames[i]),
+	                           aes(colour = ftype))
+	    }
+	  }
+	}
+	
+	if(length(unique(d)) == 1 & d[1] == "hist"){
+	  p1 <- p1 + geom_step(data = subset(df1, expert == lpname),
+	                       aes(colour = expert))
+	}else{
+	  p1 <- p1 + geom_line(data = subset(df1, expert == lpname),
+	                 aes(colour = expert))
+	} 
+	
+	
+	 p1 <- p1 + labs(x = xlab, y = ylab)
+	
+	if((!is.null(ql)) & (!is.null(qu)) & addquantile){
+	  if(legend_full){
+	    ribbon_col <- scales::hue_pal()(n.experts + 1)[n.experts + 1]}else{
+	      ribbon_col <- "red"
+	    }
+	  p1 <- p1 + geom_ribbon(data = with(df1, subset(df1, x <= ql  &expert == lpname)),
+	                         aes(ymax = fx, ymin = 0),
+	                         alpha = 0.2, show.legend = FALSE, colour = NA, fill =ribbon_col ) +
+	    geom_ribbon(data = with(df1, subset(df1, x >=qu  &expert == lpname)),
+	                aes(ymax = fx, ymin = 0),
+	                alpha = 0.2, show.legend = FALSE, colour = NA, fill =ribbon_col )
+	    
+	  
+	}
+	 
+	if(lpname == "marginal"){
+	  p1 <- p1 + theme(legend.title = element_blank()) 
+	} 
+	 
+	p1 + theme(text = element_text(size = fs))
+}
 
 normal.error_mod <- function (parameters, values, probabilities, weights, mode,trunc =FALSE){
   
@@ -54,6 +256,7 @@ t_error_mod <- function (parameters, values, probabilities, weights, degreesfree
   return(res1)
 }
 
+##' @exportS3Method NULL
 gamma.error_mod <- function (parameters, values, probabilities, weights, mode,trunc=FALSE){
   
   if(trunc){ #Survival Trunc
@@ -184,20 +387,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
 
 fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1, 
                          tdf = 3, expertnames = NULL, excludelog.mirror = TRUE, mode = NULL, trunc = FALSE){
-  logt.error <- utils::getFromNamespace("logt.error", "SHELF")
-  gamma.error <- utils::getFromNamespace("gamma.error", "SHELF")
-  lognormal.error <- utils::getFromNamespace("lognormal.error", 
-                                             "SHELF")
-  logt.error <- utils::getFromNamespace("logt.error", "SHELF")
-  makeGroupPlot <- utils::getFromNamespace("makeGroupPlot", 
-                                           "SHELF")
-  makeLinearPoolPlot <- utils::getFromNamespace("makeLinearPoolPlot", 
-                                                "SHELF")
-  makeSingleExpertPlot <- utils::getFromNamespace("makeSingleExpertPlot", 
-                                                  "SHELF")
-  expertdensity <- utils::getFromNamespace("expertdensity", 
-                                           "SHELF")
-  if (is.matrix(vals) == F) {
+    if (is.matrix(vals) == F) {
     vals <- matrix(vals, nrow = length(vals), ncol = 1)
   }
   if (is.matrix(probs) == F) {
@@ -444,7 +634,6 @@ logt.error<-utils::getFromNamespace("logt.error", "SHELF")
 makeGroupPlot<-utils::getFromNamespace("makeGroupPlot", "SHELF")
 makeLinearPoolPlot<-utils::getFromNamespace("makeLinearPoolPlot", "SHELF")
 makeSingleExpertPlot<-utils::getFromNamespace("makeSingleExpertPlot", "SHELF")
-expertdensity<-utils::getFromNamespace("expertdensity", "SHELF")
 	  
 		  
   if (d == "beta" & (min(fit$limits) == -Inf | max(fit$limits) == 
@@ -634,6 +823,98 @@ if(length(unique(expert_df$expert)) !=1){ #Only one expert, Don't need to anythi
        expert_density = expert_density)
   
 }
+
+
+
+expertdensity <- function(fit, d = "best", ex = 1, pl, pu, ql = NULL, qu = NULL, nx = 200){
+	
+  if(pl == -Inf){pl <- qnorm(0.001, fit$Normal[ex,1], fit$Normal[ex,2])}
+  if(pu == Inf){pu <- qnorm(0.999, fit$Normal[ex,1], fit$Normal[ex,2])}
+  
+	x <- unique(sort(c(seq(from = pl, to = pu, length = nx), ql, qu)))
+	
+
+	if(d == "best"){
+	  d <- fit$best.fitting[ex, 1]
+	}
+
+	if(d == "normal"){
+		fx <- dnorm(x, fit$Normal[ex,1], fit$Normal[ex,2]) 
+	}
+	
+	if(d == "t"){
+		fx <- dt((x - fit$Student.t[ex,1])/fit$Student.t[ex,2], fit$Student.t[ex,3])/fit$Student.t[ex,2]
+	}
+	
+	if(d == "skewnormal"){
+	  fx <- sn::dsn(x, fit$Skewnormal[ex, 1],
+	                fit$Skewnormal[ex, 2],
+	                fit$Skewnormal[ex, 3])
+	}
+	
+	if(d == "gamma"){
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		fx <- dgamma(x - xl, fit$Gamma[ex,1], fit$Gamma[ex,2])  
+	}
+	
+	if(d == "mirrorgamma"){
+	  xu <- fit$limits[ex, 2]
+	  fx <- dgamma(xu - x, fit$mirrorgamma[ex,1], fit$mirrorgamma[ex,2])  
+	}
+	
+	if(d == "lognormal"){
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		fx <- dlnorm(x - xl, fit$Log.normal[ex,1], fit$Log.normal[ex,2]) 
+	}	
+	
+	if(d == "mirrorlognormal"){
+	  xu <- fit$limits[ex, 2]
+	  fx <- dlnorm(xu - x, fit$mirrorlognormal[ex,1], fit$mirrorlognormal[ex,2]) 
+	}	
+	
+	if(d == "logt"){
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		fx <- dt( (log(abs(x - xl)) - fit$Log.Student.t[ex,1]) / fit$Log.Student.t[ex,2], fit$Log.Student.t[ex,3]) / ((x - xl) * fit$Log.Student.t[ex,2])
+    fx[x<= xl] <- 0 # Hack to avoid NaN
+    
+	}
+	
+	if(d == "mirrorlogt"){
+	  xu <- fit$limits[ex,2]
+	  fx <- dt( (log(abs(xu - x)) - fit$mirrorlogt[ex,1]) /
+	              fit$mirrorlogt[ex,2], fit$mirrorlogt[ex,3]) / ((xu - x) * fit$mirrorlogt[ex,2])
+	  fx[x>= xu] <- 0 # Hack to avoid NaN
+	  
+	}
+	
+	
+		
+	if(d == "beta"){
+		xl <- fit$limits[ex,1]
+		xu <- fit$limits[ex,2]
+		if(xl == -Inf){xl <- 0}
+		if(xu == Inf){xu <- 1}
+		fx <-  1/(xu - xl) * dbeta( (x - xl) / (xu - xl), fit$Beta[ex,1], fit$Beta[ex,2])
+	}
+
+	if(d == "hist"){
+	 
+	  fx <- dhist(x, c(fit$limits[ex, 1],
+	                   fit$vals[ex,],
+	                   fit$limits[ex, 2]),
+	              c(0, fit$probs[ex, ],1))
+	  fx[length(fx)] <- 0
+	  }
+
+ 
+list(x = x, fx = fx)	
+	
+}
+
+
 
 
 #Will modify for the SHINY APP
@@ -938,8 +1219,7 @@ makePoolPlot <- function (fit, xl, xu, d = "best", w = 1, lwd = 1, xlab = "x",
                                                 "SHELF")
   makeSingleExpertPlot <- utils::getFromNamespace("makeSingleExpertPlot", 
                                                   "SHELF")
-  expertdensity <- utils::getFromNamespace("expertdensity", 
-                                           "SHELF")
+
   lpname <- c("linear pool", "log pool")
   expert <- ftype <- NULL
   n.experts <- nrow(fit$vals)
@@ -1093,6 +1373,390 @@ makePoolPlot <- function (fit, xl, xu, d = "best", w = 1, lwd = 1, xlab = "x",
     p1 <- p1 + theme(legend.title = element_blank())
   }
   p1 + theme(text = element_text(size = fs))
+}
+
+makeSingleExpertPlot <-
+function(fit, d = "best", pl = -Inf, pu = Inf,
+         ql = NA, qu = NA, sf = 3, ex = 1,
+         lwd = 1, xlab, ylab, percentages ){
+  
+  
+  
+	if(d == "best"){
+	  d <- fit$best.fitting[ex, 1]
+	}
+
+	
+	if(d == "normal"){
+		
+		if(pl == -Inf){pl <- qnorm(0.001, fit$Normal[ex,1], fit$Normal[ex,2])}
+		if(pu == Inf){pu <- qnorm(0.999, fit$Normal[ex,1], fit$Normal[ex,2])}
+		x <- seq(from = pl, to = pu, length = 200)
+		if(is.na(ql) == F){
+		  x.q1 <- qnorm(ql, fit$Normal[ex,1], fit$Normal[ex,2])
+		  x <- sort(c(x, x.q1))
+		}
+		if(is.na(qu) == F){
+		  x.q2 <- qnorm(qu, fit$Normal[ex,1], fit$Normal[ex,2])
+		  x <- sort(c(x, x.q2))
+		}
+		fx <- dnorm(x, fit$Normal[ex,1], fit$Normal[ex,2]) 
+		dist.title <- paste("Normal (mean = ",
+		                         signif(fit$Normal[ex,1], sf),
+		                         ", sd = ",
+		                         signif(fit$Normal[ex,2], sf), ")",
+		                         sep="")
+	}
+  
+  if(d == "skewnormal"){
+    
+    if(pl == -Inf){pl <- sn::qsn(0.001, fit$Skewnormal[ex,1],fit$Skewnormal[ex,2] , fit$Skewnormal[ex,3] )}
+    if(pu == Inf){pu <- sn::qsn(0.999, fit$Skewnormal[ex,1],fit$Skewnormal[ex,2] , fit$Skewnormal[ex,3])}
+    x <- seq(from = pl, to = pu, length = 200)
+    if(is.na(ql) == F){
+      x.q1 <- sn::qsn(ql, fit$Skewnormal[ex,1],fit$Skewnormal[ex,2] , fit$Skewnormal[ex,3])
+      x <- sort(c(x, x.q1))
+    }
+    if(is.na(qu) == F){
+      x.q2 <- sn::qsn(qu, fit$Skewnormal[ex,1],fit$Skewnormal[ex,2] , fit$Skewnormal[ex,3])
+      x <- sort(c(x, x.q2))
+    }
+    fx <- sn::dsn(x, fit$Skewnormal[ex,1],fit$Skewnormal[ex,2] , fit$Skewnormal[ex,3]) 
+    dist.title <- paste("Skew normal\n(location = ",
+                        signif(fit$Skewnormal[ex,1], sf),
+                        ", scale = ",
+                        signif(fit$Skewnormal[ex,2], sf),
+                        ", slant = ",
+                        signif(fit$Skewnormal[ex,3], sf),")",
+                        sep="")
+  }
+	
+	if(d == "t"){
+		
+		if(pl == -Inf){pl <- fit$Student.t[ex,1] + fit$Student.t[ex,2] * qt(0.001, fit$Student.t[ex,3])}
+		if(pu == Inf){pu <- fit$Student.t[ex,1] + fit$Student.t[ex,2] * qt(0.999, fit$Student.t[ex,3])}
+		
+		x <- seq(from = pl, to = pu, length = 200)
+		
+		if(is.na(ql) == F){
+		  x.q1 <- fit$Student.t[ex,1] + fit$Student.t[ex,2] * qt(ql, fit$Student.t[ex,3])
+		  x <- sort(c(x, x.q1))
+		}
+		if(is.na(qu) == F){
+		  x.q2 <- fit$Student.t[ex,1] + fit$Student.t[ex,2] * qt(qu, fit$Student.t[ex,3])
+		  x <- sort(c(x, x.q2))
+		} 
+		  
+		fx <- dt((x - fit$Student.t[ex,1])/fit$Student.t[ex,2], fit$Student.t[ex,3])/fit$Student.t[ex,2]
+		
+		dist.title=paste("Student-t(",
+		                 signif(fit$Student.t[ex,1], sf),
+		                 ", ",
+		                 signif(fit$Student.t[ex,2], sf),
+		                 "), df = ",
+		                 fit$Student.t[ex, 3],
+		                 sep="")
+	}
+	
+	if(d == "gamma"){
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		
+		if(pl == -Inf){pl <- xl + qgamma(0.001, fit$Gamma[ex,1], fit$Gamma[ex,2])}
+		if(pu == Inf){pu <- xl + qgamma(0.999, fit$Gamma[ex,1], fit$Gamma[ex,2])}
+		x <- seq(from = pl, to = pu, length = 200)
+		
+		if(is.na(ql) == F){
+		  x.q1 <- xl + qgamma(ql, fit$Gamma[ex,1], fit$Gamma[ex,2])
+		  x <- sort(c(x, x.q1))
+		}
+		
+		if(is.na(qu) == F){
+		  x.q2 <- xl + qgamma(qu, fit$Gamma[ex,1], fit$Gamma[ex,2])
+		  x <- sort(c(x, x.q2))
+		}
+		
+		fx <- dgamma(x - xl, fit$Gamma[ex,1], fit$Gamma[ex,2])  
+		
+		if(fit$Gamma[ex,1] == 1){
+		dist.title = paste("Gamma(",
+		                   signif(fit$Gamma[ex,1], sf),
+		                   ", ",
+		                   signif(fit$Gamma[ex,2], sf),
+		                   ") (exponential)", sep="")}else{
+		                     dist.title = paste("Gamma(",
+		                                        signif(fit$Gamma[ex,1], sf),
+		                                        ", ",
+		                                        signif(fit$Gamma[ex,2], sf),
+		                                        ")", sep="")
+		                     
+		                   }
+	}
+	
+	if(d == "lognormal"){
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		
+		if(pl == -Inf){pl <- xl + qlnorm(0.001, fit$Log.normal[ex,1], fit$Log.normal[ex,2])}
+		if(pu == Inf){pu <- xl + qlnorm(0.999, fit$Log.normal[ex,1], fit$Log.normal[ex,2])}
+		x <- seq(from = pl, to = pu, length = 200)
+		if(is.na(ql) == F){
+		  x.q1 <- xl + qlnorm(ql, fit$Log.normal[ex,1], fit$Log.normal[ex,2])
+		  x <- sort(c(x, x.q1))}
+		if(is.na(qu) == F){
+		  x.q2 <- xl + qlnorm(qu, fit$Log.normal[ex,1], fit$Log.normal[ex,2])
+		  x <- sort(c(x, x.q2))}
+		  
+		fx <- dlnorm(x - xl, fit$Log.normal[ex,1], fit$Log.normal[ex,2])
+		
+		dist.title = paste("Log normal(",
+		                   signif(fit$Log.normal[ex,1], sf),
+		                   ", ",
+		                   signif(fit$Log.normal[ex,2], sf), ")",
+		                   sep="")
+	}	
+	
+	if(d == "logt"){ # log student t
+		xl <- fit$limits[ex,1]
+		if(xl == -Inf){xl <- 0}
+		
+    # Calculate axes limits using the lognormal; log-t limits may be too extreme
+		if(pl == -Inf){pl <- xl + qlnorm(0.001, fit$Log.normal[ex,1], fit$Log.normal[ex,2])}
+		if(pu == Inf){pu <- xl + qlnorm(0.999, fit$Log.normal[ex,1], fit$Log.normal[ex,2])}
+    
+		x <- seq(from = pl, to = pu, length = 200)
+		if(is.na(ql) == F){
+		  x.q1 <- xl + exp(fit$Log.Student.t[ex,1] + fit$Log.Student.t[ex,2] * qt(ql, fit$Log.Student.t[ex,3]))
+		  x <- sort(c(x, x.q1))}
+		
+		if(is.na(qu) == F){
+		  x.q2 <- xl + exp(fit$Log.Student.t[ex,1] + fit$Log.Student.t[ex,2] * qt(qu, fit$Log.Student.t[ex,3]))
+		  x <- sort(c(x, x.q2))}
+		
+		fx <- dt( (log(x - xl) - fit$Log.Student.t[ex,1]) / fit$Log.Student.t[ex,2], fit$Log.Student.t[ex,3]) / ((x - xl) * fit$Log.Student.t[ex,2])
+		dist.title = paste("Log T(",
+		                   signif(fit$Log.Student.t[ex,1], sf),
+		                   ", ",
+		                   signif(fit$Log.Student.t[ex,2], sf),
+		                   "), df = ",
+		                   fit$Log.Student.t[ex,3], sep="")
+
+	}	
+	
+	if(d == "beta"){
+		xl <- fit$limits[ex,1]
+		xu <- fit$limits[ex,2]
+		#if(xl == -Inf){xl <- 0}
+		#if(xu == Inf){xu <- 1}
+		
+	#	if(pl == -Inf){pl <- xl + (xu - xl) * qbeta(0.001, fit$Beta[ex,1], fit$Beta[ex,2])}
+	#	if(pu == Inf){pu <- xl + (xu - xl) * qbeta(0.999, fit$Beta[ex,1], fit$Beta[ex,2])}
+		if(pl == -Inf){pl <- xl}
+		if(pu == Inf){pu <- xu}
+			x <-  seq(from = pl, to = pu, length = 200)
+		if(is.na(ql) == F){
+		  x.q1 <- xl + (xu - xl) * qbeta(ql, fit$Beta[ex,1], fit$Beta[ex,2])
+		  x <- sort(c(x, x.q1))}
+		
+		if(is.na(qu) == F){
+		  x.q2 <- xl + (xu - xl) * qbeta(qu, fit$Beta[ex,1], fit$Beta[ex,2])
+		  x <- sort(c(x, x.q2))}
+		
+		fx <-  1/(xu - xl) * dbeta( (x - xl) / (xu - xl), fit$Beta[ex,1], fit$Beta[ex,2])
+		
+		dist.title =paste("Beta(",
+		                        signif(fit$Beta[ex,1], sf),
+		                        ", ", signif(fit$Beta[ex,2], sf),
+		                        ")", sep="")
+	}
+	
+	if(d == "hist"){
+	  
+	  if(fit$limits[ex, 1] == -Inf){
+	     histl <- qnorm(0.001, fit$Normal[ex,1], fit$Normal[ex,2])
+	  }else{
+	    histl <- fit$limits[ex, 1]
+	  }
+	  
+	  if(fit$limits[ex, 2] == Inf){
+	    histu <- qnorm(0.999, fit$Normal[ex,1], fit$Normal[ex,2])
+	  }else{
+	    histu <- fit$limits[ex, 2]
+	  }
+	  
+	  
+	  if(pl == -Inf){pl <- histl }
+	  if(pu == Inf){pu <- histu }
+	   
+    p <- c(0, fit$probs[ex,], 1)
+    x2 <- c(histl, fit$vals[ex,], histu)
+    
+    h <- rep(0, length(x2) -1)
+    for(i in 1:length(h)){
+      h[i]<-(p[i+1] - p[i]) / (x2[i+1]-x2[i])
+    }
+    
+    x <- rep(x2, each = 2)
+    fx <- c(0, rep(h, each = 2), 0)
+    
+    if(is.na(ql) == F){
+      x.q1 <- qhist(ql, x2, p)
+      if(!is.element(x.q1, x)){
+      x <- c(x, x.q1)
+      fx <-c(fx, dhist(x.q1, x2, p))
+      temp <- sort(x, index.return = T)
+      x <- temp$x
+      fx <- fx[temp$ix]}}
+      
+    
+    if(is.na(qu) == F){
+      x.q2 <- qhist(qu, x2, p)
+      if(!is.element(x.q2, x)){
+      x <- c(x, x.q2)
+      fx <-c(fx, dhist(x.q2, x2, p))
+      temp <- sort(x, index.return = T)
+      x <- temp$x
+      fx <- fx[temp$ix]}}
+    
+    
+    
+	  if(min(fx)<0){
+	    fx <- rep(0, length(x))
+	    ql <- NA
+	    qu <- NA
+	  }
+    
+    dist.title = "histogram fit"
+   
+	}
+	
+	if(d == "mirrorgamma"){
+	  xu <- fit$limits[ex, 2]
+	  if(pl == -Inf){pl <- xu - qgamma(0.999, fit$mirrorgamma[ex,1],
+	                                   fit$mirrorgamma[ex,2])}
+	  if(pu == Inf){pu <- xu}
+	  
+	  x <- seq(from = pl, to = pu, length = 200)
+	  
+	  if(is.na(ql) == F){
+	    x.q1 <- xu - qgamma(1 - ql, fit$mirrorgamma[ex,1],
+	                        fit$mirrorgamma[ex,2])
+	    x <- sort(c(x, x.q1))
+	  }
+	  
+	  if(is.na(qu) == F){
+	    x.q2 <- xu - qgamma(1 - qu, fit$mirrorgamma[ex,1],
+	                        fit$mirrorgamma[ex,2])
+	    x <- sort(c(x, x.q2))
+	  }
+	  
+	  fx <- dgamma(xu - x, fit$mirrorgamma[ex,1],
+	               fit$mirrorgamma[ex,2])  
+	  
+	  if(fit$mirrorgamma[ex,1] ==1){
+	  dist.title = paste("Mirror gamma(",
+	                     signif(fit$mirrorgamma[ex,1], sf),
+	                     ", ",
+	                     signif(fit$mirrorgamma[ex,2], sf),
+	                     ") (mirror exponential)", sep="")}else{
+	                       dist.title = paste("Mirror gamma(",
+	                                          signif(fit$mirrorgamma[ex,1], sf),
+	                                          ", ",
+	                                          signif(fit$mirrorgamma[ex,2], sf),
+	                                          ")", sep="") 
+	                     }
+	} 
+	
+  if(d == "mirrorlognormal"){
+    xu <- fit$limits[ex, 2]
+    if(pl == -Inf){pl <- xu - qlnorm(0.999, fit$mirrorlognormal[ex,1],
+                                     fit$mirrorlognormal[ex,2])}
+    if(pu == Inf){pu <- xu}
+    x <- seq(from = pl, to = pu, length = 200)
+    if(is.na(ql) == F){
+      x.q1 <- xu - qlnorm(1 - ql,
+                          fit$mirrorlognormal[ex,1],
+                          fit$mirrorlognormal[ex,2])
+      x <- sort(c(x, x.q1))}
+    if(is.na(qu) == F){
+      x.q2 <- xu - qlnorm(1 - qu,
+                          fit$mirrorlognormal[ex,1],
+                          fit$mirrorlognormal[ex,2])
+      x <- sort(c(x, x.q2))}
+    
+    fx <- dlnorm(xu - x, fit$mirrorlognormal[ex,1],
+                 fit$mirrorlognormal[ex,2])
+    
+    dist.title = paste("Mirror log normal(",
+                       signif(fit$mirrorlognormal[ex,1], sf),
+                       ", ",
+                       signif(fit$mirrorlognormal[ex,2], sf), ")",
+                       sep="")
+  }
+  
+  if(d == "mirrorlogt"){ # mirror log student t
+    xu <- fit$limits[ex, 2]
+   
+    # Calculate axes limits using the  mirror lognormal; log-t limits may be too extreme
+    if(pl == -Inf){pl <- xu - qlnorm(0.999, 
+                                     fit$mirrorlognormal[ex,1],
+                                     fit$mirrorlognormal[ex,2])}
+    if(pu == Inf){pu <- xu}
+    
+    x <- seq(from = pl, to = 0.99*xu, length = 200)
+    if(is.na(ql) == F){
+      x.q1 <- xu - exp(fit$mirrorlogt[ex,1] + 
+                         fit$mirrorlogt[ex,2] * qt(1 - ql, fit$mirrorlogt[ex,3]))
+      x <- sort(c(x, x.q1))}
+    
+    if(is.na(qu) == F){
+      x.q2 <- 
+        xu - exp(fit$mirrorlogt[ex,1] + 
+                   fit$mirrorlogt[ex,2] * qt(1 - qu, fit$mirrorlogt[ex,3]))
+      
+      x <- sort(c(x, x.q2))}
+    
+    fx <- dt( (log(xu - x) - fit$mirrorlogt[ex,1]) /
+                fit$mirrorlogt[ex,2], 
+              fit$mirrorlogt[ex,3]) / ((xu - x) *
+                                         fit$mirrorlogt[ex,2])
+    dist.title = paste("Mirror log T(",
+                       signif(fit$mirrorlogt[ex,1], sf),
+                       ", ",
+                       signif(fit$mirrorlogt[ex,2], sf),
+                       "), df = ",
+                       fit$mirrorlogt[ex,3], sep="")
+    
+  }	
+  
+  
+   
+	df1 <- data.frame(x = x, fx = fx)
+	p1 <- ggplot(df1, aes(x = x, y = fx)) +
+	  geom_line(size = lwd) +
+	  labs(title = dist.title, x = xlab, y = ylab )+
+	  theme(plot.title = element_text(hjust = 0.5))
+	if(is.na(ql) == F  ){
+	  p1 <- p1 + geom_ribbon(data = subset(df1, x<=x.q1), 
+	                         aes(ymax = fx, ymin = 0),
+	                         fill = "red",
+	                         alpha = 0.5)
+	}
+	if(is.na(qu) == F ){
+	  p1 <- p1 + geom_ribbon(data = subset(df1, x>=x.q2), 
+	                         aes(ymax = fx, ymin = 0),
+	                         fill = "red",
+	                         alpha = 0.5)
+	}
+	
+	if(percentages){
+	  p1 <- p1 + scale_x_continuous(labels = scales::percent,  
+	                                limits = c(pl, pu))
+	}else{
+	  p1 <- p1 + xlim(pl, pu)
+	}
+	
+	p1
 }
 
 

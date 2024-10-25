@@ -275,7 +275,6 @@ rescale.inla <- function(linpred,alpha,distr) {
 #' @param nsim The number of simulations included
 #' @param dist The abbreviated name of the underlying distribution
 #' @param t The vector of times to be used in the x-axis
-#' @import flexsurv
 #' @return \item{mat}{A matrix of simulated values for the survival curves}
 #' @author Gianluca Baio
 #' @seealso make.surv
@@ -412,11 +411,6 @@ args_surv <- function() {
 #' the survival curves}.
 #' @note Something will go here
 #' @author Gianluca Baio
-#' 
-#' @import dplyr
-#' @import tibble
-#' @import stats
-#' @import tidyselect
 #' @seealso make.surv
 #' @references Baio (2020). survHE
 #' @keywords Parametric survival models

@@ -103,7 +103,10 @@ cred_int_val <- cred_int(plot_opinion1,val = "log pool", interval = c(0.025, 0.9
 ```
 
 ```{r echo = FALSE, fig.cap = "Expert prior distributions"}
-knitr::include_graphics("inst/image/Vignette_Example_1_Expert_Opinion.png")
+
+image_path <- system.file("image/Vignette_Example_1_Expert_Opinion.png", package ="expertsurv")
+
+knitr::include_graphics(image_path)
 ```
 
 
@@ -143,11 +146,11 @@ model.fit.plot(example1, type = "dic")
 
 ```
 ```{r echo = FALSE, fig.cap = "Model Comparison"}
-knitr::include_graphics("inst/image/Vignette_Example_1_DIC.png")
+#knitr::include_graphics("inst/image/Vignette_Example_1_DIC.png")
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior"}
-knitr::include_graphics("inst/image/Vignette_Example_1.png")
+#knitr::include_graphics("inst/image/Vignette_Example_1.png")
 ```
 
 
@@ -207,7 +210,7 @@ We can remove the impact of expert opinion omitting the arguments relating to `o
 
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior (left) and Vague prior (right)"}
-knitr::include_graphics("inst/image/Vignette_Example_2.png")
+#knitr::include_graphics("inst/image/Vignette_Example_2.png")
 ```
 
 The survival function for "arm 1" has been shifted downwards slightly, however the covariate for the accelerated time factor has markedly increased to counteract the lower survival probability for the reference (arm 0).
@@ -239,7 +242,7 @@ survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(ar
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival difference"}
-knitr::include_graphics("inst/image/Vignette_Example_3.png")
+#knitr::include_graphics("inst/image/Vignette_Example_3.png")
 ```
 
 

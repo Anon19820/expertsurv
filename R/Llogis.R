@@ -57,7 +57,6 @@
 ##' @name Llogis
 NULL
 
-##' @export
 ##' @rdname Llogis
 dllogis <- function(x, shape=1, scale=1, log = FALSE)
 {
@@ -129,8 +128,7 @@ DLSllogis <- function(t, shape, scale){
     res
 }
 
-##' 
-##' @rdname means
+
 mean_llogis <- function(shape=1, scale=1){
     ifelse(shape > 1,
        {b <- pi/shape
@@ -138,8 +136,6 @@ mean_llogis <- function(shape=1, scale=1){
            NaN)          
 }
 
-##' 
-##' @rdname means
 rmst_llogis = function(t, shape=1, scale=1, start=0){
   rmst_generic(pllogis, t, start=start, shape=shape, scale=scale)
 }
