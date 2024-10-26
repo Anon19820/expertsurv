@@ -62,7 +62,6 @@
 #' @importFrom mvtnorm rmvnorm
 #' @importFrom quadprog solve.QP
 #' @importFrom Rcpp sourceCpp
-#' @useDynLib expertsurv, .registration = TRUE
 "_PACKAGE"
 
 .onUnload <- function(libpath) {
