@@ -174,8 +174,14 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 #' elicit_surv()
 #' }
 elicit_surv <- function (compile_mods = NULL){
-  
-  
+required_packages <- c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy")
+
+missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
+
+if (length(missing_packages) > 0) {
+  stop("You need to install the following R packages to run the application: ", paste(missing_packages, collapse = ", "))
+}
+
  options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
  
   

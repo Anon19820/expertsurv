@@ -18,7 +18,7 @@
 #'   \item \strong{param2}: Second parameter of the distribution.
 #'   \item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
 #' }
-#' @param ... Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are `id_St`, `id_trt`, and `id_comp`. `id_St` is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. `id_trt` and `id_comp` are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.
+#' @param ... Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are `id_St`, `id_trt`, and `id_comp`. `id_St` is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. `id_trt` and `id_comp` are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided. If conducting the Bayesian analysis it is much quicker to use the pre-compiled models by adding compile_mods = expertsurv::compiled_models_saved.
 #' @return An object of class ``expertsurv`` which contains the parameters of the models estimated with expert opinion.
 #' @importFrom magrittr %>%
 #' @keywords models
@@ -105,6 +105,7 @@ fit.models.expert <- function(formula = NULL, data, distr = NULL, method = "baye
 }
 
 
+
 fit.models <- function (formula = NULL, data, distr = NULL, method = "mle", exArgs, 
                         ...){
   
@@ -140,11 +141,12 @@ fit.models <- function (formula = NULL, data, distr = NULL, method = "mle", exAr
       
     }
     res <- format_output_fit.models(lapply(distr, function(x) runBAYES(x, 
-                                                                     exArgs)), method, distr, formula, data)
+                                                                       exArgs)), method, distr, formula, data)
   }
-  
+  res[["misc"]][["input_args"]] <- exArgs[names(exArgs) %in% c("pool_type", "opinion_type", "times_expert","param_expert")]
   return(res)
 }
+
 
 #' Helper function to run the survival models using Bayesian inference (rstan or JAGS)
 #' for a given formula and dataset

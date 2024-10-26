@@ -67,7 +67,7 @@ for(i in 1:length(fit$models)){
   if(fit$method =="mle"){
     df_mod <- do.call(expertsurv:::get_stats_mle, args = list(fit,mod =i ))
   }else{
-    df_mod <- do.call(expertsurv:::get_stats_hmc, args = list(fit,mod =i))
+    df_mod <- do.call(expertsurv:::get_stats_bayes, args = list(fit,mod =i))
   }
   
   tb_mod <- knitr::kable(df_mod, caption = paste0("Table ",names(fit$models)[i]),digits = 3)
