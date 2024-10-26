@@ -58,13 +58,11 @@
 #' \insertRef{Baio.2020}{expertsurv}
 #' \insertRef{Cooney.2023}{expertsurv}
 #' \insertRef{flexsurv}{expertsurv}
-##' @importFrom muhaz muhaz
-##' @importFrom mvtnorm rmvnorm
+#' @importFrom muhaz muhaz
+#' @importFrom mvtnorm rmvnorm
 #' @importFrom quadprog solve.QP
-## usethis namespace: start
-#' @useDynLib expertsurv, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-## usethis namespace: end
+#' @useDynLib expertsurv, .registration = TRUE
 "_PACKAGE"
 
 .onUnload <- function(libpath) {
