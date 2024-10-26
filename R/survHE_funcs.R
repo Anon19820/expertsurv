@@ -18,9 +18,7 @@
 #'   \item \strong{param2}: Second parameter of the distribution.
 #'   \item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
 #' }
-#' @param id_St This is only necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities is being integrated into the analysis. It specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.
-#' @param id_trt This is only necessary if including expert opinion about differences in expected survival (i.e. area under the curve) between a treatment and a comparator and specifies the row number in the data frame corresponding to a treated patient. Similarly the location of the reference id_comp (i.e. comparator) needs to be specified.  
-#' @param ... Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples.
+#' @param ... Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are `id_St`, `id_trt`, and `id_comp`. `id_St` is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. `id_trt` and `id_comp` are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.
 #' @return An object of class ``expertsurv`` which contains the parameters of the models estimated with expert opinion.
 #' @importFrom magrittr %>%
 #' @keywords models
@@ -50,15 +48,6 @@
 #'                               
 #' plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
 #' model.fit.plot(example1, type = "aic")  #Plot AIC 
-#'
-#' example1_bayes  <- fit.models.expert(formula=Surv(time,status)~as.factor(arm),data=data2,
-#'                                     distr=c("wph", "lnorm","exp"),
-#'                                     method="bayes",
-#'                                     pool_type = "log pool", 
-#'                                     opinion_type = "survival",
-#'                                     id_St = min(which(data2$arm ==0)), #We want our opinion to refer to the treatment called "0"
-#'                                     times_expert = timepoint_expert, 
-#'                                     param_expert = param_expert_example1)
 #'
 #'
                                
@@ -145,8 +134,8 @@ fit.models <- function (formula = NULL, data, distr = NULL, method = "mle", exAr
       }
     }else{
       
-      if (!isTRUE(requireNamespace("rstan", quietly = TRUE))|!isTRUE(requireNamespace("rstantools", quietly = TRUE))) {
-        stop("You need to install the R packages 'rstan' and 'rstantools' to run the models evaluated by Stan")
+      if (!isTRUE(requireNamespace("rstan", quietly = TRUE))) {
+        stop("You need to install the R packages 'rstan' to run the models evaluated by Stan")
       }
       
     }
@@ -387,7 +376,7 @@ runBAYES <- function (x, exArgs){
 
 
 compile_stan <- function(dist_stan = c("exp","wei","wph","rps","llo","lno")){
-  availables_all <- expertsurv:::load_availables()[["bayes"]]
+  availables_all <- load_availables()[["bayes"]]
   availables_stan <- availables_all[match(dist_stan,availables_all)]
   names_stan <- names(availables_stan)
   list_stan_model <- list()
@@ -454,9 +443,9 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
     }
     knots <- quantile(log((mf %>% filter(event == 1))$time), 
                       seq(0, 1, length = k + 2))
-    B <- flexsurv::basis(knots, log(mf$time))
-    B_expert <- flexsurv::basis(knots, log(exArgs$times_expert))
-    DB <- flexsurv::dbasis(knots, log(mf$time))
+    B <- basis(knots, log(mf$time))
+    B_expert <- basis(knots, log(exArgs$times_expert))
+    DB <- dbasis(knots, log(mf$time))
     mm <- stats::model.matrix(formula, data)[, -1]
     if (length(mm) < 1) {
       mm <- matrix(rep(0, nrow(mf)), nrow = nrow(mf), ncol = 2)
@@ -671,6 +660,7 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
 #' 
 #' @param model The 'rstan' object with the model fit
 #' @param distr3 The 'rstan' object with the model fit
+#' @param data.stan The 'data' object with the model fit
 #' @return \item{list}{A list containing the modified name of the 
 #' distribution, the acronym (3-letters abbreviation), or the
 #' labels (humane-readable name)}.
@@ -812,50 +802,47 @@ make_sim_bayes <- function (m, t, X, nsim, newdata, dist, summary_stat, ...){
 
 
 
-get_Surv <- function(dist, time, param1 = NULL, param2 = NULL, param3 = NULL, log = F, data.stan = NULL){
+get_Surv <- function(dist, time, param1 = NULL, param2 = NULL, param3 = NULL, log = FALSE, data.stan = NULL){
   
   if(dist == "wei"){
-    return(stats::pweibull(time, 
-                           shape = param1, scale = param2, lower.tail = F, log = log))
+    return(stats::pweibull(time,shape = param1, scale = param2, lower.tail = FALSE, log.p = log))
   }
   
   if(dist == "wph"){
-    return(flexsurv::pweibullPH(time, 
-                                shape = param1, scale = param2, lower.tail = F, log = log))
+    return(pweibullPH(time,shape = param1, scale = param2, lower.tail = FALSE, log.p = log))
   }
   
   if(dist == "exp"){
-    return(stats::pexp(time, rate = param1, lower.tail = F, log = log))
+    return(stats::pexp(time, rate = param1, lower.tail = FALSE, log.p = log))
     
   }
   
   if(dist == "gam"){
-    return(stats::pgamma(time, shape = param1, rate = param2, lower.tail =  F, log = log))
+    return(stats::pgamma(time, shape = param1, rate = param2, lower.tail =  FALSE, log.p = log))
   }
   
   if(dist == "gga"){
-    return(flexsurv::pgengamma(time, mu = param1, sigma = param2, Q = param3, lower.tail =  F, log = log))
+    return(pgengamma(time, mu = param1, sigma = param2, Q = param3, lower.tail =  FALSE, log.p = log))
   }
   
   if(dist == "gom"){
-    return(flexsurv::pgompertz(time, shape = param1, rate = param2, lower.tail =  F, log = log))
+    return(pgompertz(time, shape = param1, rate = param2, lower.tail =  FALSE, log.p = log))
   }
   
   if(dist == "lno"){
-    return(stats::plnorm(time, 
-                         meanlog  = param1, sdlog  = param2, lower.tail = F, log = log))
+    return(stats::plnorm(time,meanlog  = param1, sdlog  = param2, lower.tail = FALSE, log.p = log))
   }
   
   if(dist == "llo"){
-    return(flexsurv::pllogis(time, 
-                             shape  = param1, scale  = param2, lower.tail = F, log = log))
+    return(pllogis(time, 
+                             shape  = param1, scale  = param2, lower.tail = FALSE, log.p = log))
   }
   
   if(dist == "rps"){
     #2 ways to do it -- need to check if it is valid
     #eta <-  param1*data.stan$B_expert[which(time == data.stan$time_expert),] + param2
     #return(exp(-exp(eta)))
-    return(flexsurv::psurvspline(time, gamma = param1, knots= data.stan$knots,lower.tail = F, log = log, offset = param2 ))
+    return(psurvspline(time, gamma = param1, knots= data.stan$knots,lower.tail = FALSE, log.p = log, offset = param2 ))
     
   }
   
@@ -863,39 +850,39 @@ get_Surv <- function(dist, time, param1 = NULL, param2 = NULL, param3 = NULL, lo
 }
 
 
-get_mean_diff <- function(dist, time, param1 = NULL, param2 = NULL, param3 = NULL, log = F, data.stan = NULL){
+get_mean_diff <- function(dist, time, param1 = NULL, param2 = NULL, param3 = NULL, log = FALSE, data.stan = NULL){
   
   if(dist == "wei"){
-    return(flexsurv::mean_weibull(shape = param1, scale = param2[1])-flexsurv::mean_weibull(shape = param1, scale = param2[2]))
+    return(mean_weibull(shape = param1, scale = param2[1])-mean_weibull(shape = param1, scale = param2[2]))
   }
   
   if(dist == "wph"){
-    return(flexsurv::mean_weibullPH(shape = param1, scale = param2[1])-flexsurv::mean_weibullPH(shape = param1, scale = param2[2]))
+    return(mean_weibullPH(shape = param1, scale = param2[1])-mean_weibullPH(shape = param1, scale = param2[2]))
   }
   
   if(dist == "exp"){
-    return(flexsurv::mean_exp(rate = param1[1])-flexsurv::mean_exp(rate = param1[2]))
+    return(mean_exp(rate = param1[1])-mean_exp(rate = param1[2]))
     
   }
   
   if(dist == "gam"){
-    return(flexsurv::mean_gamma(shape = param1, rate = param2[1])-flexsurv::mean_gamma(shape = param1, rate = param2[2]))
+    return(mean_gamma(shape = param1, rate = param2[1])-mean_gamma(shape = param1, rate = param2[2]))
   }
   
   if(dist == "gga"){
-    return(flexsurv::mean_gengamma(mu = param1[1], sigma = param2, Q = param3)-flexsurv::mean_gengamma(mu = param1[2], sigma = param2, Q = param3))
+    return(mean_gengamma(mu = param1[1], sigma = param2, Q = param3)-mean_gengamma(mu = param1[2], sigma = param2, Q = param3))
   }
   
   if(dist == "gom"){
-    return(flexsurv::mean_gompertz(shape = param1, rate = param2[1])-flexsurv::mean_gompertz(shape = param1, rate = param2[2]))
+    return(mean_gompertz(shape = param1, rate = param2[1])-mean_gompertz(shape = param1, rate = param2[2]))
   }
   
   if(dist == "lno"){
-    return(flexsurv::mean_lnorm(meanlog  = param1[1], sdlog  = param2)-flexsurv::mean_lnorm(meanlog  = param1[2], sdlog  = param2))
+    return(mean_lnorm(meanlog  = param1[1], sdlog  = param2)-mean_lnorm(meanlog  = param1[2], sdlog  = param2))
   }
   
   if(dist == "llo"){
-    return(flexsurv::mean_llogis(shape  = param1[1], scale  = param2)-flexsurv::mean_llogis(shape  = param1[2], scale  = param2))
+    return(mean_llogis(shape  = param1[1], scale  = param2)-mean_llogis(shape  = param1[2], scale  = param2))
   }
   
   # if(dist == "rps"){
@@ -969,8 +956,8 @@ lik_rps <- function (x, linpred, linpred.hat, model, data.stan){
   
   if(all(data.stan$X ==0)){
     
-    logf<- apply(gamma, 1, function(x){data.stan$d*log(flexsurv::hsurvspline(data.stan$t, gamma = x, knots = data.stan$knots))+
-        flexsurv::psurvspline(q = data.stan$t, gamma = x, knots =  data.stan$knots, lower.tail = F, log.p =T)})
+    logf<- apply(gamma, 1, function(x){data.stan$d*log(hsurvspline(data.stan$t, gamma = x, knots = data.stan$knots))+
+        psurvspline(q = data.stan$t, gamma = x, knots =  data.stan$knots, lower.tail = FALSE, log.p =T)})
     logf <- t(logf)
   }else{
     logf <- array(dim = dim(linpred))
@@ -978,8 +965,8 @@ lik_rps <- function (x, linpred, linpred.hat, model, data.stan){
     for(i in 1:nrow(logf)){
       
       for(j in 1:ncol(logf)){
-        logf[i,j] <- data.stan$d[j]*log(flexsurv::hsurvspline(data.stan$t[j], gamma = gamma[i,], knots = data.stan$knots, offset = linpred[i,j]))+
-          flexsurv::psurvspline(q = data.stan$t[j], gamma = gamma[i,], knots =  data.stan$knots, lower.tail = F, log.p =T, offset = linpred[i,j])
+        logf[i,j] <- data.stan$d[j]*log(hsurvspline(data.stan$t[j], gamma = gamma[i,], knots = data.stan$knots, offset = linpred[i,j]))+
+         psurvspline(q = data.stan$t[j], gamma = gamma[i,], knots =  data.stan$knots, lower.tail = FALSE, log.p =T, offset = linpred[i,j])
         
       }
       
@@ -988,8 +975,8 @@ lik_rps <- function (x, linpred, linpred.hat, model, data.stan){
   
   
   for(i in 1:ncol(logf.hat)){
-    logf.hat[i] <- data.stan$d[i]*log(flexsurv::hsurvspline(data.stan$t[i], gamma = gamma.hat, knots = data.stan$knots, offset = linpred.hat[i]))+
-      flexsurv::psurvspline(q = data.stan$t[i], gamma = gamma.hat, knots =  data.stan$knots, lower.tail = F, log.p =T, offset = linpred.hat[i])
+    logf.hat[i] <- data.stan$d[i]*log(hsurvspline(data.stan$t[i], gamma = gamma.hat, knots = data.stan$knots, offset = linpred.hat[i]))+
+      psurvspline(q = data.stan$t[i], gamma = gamma.hat, knots =  data.stan$knots, lower.tail = FALSE, log.p =T, offset = linpred.hat[i])
     
   }
   
@@ -1017,10 +1004,10 @@ lik_exp <- function (x, linpred, linpred.hat, model, data.stan){
   dist = "exp"
   
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hexp(data.stan$t, exp(linpred[i, ]))) + 
+    data.stan$d * log(hexp(data.stan$t, exp(linpred[i, ]))) + 
       log(1 - stats::pexp(data.stan$t, exp(linpred[i, ])))
   })), nrow = nrow(linpred), byrow = T)
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hexp(data.stan$t, exp(linpred.hat))) + 
+  logf.hat <- matrix(data.stan$d * log(hexp(data.stan$t, exp(linpred.hat))) + 
                        log(1 - stats::pexp(data.stan$t, exp(linpred.hat))), nrow = 1)
   
   logf.expert <- rep(NA, nrow(linpred))
@@ -1049,13 +1036,13 @@ lik_wei <- function (x, linpred, linpred.hat, model, data.stan ){
   shape <- alpha <- as.numeric(rstan::extract(model)$alpha)
   shape.hat <- stats::median(shape)
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hweibull(data.stan$t, shape[i], exp(linpred[i, 
+    data.stan$d * log(hweibull(data.stan$t, shape[i], exp(linpred[i, 
     ]))) + log(1 - stats::pweibull(data.stan$t, shape[i], exp(linpred[i, 
     ])))
   })), nrow = nrow(linpred), byrow = T)
   
   
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hweibull(data.stan$t, 
+  logf.hat <- matrix(data.stan$d * log(hweibull(data.stan$t, 
                                                           shape.hat, exp(linpred.hat))) + log(1 - stats::pweibull(data.stan$t, 
                                                                                                                   shape.hat, exp(linpred.hat))), nrow = 1)
   logf.expert <- rep(NA, nrow(linpred))
@@ -1084,11 +1071,11 @@ lik_lno <- function (x, linpred, linpred.hat, model, data.stan){
   sigma = as.numeric(rstan::extract(model)$alpha)
   sigma.hat = stats::median(sigma)
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hlnorm(data.stan$t, (linpred[i, 
+    data.stan$d * log(hlnorm(data.stan$t, (linpred[i, 
     ]), sigma[i])) + log(1 - stats::plnorm(data.stan$t, 
                                            (linpred[i, ]), sigma[i]))
   })), nrow = nrow(linpred), byrow = T)
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hlnorm(data.stan$t, 
+  logf.hat <- matrix(data.stan$d * log(hlnorm(data.stan$t, 
                                                         (linpred.hat), sigma.hat)) + log(1 - stats::plnorm(data.stan$t, 
                                                                                                            (linpred.hat), sigma.hat)), nrow = 1)
   logf.expert <- rep(NA, nrow(linpred))
@@ -1119,12 +1106,12 @@ lik_llo <- function (x, linpred, linpred.hat, model, data.stan){
   sigma = as.numeric(rstan::extract(model)$alpha)
   sigma.hat = stats::median(sigma)
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hllogis(data.stan$t, sigma[i], exp(linpred[i,]))) +
-      log(1 - flexsurv::pllogis(data.stan$t, sigma[i], exp(linpred[i, 
+    data.stan$d * log(hllogis(data.stan$t, sigma[i], exp(linpred[i,]))) +
+      log(1 - pllogis(data.stan$t, sigma[i], exp(linpred[i, 
       ])))
   })), nrow = nrow(linpred), byrow = T)
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hllogis(data.stan$t, 
-                                                         sigma.hat, exp(linpred.hat))) + log(1 - flexsurv::pllogis(data.stan$t, 
+  logf.hat <- matrix(data.stan$d * log(hllogis(data.stan$t, 
+                                                         sigma.hat, exp(linpred.hat))) + log(1 - pllogis(data.stan$t, 
                                                                                                                    sigma.hat, exp(linpred.hat))), nrow = 1)
   
   logf.expert <- rep(NA, nrow(linpred))
@@ -1156,12 +1143,12 @@ lik_wph <- function (x, linpred, linpred.hat, model, data.stan){
   shape <- alpha <- as.numeric(rstan::extract(model)$alpha)
   shape.hat = stats::median(shape)
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hweibullPH(data.stan$t, shape[i], exp(linpred[i, 
-    ]))) + log(1 - flexsurv::pweibullPH(data.stan$t, shape[i], 
+    data.stan$d * log(hweibullPH(data.stan$t, shape[i], exp(linpred[i, 
+    ]))) + log(1 - pweibullPH(data.stan$t, shape[i], 
                                         exp(linpred[i, ])))
   })), nrow = nrow(linpred), byrow = T)
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hweibullPH(data.stan$t, 
-                                                            shape.hat, exp(linpred.hat))) + log(1 - flexsurv::pweibullPH(data.stan$t, 
+  logf.hat <- matrix(data.stan$d * log(hweibullPH(data.stan$t, 
+                                                            shape.hat, exp(linpred.hat))) + log(1 - pweibullPH(data.stan$t, 
                                                                                                                          shape.hat, exp(linpred.hat))), nrow = 1)
   
   logf.expert <- rep(NA, nrow(linpred))
@@ -1194,14 +1181,14 @@ lik_gam <- function (x, linpred, linpred.hat, model, data.stan){
   shape.hat <- stats::median(shape)
   
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hgamma(data.stan$t, shape = shape[i], 
+    data.stan$d * log(hgamma(data.stan$t, shape = shape[i], 
                                        rate = exp(linpred[i, ]))) + 
-      stats::pgamma(q = data.stan$t,shape[i], rate = exp(linpred[i, ]), lower.tail = F, log = T)
+      stats::pgamma(q = data.stan$t,shape[i], rate = exp(linpred[i, ]), lower.tail = FALSE, log = T)
   })), nrow = nrow(linpred), byrow = T)
   
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hgamma(data.stan$t, 
+  logf.hat <- matrix(data.stan$d * log(hgamma(data.stan$t, 
                                                         shape.hat, exp(linpred.hat))) + 
-                       stats::pgamma(data.stan$t,shape.hat, exp(linpred.hat),lower.tail = F,
+                       stats::pgamma(data.stan$t,shape.hat, exp(linpred.hat),lower.tail = FALSE,
                                      log = T), nrow = 1)  
   
   logf.expert <- rep(NA, nrow(linpred))
@@ -1230,12 +1217,12 @@ lik_gom <- function (x, linpred, linpred.hat, model, data.stan){
   shape <- alpha <- as.numeric(model$BUGSoutput$sims.matrix[ , grep("alpha",colnames(model$BUGSoutput$sims.matrix))])
   shape.hat = stats::median(shape)
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d * log(flexsurv::hgompertz(data.stan$t, shape = shape[i], 
+    data.stan$d * log(hgompertz(data.stan$t, shape = shape[i], 
                                           rate = exp(linpred[i, ]))) + 
-      flexsurv::pgompertz(data.stan$t,shape[i], rate = exp(linpred[i, ]), lower.tail = F, log = T)
+      pgompertz(data.stan$t,shape[i], rate = exp(linpred[i, ]), lower.tail = FALSE, log.p = T)
   })), nrow = nrow(linpred), byrow = T)
-  logf.hat <- matrix(data.stan$d * log(flexsurv::hgompertz(data.stan$t,shape.hat, exp(linpred.hat))) + 
-                       flexsurv::pgompertz(data.stan$t,shape.hat, exp(linpred.hat), lower.tail = F, log = T), nrow = 1)
+  logf.hat <- matrix(data.stan$d * log(hgompertz(data.stan$t,shape.hat, exp(linpred.hat))) + 
+                       pgompertz(data.stan$t,shape.hat, exp(linpred.hat), lower.tail = FALSE, log.p = T), nrow = 1)
   
   
   if(data.stan$St_indic == 1){
@@ -1268,14 +1255,14 @@ lik_gga <- function (x, linpred, linpred.hat, model, data.stan){
   d2 <- sapply(data.stan$d,function(x){ifelse(x == 1, 0,1)})
   
   logf <- matrix(unlist(lapply(1:nrow(linpred), function(i) {
-    data.stan$d*flexsurv::dgengamma(data.stan$t, 
+    data.stan$d*dgengamma(data.stan$t, 
                                     linpred[i, ], scale[i], q[i], log = T) +
-      d2*flexsurv::pgengamma(data.stan$t,linpred[i, ], scale[i], q[i], log = T, lower.tail = F)})),
+      d2*pgengamma(data.stan$t,linpred[i, ], scale[i], q[i], log.p = TRUE, lower.tail = F)})),
     nrow = nrow(linpred), byrow = T)
   
   
-  logf.hat <- matrix(data.stan$d*flexsurv::dgengamma(data.stan$t,linpred.hat,scale.bar, q.bar, log = T) +
-                       d2*flexsurv::pgengamma(data.stan$t, linpred.hat, scale.bar, q.bar, log = T, lower.tail = F),
+  logf.hat <- matrix(data.stan$d*dgengamma(data.stan$t,linpred.hat,scale.bar, q.bar, log = T) +
+                       d2*pgengamma(data.stan$t, linpred.hat, scale.bar, q.bar, log.p = TRUE, lower.tail = F),
                      nrow = 1)
   
   

@@ -7,3 +7,6 @@ inst/doc
 src
 /doc/
 /Meta/
+^Change-log & ToDo\.txt
+^NAMESPACE_backup2
+^NAMESPACE_backup

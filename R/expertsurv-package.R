@@ -13,7 +13,7 @@
 #' @name expertsurv-package
 #' 
 #' @aliases expertsurv-package expertsurv
-#' @docType _PACKAGE
+#' @docType package
 #' @author 
 #' Philip Cooney Package Creator, Maintainer
 #' @author 
@@ -56,15 +56,18 @@
 #' 
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}
-#' 
 #' \insertRef{Cooney.2023}{expertsurv}
-#' 
-#' 
+#' \insertRef{flexsurv}{expertsurv}
+##' @importFrom muhaz muhaz
+##' @importFrom mvtnorm rmvnorm
+#' @importFrom quadprog solve.QP
 ## usethis namespace: start
 #' @useDynLib expertsurv, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 ## usethis namespace: end
-NULL
+"_PACKAGE"
 
-
+.onUnload <- function(libpath) {
+    library.dynam.unload("expertsurv", libpath)
+}
 

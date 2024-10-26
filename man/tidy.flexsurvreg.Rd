@@ -49,8 +49,9 @@ To transform the baseline distribution parameters to the real-value number line 
 }
 \examples{
 
-fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
-tidy(fitg)
-tidy(fitg, pars = "coefs", transform = "coefs.exp")
+fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age,
+								data = ovarian, dist = "gengamma")
+expertsurv:::tidy.flexsurvreg(fitg)
+expertsurv:::tidy.flexsurvreg(fitg, pars = "coefs", transform = "coefs.exp")
 }
 \keyword{internal}

@@ -87,6 +87,8 @@ left-truncated datasets these are the "stop" times.}
 
 \item{quantiles}{If \code{type="quantile"}, this specifies the quantiles of the survival time distribution to return estimates for.}
 
+\item{start}{NULL}
+
 \item{cross}{If \code{TRUE} (the default) then summaries are calculated for all combinations of times
 specified in \code{t} and covariate vectors specifed in \code{newdata}.
 

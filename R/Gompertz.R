@@ -56,6 +56,7 @@
 ##' and epidemiological tables.
 ##' @keywords distribution
 ##' @name Gompertz
+##' @noRd
 NULL
 
 
@@ -65,21 +66,18 @@ NULL
 ## in eha: shape=lam, gamma=1/scale
 ## log(shape) + x/scale - shape * scale * (exp(x/scale) - 1))
 ## shape/scale labelled wrong way round.
-##' @rdname Gompertz
 dgompertz <- function(x, shape, rate=1, log=FALSE) {
     check_numeric(x=x, shape=shape, rate=rate)
     dgompertz_work(x, shape, rate, log)
 }
 
-##' 
-##' @rdname Gompertz
+
 pgompertz <- function(q, shape, rate=1, lower.tail = TRUE, log.p = FALSE) {
     check_numeric(q=q, shape=shape, rate=rate)
     pgompertz_work(q, shape, rate, lower.tail, log.p)
 }
 
-##' 
-##' @rdname Gompertz
+
 qgompertz <- function(p, shape, rate=1, lower.tail = TRUE, log.p = FALSE) {
     d <- dbase("gompertz", lower.tail=lower.tail, log=log.p, p=p, shape=shape, rate=rate)
     for (i in seq_along(d)) assign(names(d)[i], d[[i]])
@@ -96,8 +94,7 @@ qgompertz <- function(p, shape, rate=1, lower.tail = TRUE, log.p = FALSE) {
     ret
 }
 
-##' 
-##' @rdname Gompertz
+
 rgompertz <- function(n, shape = 1, rate = 1){
     r <- rbase("gompertz", n=n, shape=shape, rate=rate)
     for (i in seq_along(r)) assign(names(r)[i], r[[i]])
@@ -105,8 +102,7 @@ rgompertz <- function(n, shape = 1, rate = 1){
     ret
 }
 
-##' 
-##' @rdname Gompertz
+
 hgompertz <- function(x, shape, rate = 1, log = FALSE) 
 {
     h <- dbase("gompertz", log=log, x=x, shape=shape, rate=rate)
@@ -118,8 +114,7 @@ hgompertz <- function(x, shape, rate = 1, log = FALSE)
     ret
 }
 
-##' 
-##' @rdname Gompertz
+
 Hgompertz <- function(x, shape, rate = 1, log = FALSE) 
 {
     h <- dbase("gompertz", log=log, x=x, shape=shape, rate=rate)

@@ -116,7 +116,7 @@
 #' require(tidyr)
 #' pr <- predict(fitg, type = "survival", times = c(600, 800))
 #' tidyr::unnest(pr, .pred)
-#'
+#' @noRd
 predict.flexsurvreg <- function(object,
                                 newdata,
                                 type = "response",

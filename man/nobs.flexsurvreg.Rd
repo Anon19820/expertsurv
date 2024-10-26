@@ -12,7 +12,7 @@
 
 \item{cens}{Include censored observations in the number.  \code{TRUE} by default.
 If \code{FALSE} then the number of observed events is returned.  See
-\code{\link{BIC.flexsurvreg}} for a discussion of the issues
+\code{\link[flexsurv]{BIC.flexsurvreg}} for a discussion of the issues
 with defining the sample size for censored data.}
 
 \item{...}{Further arguments passed to or from other methods.  Currently

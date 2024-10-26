@@ -118,6 +118,7 @@ rbase <- function(dname, n, ...){
 ##' rmst_lnorm(500, start=250, meanlog=7.4225, sdlog = 1.1138)
 ##' rmst_generic(plnorm, 500, start=250, meanlog=7.4225, sdlog = 1.1138)
 ##' # must name the arguments
+##' @noRd
 rmst_generic <- function(pdist, t, start=0, matargs=NULL, scalarargs=NULL, ...)
 {
   args <- list(...)
@@ -295,6 +296,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ind"))
 ##'
 ##' @importFrom Matrix nearPD
 ##' @keywords internal
+##' @noRd
 .hess_to_cov <- function(hessian, tol.solve = 1e-9, tol.evalues = 1e-5, ...) {
   if(is.null(tol.solve)) tol.solve <- .Machine$double.eps
   if(is.null(tol.evalues)) tol.evalues <- 1e-5 
@@ -328,7 +330,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("ind"))
 #'    of numDeriv)
 #' @param min.r minial number of iteration, must be at least 2,
 #' @param ... further arguments passed to method.args of numDeriv::hessian
-#'
+#' @noRd
 #' @importFrom numDeriv hessian
 #' @keywords internal
 .hessian <- function(f, x, seconds.warning = 60, default.r = 6, min.r = 2, ...) {

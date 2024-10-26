@@ -54,18 +54,8 @@
 #'                                   times_expert = timepoint_expert,
 #'                                   param_expert = param_expert_example1)
 #' 
-#' #Warning! 50 iterations is far too few, however, it has been done so that the 
-#' #example can be run for CRAN
-#' example1_bayes <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-#'                                     distr=c("wph", "exp"),
-#'                                     method="bayes",
-#'                                     iter = 50,
-#'                                     pool_type = "log pool",
-#'                                     opinion_type = "survival",
-#'                                     times_expert = timepoint_expert,
-#'                                     param_expert = param_expert_example1)
 #' 
-#' plot(MLE=example1_mle,Bayesian=example1_bayes, add.km = TRUE, t = 0:30)
+#' plot(MLE=example1_mle, add.km = TRUE, t = 0:30)
 #'
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}

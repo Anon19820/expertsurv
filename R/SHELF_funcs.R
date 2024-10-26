@@ -626,15 +626,6 @@ plotfit <- function (fit, d = "best", xl = -Inf, xu = Inf, ql = NA, qu = NA,
           lp = FALSE, ex = NA, sf = 3, ind = TRUE, lpw = 1, fs = 12, 
           lwd = 1, xlab = "x", ylab = expression(f[X](x)), legend_full = TRUE, 
           percentages = FALSE, returnPlot = FALSE){
-#NAMESPACE HACK FOR CRAN; three times :
-logt.error <-utils::getFromNamespace("logt.error", "SHELF")
-gamma.error<-utils::getFromNamespace("gamma.error", "SHELF")
-lognormal.error<-utils::getFromNamespace("lognormal.error", "SHELF")
-logt.error<-utils::getFromNamespace("logt.error", "SHELF")
-makeGroupPlot<-utils::getFromNamespace("makeGroupPlot", "SHELF")
-makeLinearPoolPlot<-utils::getFromNamespace("makeLinearPoolPlot", "SHELF")
-makeSingleExpertPlot<-utils::getFromNamespace("makeSingleExpertPlot", "SHELF")
-	  
 		  
   if (d == "beta" & (min(fit$limits) == -Inf | max(fit$limits) == 
                      Inf)) {
@@ -914,7 +905,24 @@ list(x = x, fx = fx)
 	
 }
 
-
+dhist<-function(x, z, pz){
+  fx<-rep(0,length(x))
+  
+  h <- rep(0, length(z) -1)
+  for(i in 1:length(h)){
+    h[i]<-(pz[i+1] - pz[i]) / (z[i+1]-z[i])
+  }
+  
+  nz<-length(z)
+  
+  for(i in 1:length(x)){
+    index<- (x[i]<=z[2:nz]) & (x[i]>z[1:(nz-1)])
+    if(sum(index)>0){
+      fx[i] <- h[index]
+    }
+  }
+  fx
+}
 
 
 #Will modify for the SHINY APP
@@ -1202,6 +1210,7 @@ cred_int <- function(plt_obj, val = "linear pool",interval = c(0.025, 0.975)){
 #'
 #' @import  ggplot2
 #' @importFrom  scales hue_pal
+#' @importFrom  sn dsn qsn 
 #' @noRd
 #' 
 makePoolPlot <- function (fit, xl, xu, d = "best", w = 1, lwd = 1, xlab = "x", 
@@ -1375,8 +1384,11 @@ makePoolPlot <- function (fit, xl, xu, d = "best", w = 1, lwd = 1, xlab = "x",
   p1 + theme(text = element_text(size = fs))
 }
 
-makeSingleExpertPlot <-
-function(fit, d = "best", pl = -Inf, pu = Inf,
+qhist<-function(q, z, pz){
+  stats::approx(pz, z, q)$y
+}
+
+makeSingleExpertPlot <- function(fit, d = "best", pl = -Inf, pu = Inf,
          ql = NA, qu = NA, sf = 3, ex = 1,
          lwd = 1, xlab, ylab, percentages ){
   

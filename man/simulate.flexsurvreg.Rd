@@ -26,6 +26,8 @@ function, as described in \code{\link{simulate}} for the \code{lm} method.}
 \item{newdata}{Data frame defining alternative sets of covariate values to simulate with.
 If omitted, this defaults to the data originally used to fit the model.}
 
+\item{start}{NULL}
+
 \item{censtime}{A right-censoring time, or vector of times matching the rows
 of \code{newdata}.  If \code{NULL} (the default) then uncensored times to events
 are simulated.}
@@ -52,8 +54,8 @@ A data frame, with format determined by whether \code{tidy} was specified.
 Simulate censored time-to-event data from a fitted flexsurvreg model
 }
 \examples{
-fit <- flexsurvreg(formula = Surv(futime, fustat) ~ rx, data = ovarian, dist="weibull")
-fit2 <- flexsurvspline(formula = Surv(futime, fustat) ~ rx, data = ovarian, k=3)
+fit <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ rx, data = ovarian, dist="weibull")
+fit2 <- expertsurv:::flexsurvspline(formula = Surv(futime, fustat) ~ rx, data = ovarian, k=3)
 nd = data.frame(rx=1:2)
 simulate(fit, seed=1002, newdata=nd)
 simulate(fit, seed=1002, newdata=nd, start=500)

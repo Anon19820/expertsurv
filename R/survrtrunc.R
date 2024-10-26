@@ -82,7 +82,7 @@
 ##' obs <- X + T < tmax
 ##' rtrunc <- tmax - X
 ##' dat <- data.frame(X, T, rtrunc)[obs,]
-##' sf <-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+##' sf <-    expertsurv:::survrtrunc(T, rtrunc, data=dat, tmax=tmax)
 ##' plot(sf, conf.int=TRUE)
 ##' ## Kaplan-Meier estimate ignoring truncation is biased
 ##' sfnaive <- survfit(Surv(T) ~ 1, data=dat)
@@ -93,7 +93,7 @@
 ##' obs <- X + T < tmax
 ##' rtrunc <- tmax - X
 ##' dat <- data.frame(X, T, rtrunc)[obs,]
-##' sf <-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+##' sf <-    expertsurv:::survrtrunc(T, rtrunc, data=dat, tmax=tmax)
 ##' plot(sf, conf.int=TRUE)
 ##' ## estimates identical to the standard Kaplan-Meier
 ##' sfnaive <- survfit(Surv(T) ~ 1, data=dat)
@@ -149,7 +149,7 @@ check_survrtrunc <- function(t, rtrunc, tmax) {
 ##' 
 ##' @param ... Other arguments to be passed to \code{\link[survival]{plot.survfit}} or \code{\link[survival]{lines.survfit}}. 
 ##' 
-##' 
+##' @noRd
 plot.survrtrunc <- function(x, ...){
     class(x) <- "survfit"
     plot(x, ...)

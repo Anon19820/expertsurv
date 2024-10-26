@@ -15,7 +15,7 @@
 ##' 
 ##' @return A data frame with estimate and confidence limits for the hazard ratio, and
 ##' one row for each of the times requested in \code{t}.
-##'
+##' @noRd
 hr_flexsurvreg <- function(x, newdata=NULL, t=NULL, start=0, ci=TRUE, B=1000, cl=0.95, na.action=na.pass){
     if (is.null(newdata)){
         if (is.null(x$data))

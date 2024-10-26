@@ -55,24 +55,23 @@
 ##' and epidemiological tables.
 ##' @keywords distribution
 ##' @name Llogis
+##' @noRd
 NULL
 
-##' @rdname Llogis
+
 dllogis <- function(x, shape=1, scale=1, log = FALSE)
 {
     check_numeric(x=x, shape=shape, scale=scale)
     dllogis_work(x, shape, scale, log)
 }
 
-##' 
-##' @rdname Llogis
+
 pllogis <- function(q, shape=1, scale=1, lower.tail = TRUE, log.p = FALSE) {
     check_numeric(q=q, shape=shape, scale=scale)
     pllogis_work(q, shape, scale, lower.tail, log.p)
 }
 
-##' 
-##' @rdname Llogis
+
 qllogis <- function(p, shape=1, scale=1, lower.tail = TRUE, log.p = FALSE) {
     d <- dbase("llogis", lower.tail=lower.tail, log=log.p, p=p, shape=shape, scale=scale)
     for (i in seq_along(d)) assign(names(d)[i], d[[i]])
@@ -81,8 +80,7 @@ qllogis <- function(p, shape=1, scale=1, lower.tail = TRUE, log.p = FALSE) {
     ret
 }
 
-##' 
-##' @rdname Llogis
+
 rllogis <- function(n, shape=1, scale=1){
     r <- rbase("llogis", n=n, shape=shape, scale=scale)
     for (i in seq_along(r)) assign(names(r)[i], r[[i]])
@@ -90,8 +88,6 @@ rllogis <- function(n, shape=1, scale=1){
     ret
 } 
 
-##' 
-##' @rdname Llogis
 hllogis <- function(x, shape=1, scale=1, log = FALSE) 
 {
     h <- dbase("llogis", log=log, x=x, shape=shape, scale=scale)
@@ -101,8 +97,7 @@ hllogis <- function(x, shape=1, scale=1, log = FALSE)
     ret
 }
 
-##' 
-##' @rdname Llogis
+
 Hllogis <- function(x, shape=1, scale=1, log = FALSE) 
 {
     ret <- - pllogis(x, shape, scale, lower.tail=FALSE, log.p=TRUE)

@@ -102,6 +102,8 @@
 ##'
 ##' @param na.action Function determining what should be done with missing values in \code{newdata}.  If \code{na.pass} (the default) then summaries of \code{NA} are produced for missing covariate values.  If \code{na.omit}, then missing values are dropped, the behaviour of \code{summary.flexsurvreg} before \code{flexsurv} version 1.2.
 ##'
+##' @param start NULL
+##'
 ##' @param ... Further arguments passed to or from other methods.  Currently
 ##' unused.
 ##'
@@ -458,10 +460,10 @@ add.covs <- function(x, pars, beta, X, transform=FALSE){  ## TODO option to tran
 ##' @keywords models
 ##' @examples
 ##'
-##'     fite <- flexsurvreg(Surv(futime, fustat) ~ age, data = ovarian, dist="exp")
-##'     normboot.flexsurvreg(fite, B=10, newdata=list(age=50))
-##'     normboot.flexsurvreg(fite, B=10, X=matrix(50,nrow=1))
-##'     normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
+##'     fite <- expertsurv:::flexsurvreg(Surv(futime, fustat) ~ age, data = ovarian, dist="exp")
+##'     expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=50))
+##'     expertsurv:::normboot.flexsurvreg(fite, B=10, X=matrix(50,nrow=1))
+##'     expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
 ##'     fite$res
 
 normboot.flexsurvreg <- function(x, B, newdata=NULL, X=NULL, transform=FALSE, raw=FALSE, tidy=FALSE, rawsim=NULL){

@@ -34,11 +34,7 @@ fit.models.expert(
 \item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
 }}
 
-\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples.}
-
-\item{id_St}{This is only necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities is being integrated into the analysis. It specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.}
-
-\item{id_trt}{This is only necessary if including expert opinion about differences in expected survival (i.e. area under the curve) between a treatment and a comparator and specifies the row number in the data frame corresponding to a treated patient. Similarly the location of the reference id_comp (i.e. comparator) needs to be specified.}
+\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.}
 }
 \value{
 An object of class \code{expertsurv} which contains the parameters of the models estimated with expert opinion.
@@ -72,15 +68,6 @@ example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
                               
 plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
 model.fit.plot(example1, type = "aic")  #Plot AIC 
-
-example1_bayes  <- fit.models.expert(formula=Surv(time,status)~as.factor(arm),data=data2,
-                                    distr=c("wph", "lnorm","exp"),
-                                    method="bayes",
-                                    pool_type = "log pool", 
-                                    opinion_type = "survival",
-                                    id_St = min(which(data2$arm ==0)), #We want our opinion to refer to the treatment called "0"
-                                    times_expert = timepoint_expert, 
-                                    param_expert = param_expert_example1)
 
 
 }

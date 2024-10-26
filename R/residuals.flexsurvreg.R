@@ -26,7 +26,7 @@
 #' residuals(fitg, type="response")
 #'
 #' 
-#'
+#' @noRd
 residuals.flexsurvreg <- function(object, type = "response", ...)
 {
   type <- match.arg(type, c("response","coxsnell"))
@@ -58,15 +58,15 @@ residuals.flexsurvreg <- function(object, type = "response", ...)
 ##' 
 ##' @examples
 ##'
-##'   fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
-##'   cs <- coxsnell_flexsurvreg(fitg)
+##'   fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
+##'   cs <- expertsurv:::coxsnell_flexsurvreg(fitg)
 ##'   
 ##'   ## Model appears to fit well, with some small sample noise 
 ##'   surv <- survfit(Surv(cs$est, ovarian$fustat) ~ 1)
 ##'   plot(surv, fun="cumhaz")
 ##'   abline(0, 1, col="red")
 ##'   
-##' 
+##' @noRd
 coxsnell_flexsurvreg <- function(x){
   mf <- model.frame(x, orig=TRUE)
   startstop <- "start" %in% colnames(mf[,1])

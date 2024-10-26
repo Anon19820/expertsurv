@@ -29,14 +29,14 @@ make_sim_mle <- function(m,t,X,nsim,newdata,dist,summary_stat,...) {
     } 
     # If X has only one row, needs to create a list, with length equal to the number of profiles (=nrow(X))
     if(nrow(X)==1) {
-      sim=list(flexsurv::normboot.flexsurvreg(m,B=B,X=as.matrix(X)))
+      sim=list(normboot.flexsurvreg(m,B=B,X=as.matrix(X)))
     } else {
       # Otherwise normboot will take care of it with the proper length for the automatically created list
-      sim=flexsurv::normboot.flexsurvreg(m,B=B,X=as.matrix(X))
+      sim=normboot.flexsurvreg(m,B=B,X=as.matrix(X))
     }
   } else {
     # If there are newdata, then create the list of sims using it
-    sim <- lapply(1:nrow(X),function(i) flexsurv::normboot.flexsurvreg(m,B=B,newdata=newdata[[i]]))
+    sim <- lapply(1:nrow(X),function(i) normboot.flexsurvreg(m,B=B,newdata=newdata[[i]]))
   }
   # Then if 'nsim'=1, then take the average over the bootstrap samples. 
   if(nsim==1) {
@@ -300,7 +300,7 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
         matrix(
           unlist(
             lapply(1:nsim,function(i){
-              1-do.call(flexsurv::psurvspline,args=list(
+              1-do.call(psurvspline,args=list(
                 q=t,
                 gamma=as.numeric(gamma %>% slice(i)),
                 beta=0,

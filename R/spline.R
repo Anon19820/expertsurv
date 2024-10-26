@@ -149,9 +149,6 @@ ldlink <- function(scale){
            )
 }
 
-## probability density function.
-
-##' @rdname Survspline
 dsurvspline <- function(x, gamma, beta=0, X=0, knots=c(-10,10), scale="hazard", timescale="log", spline="rp", offset=0, log=FALSE){
     betax_warn(beta, X, offset)
     d <- dbase.survspline(q=x, gamma=gamma, knots=knots, scale=scale, spline=spline)
@@ -199,8 +196,6 @@ Slink <- function(scale){
 }
 
 ## cumulative distribution function
-
-##' @rdname Survspline
 psurvspline <- function(q, gamma, beta=0, X=0, knots=c(-10,10), scale="hazard", timescale="log", spline="rp", offset=0, lower.tail=TRUE, log.p=FALSE){
     betax_warn(beta, X, offset)
     d <- dbase.survspline(q=q, gamma=gamma, knots=knots, scale=scale, spline=spline)
@@ -349,8 +344,9 @@ mean_survspline = function(gamma, beta=0, X=0, knots=c(-10,10), scale="hazard", 
 ##'
 ##' Wang W, Yan J (2021). Shape-Restricted Regression Splines with R
 ##' Package splines2. Journal of Data Science, 19(3), 498-517.
-##'
+##' @noRd
 ##' @keywords models
+
 basis <- function(knots, x, spline="rp") {
   if (spline=="rp")
     basis_original(knots, x)
@@ -585,8 +581,8 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##' 
 ##' This function works as a wrapper around \code{\link{flexsurvreg}} by
 ##' dynamically constructing a custom distribution using
-##' \code{\link{dsurvspline}}, \code{\link{psurvspline}} and
-##' \code{\link{unroll.function}}.
+##' \code{\link[flexsurv]{dsurvspline}}, \code{\link[flexsurv]{psurvspline}} and
+##' \code{\link[flexsurv]{unroll.function}}.
 ##' 
 ##' In the spline-based survival model of Royston and Parmar (2002), a
 ##' transformation \eqn{g(S(t,z))} of the survival function is modelled as a
@@ -733,6 +729,8 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##'   basis from the \code{splines2} package (Wang and Yan 2021),
 ##'   which may be better behaved due to the basis being orthogonal.
 ##' 
+##' @param expert_opinion To be added...
+##'
 ##' @param ...  Any other arguments to be passed to or through
 ##' \code{\link{flexsurvreg}}, for example, \code{anc}, \code{inits},
 ##' \code{fixedpars}, \code{weights}, \code{subset}, \code{na.action}, and any
@@ -775,7 +773,7 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##' @seealso \code{\link{flexsurvreg}} for flexible survival modelling using
 ##' general parametric distributions.
 ##' 
-##' \code{\link{plot.flexsurvreg}} and \code{\link{lines.flexsurvreg}} to plot
+##' \code{\link{plot.flexsurvreg}} and \code{\link[flexsurv]{lines.flexsurvreg}} to plot
 ##' fitted survival, hazards and cumulative hazards from models fitted by
 ##' \code{\link{flexsurvspline}} and \code{\link{flexsurvreg}}.
 ##'
@@ -798,7 +796,7 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##' ## Best-fitting model to breast cancer data from Royston and Parmar (2002)
 ##' ## One internal knot (2 df) and cumulative odds scale
 ##' 
-##' spl <- flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=1, scale="odds")
+##' spl <- expertsurv:::flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=1, scale="odds")
 ##' 
 ##' ## Fitted survival
 ##' 
@@ -806,15 +804,14 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##' 
 ##' ## Simple Weibull model fits much less well
 ##' 
-##' splw <- flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=0, scale="hazard")
+##' splw <- expertsurv:::flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=0, scale="hazard")
 ##' lines(splw, col="blue", ci=FALSE)
 ##' 
 ##' ## Alternative way of fitting the Weibull
 ##' 
 ##' \dontrun{
-##' splw2 <- flexsurvreg(Surv(recyrs, censrec) ~ group, data=bc, dist="weibull")
+##' splw2 <- expertsurv:::flexsurvreg(Surv(recyrs, censrec) ~ group, data=bc, dist="weibull")
 ##' }
-##' 
 flexsurvspline <- function(formula, data, weights, bhazard, rtrunc, subset,
                            k=0, knots=NULL, bknots=NULL, scale="hazard", timescale="log", spline="rp",expert_opinion = NULL, ...){
     ## Get response matrix from the formula.  Only need this to obtain

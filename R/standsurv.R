@@ -124,7 +124,7 @@
 #' 
 #' In addition tidy long-format data.frames are returned in the attributes
 #' \code{standsurv_at} and \code{standsurv_contrast}. These can be passed to 
-#' \code{ggplot} for plotting purposes (see \code{\link{plot.standsurv}}).
+#' \code{ggplot} for plotting purposes (see \code{\link[flexsurv]{plot.standsurv}}).
 #' @importFrom tibble as_tibble
 #' @importFrom rlang :=
 #' @importFrom dplyr bind_cols
@@ -149,12 +149,12 @@
 #'  sd = 5)
 #' 
 #' ## Fit a Weibull flexsurv model with group and age as covariates
-#' weib_age <- flexsurvreg(Surv(recyrs, censrec) ~ group+age, data=newbc, 
+#' weib_age <- expertsurv:::flexsurvreg(Surv(recyrs, censrec) ~ group+age, data=newbc, 
 #'                        dist="weibull")
 #'                        
 #'## Calculate standardized survival and the difference in standardized survival
 #'## for the three levels of group across a grid of survival times                        
-#'standsurv_weib_age <- standsurv(weib_age, 
+#'standsurv_weib_age <- expertsurv:::standsurv(weib_age, 
 #'                                            at = list(list(group="Good"), 
 #'                                                      list(group="Medium"), 
 #'                                                      list(group="Poor")), 
@@ -921,7 +921,7 @@ deltamethod.contrast.standsurv <- function(object, dat, dat.ref,
 #' @importFrom dplyr mutate
 #' @importFrom tidyr pivot_longer
 #' @importFrom tidyselect matches
-#' 
+#' @noRd
 #' @keywords internal
 tidy.standsurv <- function(x, ...){
   standpred <- x
@@ -1050,7 +1050,8 @@ tidy.standsurv <- function(x, ...){
 #'  ggplot2::guides(color=ggplot2::guide_legend(title="Prognosis"),
 #'                                fill=ggplot2::guide_legend(title="Prognosis"))
 #'plot(standsurv_weib_age, contrast=TRUE, ci=TRUE) + 
-#'  ggplot2::ylab("Difference in survival") 
+#'  ggplot2::ylab("Difference in survival")
+#' @noRd
 plot.standsurv <- function(x, contrast = FALSE, ci = FALSE, expected = FALSE, ...){
   if(!contrast){
     obj <- attributes(x)$standpred_at

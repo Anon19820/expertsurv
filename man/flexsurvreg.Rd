@@ -169,10 +169,10 @@ Very flexible spline-based distributions can also be fitted with
 \code{\link{flexsurvspline}}.
 
 The parameterisations of the built-in distributions used here are the same
-as in their built-in distribution functions: \code{\link{dgengamma}},
-\code{\link{dgengamma.orig}}, \code{\link{dgenf}},
-\code{\link{dgenf.orig}}, \code{\link{dweibull}}, \code{\link{dgamma}},
-\code{\link{dexp}}, \code{\link{dlnorm}}, \code{\link{dgompertz}},
+as in their built-in distribution functions: \code{\link[flexsurv]{dgengamma}},
+\code{\link[flexsurv]{dgengamma.orig}}, \code{\link[flexsurv]{dgenf}},
+\code{\link[flexsurv]{dgenf.orig}}, \code{\link[stats]{dweibull}}, \code{\link[stats]{dgamma}},
+\code{\link[stats]{dexp}}, \code{\link[stats]{dlnorm}}, \code{\link[flexsurv]{dgompertz}},
 respectively.  The functions in base R are used where available,
 otherwise, they are provided in this package.
 
@@ -221,7 +221,7 @@ values to ensure convergence to the true global maximum.}
 at their initial values during the optimisation.  The indices are ordered
 as in \code{inits}.  For example, in a stable generalized Gamma model with
 two covariates, to fix the third of three generalized gamma parameters
-(the shape \code{Q}, see the help for \code{\link{GenGamma}}) and the
+(the shape \code{Q}, see the help for \code{\link[flexsurv]{GenGamma}}) and the
 second covariate, specify \code{fixedpars = c(3, 5)}}
 
 \item{dfns}{An alternative way to define a custom survival distribution (see
@@ -288,6 +288,8 @@ an inaccurate estimate of the covariance matrix, then these tolerance
 values can be modified (reducing \code{tol.solve} or increasing
 \code{tol.evalues}) to allow the inverse to be computed.}
 
+\item{expert_opinion}{To be added...}
+
 \item{...}{Optional arguments to the general-purpose optimisation routine
 \code{\link{optim}}.  For example, the BFGS optimisation algorithm is the
 default in \code{\link{flexsurvreg}}, but this can be changed, for example
@@ -345,8 +347,8 @@ estimated parameters)} \item{cov}{Covariance matrix of the parameters, on
 the real-line scale (e.g. log scale), which can be extracted with
 \code{\link{vcov}}.} \item{data}{Data used in the model fit.  To extract
 this in the standard R formats, use use
-\code{\link{model.frame.flexsurvreg}} or
-\code{\link{model.matrix.flexsurvreg}}.}
+\code{\link[flexsurv]{model.frame.flexsurvreg}} or
+\code{\link[flexsurv]{model.matrix.flexsurvreg}}.}
 }
 \description{
 Parametric modelling or regression for time-to-event data.  Several built-in
@@ -449,9 +451,11 @@ model.
 \examples{
 
 ## Compare generalized gamma fit with Weibull
-fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian, dist="gengamma")
+fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, 
+					  data = ovarian, dist="gengamma")
 fitg
-fitw <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian, dist="weibull")
+fitw <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, 
+					data = ovarian, dist="weibull")
 fitw
 plot(fitg)
 lines(fitw, col="blue", lwd.ci=1, lty.ci=1)
@@ -468,7 +472,7 @@ custom.ev <- list(name="EV",
                       transforms=c(log, log),
                       inv.transforms=c(exp, exp),
                       inits=function(t){ c(1, median(t)) })
-fitev <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian,
+fitev <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian,
                     dist=custom.ev)
 fitev
 lines(fitev, col="purple", col.ci="purple")
@@ -481,8 +485,8 @@ hexp2 <- Vectorize(hexp2)
 custom.exp2 <- list(name="exp2", pars=c("rate"), location="rate",
                     transforms=c(log), inv.transforms=c(exp),
                     inits=function(t)1/mean(t))
-flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist=custom.exp2)
-flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist="exp")
+#expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist=custom.exp2)
+#expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist="exp")
 ## should give same answer
 
 }
@@ -510,7 +514,7 @@ coronary heart disease. Statistics in medicine, 26(30), 5486-5498.
 \code{\link{flexsurvspline}} for flexible survival modelling using
 the spline model of Royston and Parmar.
 
-\code{\link{plot.flexsurvreg}} and \code{\link{lines.flexsurvreg}} to plot
+\code{\link{plot.flexsurvreg}} and \code{\link[flexsurv]{lines.flexsurvreg}} to plot
 fitted survival, hazards and cumulative hazards from models fitted by
 \code{\link{flexsurvreg}} and \code{\link{flexsurvspline}}.
 }

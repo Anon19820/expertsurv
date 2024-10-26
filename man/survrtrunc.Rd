@@ -90,7 +90,7 @@ tmax <- 20
 obs <- X + T < tmax
 rtrunc <- tmax - X
 dat <- data.frame(X, T, rtrunc)[obs,]
-sf <-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+sf <-    expertsurv:::survrtrunc(T, rtrunc, data=dat, tmax=tmax)
 plot(sf, conf.int=TRUE)
 ## Kaplan-Meier estimate ignoring truncation is biased
 sfnaive <- survfit(Surv(T) ~ 1, data=dat)
@@ -101,7 +101,7 @@ tmax <- max(X + T) + 10
 obs <- X + T < tmax
 rtrunc <- tmax - X
 dat <- data.frame(X, T, rtrunc)[obs,]
-sf <-    survrtrunc(T, rtrunc, data=dat, tmax=tmax)
+sf <-    expertsurv:::survrtrunc(T, rtrunc, data=dat, tmax=tmax)
 plot(sf, conf.int=TRUE)
 ## estimates identical to the standard Kaplan-Meier
 sfnaive <- survfit(Surv(T) ~ 1, data=dat)

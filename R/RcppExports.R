@@ -57,3 +57,19 @@ dexph <- function(y) {
     .Call(`_expertsurv_dexph`, y)
 }
 
+basis_vector <- function(knots, x) {
+    .Call(`_expertsurv_basis_vector`, knots, x)
+}
+
+basis_matrix <- function(knots, x) {
+    .Call(`_expertsurv_basis_matrix`, knots, x)
+}
+
+dbasis_vector <- function(knots, x) {
+    .Call(`_expertsurv_dbasis_vector`, knots, x)
+}
+
+dbasis_matrix <- function(knots, x) {
+    .Call(`_expertsurv_dbasis_matrix`, knots, x)
+}
+

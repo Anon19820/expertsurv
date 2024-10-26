@@ -61,6 +61,7 @@
 ##' fn <- unroll.function(ncol, x=1:3)
 ##' fn(1:3, 1:3, 1:3) # equivalent to...
 ##' ncol(cbind(1:3,1:3,1:3))
+##' @noRd
 unroll.function <- function(mat.fn, ...){
     fargs <- formals(mat.fn)
     vargs <- list(...) # list of names and numbers

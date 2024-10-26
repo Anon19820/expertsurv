@@ -141,7 +141,7 @@ comparison of the kth versus the jth \code{at} scenario.
 
 In addition tidy long-format data.frames are returned in the attributes
 \code{standsurv_at} and \code{standsurv_contrast}. These can be passed to
-\code{ggplot} for plotting purposes (see \code{\link{plot.standsurv}}).
+\code{ggplot} for plotting purposes (see \code{\link[flexsurv]{plot.standsurv}}).
 }
 \description{
 Returns a tidy data.frame of marginal survival probabilities, or hazards,
@@ -185,12 +185,12 @@ newbc$age <- rnorm(dim(bc)[1], mean = 65-scale(newbc$recyrs, scale=FALSE),
  sd = 5)
 
 ## Fit a Weibull flexsurv model with group and age as covariates
-weib_age <- flexsurvreg(Surv(recyrs, censrec) ~ group+age, data=newbc, 
+weib_age <- expertsurv:::flexsurvreg(Surv(recyrs, censrec) ~ group+age, data=newbc, 
                        dist="weibull")
                        
 ## Calculate standardized survival and the difference in standardized survival
 ## for the three levels of group across a grid of survival times                        
-standsurv_weib_age <- standsurv(weib_age, 
+standsurv_weib_age <- expertsurv:::standsurv(weib_age, 
                                            at = list(list(group="Good"), 
                                                      list(group="Medium"), 
                                                      list(group="Poor")), 

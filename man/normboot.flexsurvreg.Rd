@@ -65,10 +65,10 @@ functions of parameters.
 }
 \examples{
 
-    fite <- flexsurvreg(Surv(futime, fustat) ~ age, data = ovarian, dist="exp")
-    normboot.flexsurvreg(fite, B=10, newdata=list(age=50))
-    normboot.flexsurvreg(fite, B=10, X=matrix(50,nrow=1))
-    normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
+    fite <- expertsurv:::flexsurvreg(Surv(futime, fustat) ~ age, data = ovarian, dist="exp")
+    expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=50))
+    expertsurv:::normboot.flexsurvreg(fite, B=10, X=matrix(50,nrow=1))
+    expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
     fite$res
 }
 \references{

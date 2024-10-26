@@ -9,5 +9,32 @@ utils::globalVariables(c("(Intercept)", "expert",'times_expert','weights','sum_w
                          'fluidRow', 'ftype', 'fx', 'h3', 'head', 'helpText', 'hr', 'mainPanel', 'need', 'numericInput',
                          'observeEvent', 'p', 'plotOutput', 'reactive', 'reactiveValues', 'renderPlot',
                          'selectInput', 'sidebarPanel', 'tabPanel', 'tabsetPanel', 'textInput', 'titlePanel',
-                         'updateSelectInput', 'validate', 'varSelectInput', 'wellPanel', 'x', 'y'))
+                         'updateSelectInput', 'validate', 'varSelectInput', 'wellPanel', 'x', 'y','stats', '.checkMFClasses', '.getXlevels', 'BIC',
+						 'as.formula', 'coef', 'confint', 'contrasts<-', 'dbeta',
+						'delete.response', 'dgamma', 'dlnorm', 'dnorm', 'dt',
+						'dweibull', 'formula', 'integrate', 'median',
+						'model.extract', 'model.frame', 'model.matrix', 'na.pass',
+						'optim', 'pbeta', 'pexp', 'pgamma', 'plnorm', 'plogis',
+						'pnorm', 'pt', 'pweibull', 'qbeta', 'qexp', 'qf', 'qgamma',
+						'qlnorm', 'qlogis', 'qnorm', 'qt', 'quantile', 'qweibull',
+						'reformulate', 'rf', 'rgamma', 'rlnorm', 'runif',
+						'rweibull', 'sd', 'setNames', 'terms', 'time', 'uniroot',
+						'update', 'var', 'vcov', 'weighted.mean'))
+						 
+
+
+
+#' Title
+#'
+#' @param x 
+#'
+#' @return x
+#' @importFrom Rdpack reprompt
+#' @noRd
+#' @import broom
+cran_req <- function(x){
+  return(x)
+}
+						 
+						   
 

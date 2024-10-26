@@ -14,6 +14,8 @@ compute_ICs_stan(model, distr3, data.stan)
 \item{model}{The 'rstan' object with the model fit}
 
 \item{distr3}{The 'rstan' object with the model fit}
+
+\item{data.stan}{The 'data' object with the model fit}
 }
 \value{
 \item{list}{A list containing the modified name of the

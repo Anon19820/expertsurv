@@ -27,13 +27,15 @@
 ##'   an event time (rather than a time of right-censoring) are returned in
 ##'   different columns.
 ##'
+##' @param start NULL
+##' 
 ##' @param ... Other arguments (not currently used).
 ##'
 ##' @return A data frame, with format determined by whether \code{tidy} was specified.
 ##'
 ##' @examples
-##' fit <- flexsurvreg(formula = Surv(futime, fustat) ~ rx, data = ovarian, dist="weibull")
-##' fit2 <- flexsurvspline(formula = Surv(futime, fustat) ~ rx, data = ovarian, k=3)
+##' fit <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ rx, data = ovarian, dist="weibull")
+##' fit2 <- expertsurv:::flexsurvspline(formula = Surv(futime, fustat) ~ rx, data = ovarian, k=3)
 ##' nd = data.frame(rx=1:2)
 ##' simulate(fit, seed=1002, newdata=nd)
 ##' simulate(fit, seed=1002, newdata=nd, start=500)

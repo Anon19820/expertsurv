@@ -79,7 +79,7 @@
 ##' @references Seaman, S., Presanis, A. and Jackson, C. (2020) Estimating a Time-to-Event
 ##' Distribution from Right-Truncated Data in an Epidemic: a Review of Methods
 ##'
-##' 
+##' @noRd
 flexsurvrtrunc <- function(t, tinit, rtrunc, tmax, data=NULL, method="joint", dist, 
                            theta=NULL, fixed.theta=TRUE,
                            inits=NULL, fixedpars=NULL, dfns=NULL,

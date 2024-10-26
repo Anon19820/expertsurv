@@ -116,6 +116,8 @@ described in Royston and Parmar.
 basis from the \code{splines2} package (Wang and Yan 2021),
 which may be better behaved due to the basis being orthogonal.}
 
+\item{expert_opinion}{To be added...}
+
 \item{...}{Any other arguments to be passed to or through
 \code{\link{flexsurvreg}}, for example, \code{anc}, \code{inits},
 \code{fixedpars}, \code{weights}, \code{subset}, \code{na.action}, and any
@@ -162,8 +164,8 @@ of Royston and Parmar (2002).
 \details{
 This function works as a wrapper around \code{\link{flexsurvreg}} by
 dynamically constructing a custom distribution using
-\code{\link{dsurvspline}}, \code{\link{psurvspline}} and
-\code{\link{unroll.function}}.
+\code{\link[flexsurv]{dsurvspline}}, \code{\link[flexsurv]{psurvspline}} and
+\code{\link[flexsurv]{unroll.function}}.
 
 In the spline-based survival model of Royston and Parmar (2002), a
 transformation \eqn{g(S(t,z))} of the survival function is modelled as a
@@ -227,7 +229,7 @@ and \eqn{(x - a)_+ = max(0, x - a)}.
 ## Best-fitting model to breast cancer data from Royston and Parmar (2002)
 ## One internal knot (2 df) and cumulative odds scale
 
-spl <- flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=1, scale="odds")
+spl <- expertsurv:::flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=1, scale="odds")
 
 ## Fitted survival
 
@@ -235,15 +237,14 @@ plot(spl, lwd=3, ci=FALSE)
 
 ## Simple Weibull model fits much less well
 
-splw <- flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=0, scale="hazard")
+splw <- expertsurv:::flexsurvspline(Surv(recyrs, censrec) ~ group, data=bc, k=0, scale="hazard")
 lines(splw, col="blue", ci=FALSE)
 
 ## Alternative way of fitting the Weibull
 
 \dontrun{
-splw2 <- flexsurvreg(Surv(recyrs, censrec) ~ group, data=bc, dist="weibull")
+splw2 <- expertsurv:::flexsurvreg(Surv(recyrs, censrec) ~ group, data=bc, dist="weibull")
 }
-
 }
 \references{
 Royston, P. and Parmar, M. (2002).  Flexible parametric
@@ -262,7 +263,7 @@ doi:10.18637/jss.v070.i08
 \code{\link{flexsurvreg}} for flexible survival modelling using
 general parametric distributions.
 
-\code{\link{plot.flexsurvreg}} and \code{\link{lines.flexsurvreg}} to plot
+\code{\link{plot.flexsurvreg}} and \code{\link[flexsurv]{lines.flexsurvreg}} to plot
 fitted survival, hazards and cumulative hazards from models fitted by
 \code{\link{flexsurvspline}} and \code{\link{flexsurvreg}}.
 }

@@ -591,10 +591,10 @@ compress.model.matrices <- function(mml){
 ##'   \code{\link{flexsurvspline}}.
 ##'
 ##'   The parameterisations of the built-in distributions used here are the same
-##'   as in their built-in distribution functions: \code{\link{dgengamma}},
-##'   \code{\link{dgengamma.orig}}, \code{\link{dgenf}},
-##'   \code{\link{dgenf.orig}}, \code{\link{dweibull}}, \code{\link{dgamma}},
-##'   \code{\link{dexp}}, \code{\link{dlnorm}}, \code{\link{dgompertz}},
+##'   as in their built-in distribution functions: \code{\link[flexsurv]{dgengamma}},
+##'   \code{\link[flexsurv]{dgengamma.orig}}, \code{\link[flexsurv]{dgenf}},
+##'   \code{\link[flexsurv]{dgenf.orig}}, \code{\link[stats]{dweibull}}, \code{\link[stats]{dgamma}},
+##'   \code{\link[stats]{dexp}}, \code{\link[stats]{dlnorm}}, \code{\link[flexsurv]{dgompertz}},
 ##'   respectively.  The functions in base R are used where available,
 ##'   otherwise, they are provided in this package.
 ##'
@@ -641,7 +641,7 @@ compress.model.matrices <- function(mml){
 ##'   at their initial values during the optimisation.  The indices are ordered
 ##'   as in \code{inits}.  For example, in a stable generalized Gamma model with
 ##'   two covariates, to fix the third of three generalized gamma parameters
-##'   (the shape \code{Q}, see the help for \code{\link{GenGamma}}) and the
+##'   (the shape \code{Q}, see the help for \code{\link[flexsurv]{GenGamma}}) and the
 ##'   second covariate, specify \code{fixedpars = c(3, 5)}
 ##' @param dfns An alternative way to define a custom survival distribution (see
 ##'   section ``Custom distributions'' below).  A list whose components may
@@ -672,6 +672,8 @@ compress.model.matrices <- function(mml){
 ##' @param sr.control For the models which use \code{\link[survival]{survreg}} to find the
 ##'   maximum likelihood estimates (Weibull, exponential, log-normal), this list
 ##'   is passed as the \code{control} argument to \code{\link[survival]{survreg}}.
+##' 
+##' @param expert_opinion To be added...
 ##'
 ##' @param ... Optional arguments to the general-purpose optimisation routine
 ##'   \code{\link{optim}}.  For example, the BFGS optimisation algorithm is the
@@ -762,8 +764,8 @@ compress.model.matrices <- function(mml){
 ##'   the real-line scale (e.g. log scale), which can be extracted with
 ##'   \code{\link{vcov}}.} \item{data}{Data used in the model fit.  To extract
 ##'   this in the standard R formats, use use
-##'   \code{\link{model.frame.flexsurvreg}} or
-##'   \code{\link{model.matrix.flexsurvreg}}.}
+##'   \code{\link[flexsurv]{model.frame.flexsurvreg}} or
+##'   \code{\link[flexsurv]{model.matrix.flexsurvreg}}.}
 ##'   
 ##' @section Custom distributions: \code{\link{flexsurvreg}} is intended to be
 ##'   easy to extend to handle new distributions.  To define a new distribution
@@ -850,7 +852,7 @@ compress.model.matrices <- function(mml){
 ##' @seealso \code{\link{flexsurvspline}} for flexible survival modelling using
 ##' the spline model of Royston and Parmar.
 ##' 
-##' \code{\link{plot.flexsurvreg}} and \code{\link{lines.flexsurvreg}} to plot
+##' \code{\link{plot.flexsurvreg}} and \code{\link[flexsurv]{lines.flexsurvreg}} to plot
 ##' fitted survival, hazards and cumulative hazards from models fitted by
 ##' \code{\link{flexsurvreg}} and \code{\link{flexsurvspline}}.
 ##' @references Jackson, C. (2016). flexsurv: A Platform for Parametric
@@ -876,9 +878,11 @@ compress.model.matrices <- function(mml){
 ##' @examples
 ##' 
 ##' ## Compare generalized gamma fit with Weibull
-##' fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian, dist="gengamma")
+##' fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, 
+##'						  data = ovarian, dist="gengamma")
 ##' fitg
-##' fitw <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian, dist="weibull")
+##' fitw <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, 
+##'						data = ovarian, dist="weibull")
 ##' fitw
 ##' plot(fitg)
 ##' lines(fitw, col="blue", lwd.ci=1, lty.ci=1)
@@ -895,7 +899,7 @@ compress.model.matrices <- function(mml){
 ##'                       transforms=c(log, log),
 ##'                       inv.transforms=c(exp, exp),
 ##'                       inits=function(t){ c(1, median(t)) })
-##' fitev <- flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian,
+##' fitev <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ 1, data = ovarian,
 ##'                     dist=custom.ev)
 ##' fitev
 ##' lines(fitev, col="purple", col.ci="purple")
@@ -908,8 +912,8 @@ compress.model.matrices <- function(mml){
 ##' custom.exp2 <- list(name="exp2", pars=c("rate"), location="rate",
 ##'                     transforms=c(log), inv.transforms=c(exp),
 ##'                     inits=function(t)1/mean(t))
-##' flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist=custom.exp2)
-##' flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist="exp")
+##' #expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist=custom.exp2)
+##' #expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist="exp")
 ##' ## should give same answer
 ##' 
 flexsurvreg <- function(formula, anc=NULL, data, weights, bhazard, rtrunc, subset, na.action, dist,
@@ -1201,7 +1205,7 @@ form.model.matrix <- function(object, newdata, na.action=na.pass, forms=NULL){
 ##' @return Variance-covariance matrix of the estimated parameters, on
 ##'   the scale that they were estimated on (for positive parameters
 ##'   this is the log scale).
-##' 
+##' @noRd
 vcov.flexsurvreg <- function (object, ...)
 {
     object$cov
@@ -1242,6 +1246,7 @@ vcov.flexsurvreg <- function (object, ...)
 ##' @seealso \code{\link{flexsurvreg}}, \code{\link{model.frame}},
 ##' \code{\link{model.matrix}}.
 ##' @keywords models
+##' @noRd
 model.frame.flexsurvreg <- function(formula, ...)
 {
     x <- formula
@@ -1267,7 +1272,7 @@ model.matrix.flexsurvreg <- function(object, par=NULL, ...)
 ##' of parameters that were estimated), and number of observations \code{nobs} (including observed
 ##' events and censored observations).
 ##' 
-##' 
+##' @noRd
 logLik.flexsurvreg <- function(object, ...){
     val <- object$loglik
     attr(val, "df") <- object$npars
@@ -1299,7 +1304,7 @@ logLik.flexsurvreg <- function(object, ...){
 ##' @author C. H. Jackson \email{chris.jackson@@mrc-bsu.cam.ac.uk}
 ##' @seealso \code{\link{flexsurvreg}}, \code{\link{flexsurvspline}}.
 ##' @keywords models
-##' 
+##' @noRd
 coef.flexsurvreg <- function(object, ...){
     object$coefficients
 }
@@ -1318,7 +1323,7 @@ coef.flexsurvreg <- function(object, ...){
 ##'
 ##' @param cens Include censored observations in the number.  \code{TRUE} by default.
 ##' If \code{FALSE} then the number of observed events is returned.  See
-##'   \code{\link{BIC.flexsurvreg}} for a discussion of the issues
+##'   \code{\link[flexsurv]{BIC.flexsurvreg}} for a discussion of the issues
 ##'   with defining the sample size for censored data. 
 ##' 
 ##' @param ... Further arguments passed to or from other methods.  Currently
@@ -1391,9 +1396,9 @@ nobs.flexsurvreg <- function(object, cens=TRUE, ...){
 ##'   the Royal Statistical Society: Series B (Methodological), 39(1),
 ##'   44-47.
 ##'
-##' @seealso \code{\link{BIC}}, \code{\link{AIC}}, \code{\link{AICC.flexsurvreg}}, \code{\link{nobs.flexsurvreg}}
+##' @seealso \code{\link{BIC}}, \code{\link{AIC}}, \code{\link[flexsurv]{AICC.flexsurvreg}}, \code{\link[flexsurv]{nobs.flexsurvreg}}
 ##'
-##' 
+##' @noRd
 BIC.flexsurvreg <- function(object, cens = TRUE, ...){
   n <- nobs.flexsurvreg(object, cens=cens)
   -2*object$loglik + object$npars * log(n)  
@@ -1418,7 +1423,7 @@ BIC.flexsurvreg <- function(object, cens = TRUE, ...){
 ##'
 ##' @param cens Include censored observations in the sample size term
 ##'   (\code{n}) used in this calculation. See
-##'   \code{\link{BIC.flexsurvreg}} for a discussion of the issues
+##'   \code{\link[flexsurv]{BIC.flexsurvreg}} for a discussion of the issues
 ##'   with defining the sample size.
 ##'
 ##' @param ... Other arguments (currently unused).
@@ -1427,9 +1432,9 @@ BIC.flexsurvreg <- function(object, cens = TRUE, ...){
 ##'
 ##' @return The second-order AIC of the fitted model.
 ##'
-##' @seealso \code{\link{BIC}}, \code{\link{AIC}}, \code{\link{BIC.flexsurvreg}}, \code{\link{nobs.flexsurvreg}}
+##' @seealso \code{\link{BIC}}, \code{\link{AIC}}, \code{\link[flexsurv]{BIC.flexsurvreg}}, \code{\link[flexsurv]{nobs.flexsurvreg}}
 ##' 
-##' 
+##' @noRd
 AICc.flexsurvreg <- function(object, cens=TRUE, ...){
   n <- nobs.flexsurvreg(object, cens=cens)
   p <- object$npars
@@ -1453,12 +1458,12 @@ AICC.flexsurvreg <- AICc.flexsurvreg
 ##'
 ##' @param ... Other arguments (currently unused).
 ##'
-##' 
+##' @noRd
 AICc <- function (object, ...)
 UseMethod("AICc")
 
 
-##' 
+
 AICC <- AICc
 
 deriv_supported <- function(Y){

@@ -208,7 +208,7 @@ plot.flexsurvreg <- function(x, newdata=NULL, X=NULL, type="survival", fn=NULL, 
 ##' @author C. H. Jackson \email{chris.jackson@@mrc-bsu.cam.ac.uk}
 ##' @seealso \code{\link{flexsurvreg}}
 ##' @keywords models aplot
-##' 
+##' @noRd
 lines.flexsurvreg <- function(x, newdata=NULL, X=NULL, type="survival", t=NULL,
                               est=TRUE, ci=NULL, B=1000, cl=0.95,
                               col="red",lty=1,lwd=2,

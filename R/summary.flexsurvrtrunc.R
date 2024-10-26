@@ -30,7 +30,7 @@
 ##' 
 ##' @inheritParams summary.flexsurvreg
 ##' 
-##' 
+##' @noRd
 summary.flexsurvrtrunc <- function(object, type="survival", fn=NULL,
                                 t=NULL, quantiles=0.5, ci=TRUE, se=FALSE,
                                 B=1000, cl=0.95,

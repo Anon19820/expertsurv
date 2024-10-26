@@ -36,9 +36,10 @@
 #'
 #' @examples
 #'
-#' fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
-#' tidy(fitg)
-#' tidy(fitg, pars = "coefs", transform = "coefs.exp")
+#' fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age,
+#'									data = ovarian, dist = "gengamma")
+#' expertsurv:::tidy.flexsurvreg(fitg)
+#' expertsurv:::tidy.flexsurvreg(fitg, pars = "coefs", transform = "coefs.exp")
 #' @keywords internal
 tidy.flexsurvreg <- function(x, conf.int = FALSE, conf.level = 0.95,
                              pars = "all", transform = "none", ...)
@@ -136,9 +137,10 @@ tidy.flexsurvreg <- function(x, conf.int = FALSE, conf.level = 0.95,
 #' @importFrom generics tidy
 #'
 #' @examples
-#' fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
+#' fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")
 #' glance(fitg)
 #' @keywords internal
+#' @noRd
 glance.flexsurvreg <- function(x, ...)
 {
   tibble::tibble(
@@ -187,9 +189,10 @@ glance.flexsurvreg <- function(x, ...)
 #'
 #'
 #' @examples
-#' fit <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "exp")
+#' fit <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age,
+#'										data = ovarian, dist = "exp")
 #' augment(fit, data = ovarian)
-#'
+#' @noRd
 augment.flexsurvreg <- function(x, data = NULL, newdata = NULL,
                                 type.predict = "response",
                                 type.residuals = "response", ...)
