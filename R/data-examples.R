@@ -75,7 +75,10 @@ NULL
 
 #' Object with Compiled Stan Code
 #'
-#' Pre-compiled stan models that can be made accessed expertsurv::compiled_models_saved
+#' Pre-compiled stan models that can be made accessed by \code{expertsurv::compiled_models_saved}
 #'
 #' @source Generated from \code{expertsurv::compile_stan()}
-"compiled_stan"
+#' @name compiled_models_saved
+#' @docType data
+#' @keywords datasets
+"compiled_models_saved"

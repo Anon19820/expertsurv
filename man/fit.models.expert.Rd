@@ -34,7 +34,7 @@ fit.models.expert(
 \item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
 }}
 
-\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.}
+\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided. If conducting the Bayesian analysis it is much quicker to use the pre-compiled models by adding compile_mods = expertsurv::compiled_models_saved.}
 }
 \value{
 An object of class \code{expertsurv} which contains the parameters of the models estimated with expert opinion.

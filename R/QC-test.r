@@ -40,7 +40,7 @@
 #' LL_expert2 <- dnorm(St_expert, mean = 0.1, sd = 0.01, log = TRUE)
 #' LL_data2 + LL_expert2
 #' }
-#' 
+#' @noRd
 my_function <- function() {
   # Function code
 }

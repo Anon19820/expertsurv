@@ -3,7 +3,7 @@
 ^LICENSE\.md$
 ^Change-log\.txt
 ^README\.Rmd
-^references\.bib
+^references-remove\.bib$
 ^man-roxygen$
 ^doc$
 ^Meta$
@@ -11,4 +11,4 @@
 ^NAMESPACE_backup2
 ^NAMESPACE_backup
 ^/R/QC-test\.r$
-^/R/app\.r$
+^/R/app$

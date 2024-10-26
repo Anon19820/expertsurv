@@ -63,7 +63,7 @@ example1_mle <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
                                   param_expert = param_expert_example1)
 
 
-plot(MLE=example1_mle, add.km = TRUE, t = 0:30)
+plot(example1_mle, add.km = TRUE, t = 0:30)
 
 }
 \references{

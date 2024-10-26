@@ -19,7 +19,7 @@ utils::globalVariables(c("(Intercept)", "expert",'times_expert','weights','sum_w
 						'qlnorm', 'qlogis', 'qnorm', 'qt', 'quantile', 'qweibull',
 						'reformulate', 'rf', 'rgamma', 'rlnorm', 'runif',
 						'rweibull', 'sd', 'setNames', 'terms', 'time', 'uniroot',
-						'update', 'var', 'vcov', 'weighted.mean'))
+						'update', 'var', 'vcov', 'weighted.mean','scaling_fac','fx_final'))
 						 
 
 
