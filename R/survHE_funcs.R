@@ -931,59 +931,67 @@ expert_like <- function(data.stan, dist_surv, param1, param2 =NULL, param3= NULL
   return(sum(log_lik))
   
 }
-  
 lik_rps <-   function (x, linpred, linpred.hat, model, data.stan){
-    dist <- "rps"
-    gamma <- rstan::extract(model)$gamma
-    gamma.hat <- apply(gamma, 2, stats::median)
-    linpred.hat <- as.numeric(linpred.hat)
-    logf.hat <- array(dim = c(1, dim(linpred)[2]))
-    if (all(data.stan$X == 0)) {
-      logf <- apply(gamma, 1, function(x) {
-        data.stan$d * log(hsurvspline(data.stan$t, gamma = x, 
-                                      knots = data.stan$knots)) + psurvspline(q = data.stan$t, 
-                                                                              gamma = x, knots = data.stan$knots, lower.tail = FALSE, 
-                                                                              log.p = T)
-      })
-      logf <- t(logf)
+  dist <- "rps"
+   FUN_rps = function(x,knots, n_knots){
+      x[n_knots+1]*log(hsurvspline(x[n_knots+2],gamma = x[1:n_knots],knots = knots)) +psurvspline(q = x[n_knots+2], gamma = x[1:n_knots], knots = knots,lower.tail = FALSE, log.p = T)
     }
-    else {
-      logf <- array(dim = dim(linpred))
-      for (i in 1:nrow(logf)) {
-        for (j in 1:ncol(logf)) {
-          
-          gamma[i, 1] <- gamma[i, 1] + linpred[i, j] #Offset no longer allowed in flexsurv
-          logf[i, j] <- data.stan$d[j] * log(hsurvspline(data.stan$t[j],gamma = gamma[i, ], knots = data.stan$knots)) + 
-            psurvspline(q = data.stan$t[j], gamma = gamma[i, ], knots = data.stan$knots,lower.tail = FALSE, log.p = T)
-        }
-      }
-    }
-    for (i in 1:ncol(logf.hat)) {
+  
+  gamma <- rstan::extract(model)$gamma
+  gamma.hat <- apply(gamma, 2, stats::median)
+  linpred.hat <- as.numeric(linpred.hat)
+  logf.hat <- array(dim = c(1, dim(linpred)[2]))
+
+    n_sim <- dim(gamma)[1]
+    n_param <- dim(gamma)[2]
+    n_ind <- dim(linpred)[2]
+    result_array <- array(dim = c(n_ind, n_param+2, n_sim))
+    
+    no_cov <- all(data.stan$X == 0)
+      # Populate the array efficiently
+    for (i in 1:n_sim) {
+      gamma_temp <- matrix(rep(gamma[i,], each = n_ind), nrow = n_ind, ncol = n_param, byrow = FALSE)
       
-      gamma.hat[1] <- gamma.hat[1] + linpred.hat[i] #Offset no longer allowed in flexsurv
-      
-      logf.hat[i] <- data.stan$d[i] * log(hsurvspline(data.stan$t[i],gamma = gamma.hat, knots = data.stan$knots)) + 
-        psurvspline(q = data.stan$t[i], gamma = gamma.hat,knots = data.stan$knots, lower.tail = FALSE,log.p = T)
-    }
-    logf.expert <- rep(NA, nrow(linpred))
-    if (data.stan$St_indic == 1) {
-      index_vec <- data.stan$id_St
-      for (i in 1:nrow(linpred)) {
-        logf.expert[i] <- expert_like(data.stan, dist_surv = dist, 
-                                      param1 = gamma[i, ], param2 = linpred[index_vec])
+      if(!no_cov){
+        gamma_temp[, 1] <- gamma_temp[,1] + linpred[i,]
       }
-      logf.hat.expert <- expert_like(data.stan, dist_surv = dist, 
-                                     param1 = gamma.hat, param2 = linpred.hat[index_vec])
+       result_array[,1:n_param , i] <- gamma_temp
+      result_array[,n_param +1,i] <- data.stan$d
+      result_array[,n_param +2,i] <- data.stan$t
     }
-    else {
-      index_vec <- c(data.stan$id_trt, data.stan$id_comp)
+
+    ll_res <- apply(result_array,c(1,3), FUN = FUN_rps,knots = data.stan$knots, n_knots = length(data.stan$knots)  )
+    logf <- t(ll_res)
+    
+  
+  
+  #FOr DIC 
+    result_mat_hat <- array(dim = c(n_ind, n_param+2))
+    result_mat_hat[,1:n_param] <- matrix(rep(gamma.hat, each = n_ind), nrow = n_ind, ncol = n_param, byrow = FALSE)
+    result_mat_hat[,n_param +1] <- data.stan$d
+    result_mat_hat[,n_param +2] <- data.stan$t
+    result_mat_hat[,1] <- result_mat_hat[,1] + linpred.hat
+    logf.hat <- apply(result_mat_hat,1, FUN = FUN_rps,knots = data.stan$knots, n_knots = length(data.stan$knots))
+  
+    logf.hat <- t(logf.hat)
+  logf.expert <- rep(NA, nrow(linpred))
+  if (data.stan$St_indic == 1) {
+    index_vec <- data.stan$id_St
+    for (i in 1:nrow(linpred)) {
+      logf.expert[i] <- expert_like(data.stan, dist_surv = dist, 
+                                    param1 = gamma[i, ], param2 = linpred[index_vec])
     }
-    npars <- length(gamma.hat) + sum(apply(data.stan$X, 2, function(x) 1 - 
-                                             all(x == 0)))
-    list(logf = logf, logf.hat = logf.hat, npars = npars, f = NULL, 
-         f.bar = NULL, s = NULL, s.bar = NULL, logf.expert = logf.expert, 
-         logf.hat.expert = logf.hat.expert)
+    logf.hat.expert <- expert_like(data.stan, dist_surv = dist, 
+                                   param1 = gamma.hat, param2 = linpred.hat[index_vec])
+  }else {
+    index_vec <- c(data.stan$id_trt, data.stan$id_comp)
   }
+  npars <- length(gamma.hat) + sum(apply(data.stan$X, 2, function(x) 1 - 
+                                           all(x == 0)))
+  list(logf = logf, logf.hat = logf.hat, npars = npars, f = NULL, 
+       f.bar = NULL, s = NULL, s.bar = NULL, logf.expert = logf.expert, 
+       logf.hat.expert = logf.hat.expert)
+}
   
 
 lik_exp <- function (x, linpred, linpred.hat, model, data.stan){
