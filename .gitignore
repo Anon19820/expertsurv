@@ -4,7 +4,6 @@
 .Ruserdata
 expert-surv.Rproj
 inst/doc
-src
 /doc/
 /Meta/
 ^Change-log & ToDo\.txt
