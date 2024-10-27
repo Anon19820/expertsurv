@@ -104,19 +104,19 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
   #dist_considered <- c("normal","t","gamma", "lognormal", "beta") 
   
   if(St_indic == 1){
-     lower_bound = 0
-     upper_bound = 1
-   }else{
-     lower_bound = -Inf
-     upper_bound = Inf
-   }
+    lower_bound = 0
+    upper_bound = 1
+  }else{
+    lower_bound = -Inf
+    upper_bound = Inf
+  }
   
   
   fit.eval <- fitdist_mod(input_mat[,2:ncol(input_mat), drop = F],
                           probs = input_mat[,1], upper = upper_bound, lower = lower_bound, 
                           expertnames = paste0("Expert_",1:(ncol(input_mat)-1)),
                           mode = mode, trunc = St_indic)
- # browser()
+  # browser()
   
   plts_pool <- makePoolPlot(fit= fit.eval,
                             xl =lower_bound,
@@ -174,169 +174,169 @@ return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL
 #' elicit_surv()
 #' }
 elicit_surv <- function (compile_mods = NULL){
-required_packages <- c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy")
-
-missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
-
-if (length(missing_packages) > 0) {
-  stop("You need to install the following R packages to run the application: ", paste(missing_packages, collapse = ", "))
-}
-
- options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
- 
+  required_packages <- c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy")
   
- ui = fluidPage(shinyjs::useShinyjs(),
-                                    #add_busy_bar(color = "blue"),
-                                    # add_busy_gif(
-                                    #   src = "https://jeroen.github.io/images/banana.gif",
-                                    #   height = 70, width = 70
-                                    # ),
-                                    shinybusy::add_busy_spinner(spin = "semipolar"),
-                                    # tags$style('.container-fluid {
-                                    #               background-color: #7b8cde;
-                                    #}'),
-                                    titlePanel("ShinyExpertsurv"),
-                                    sidebarPanel(
-                                      wellPanel(
-                                        #fluidRow(column(3, downloadButton("report", "Download report")),
-                                        #column(2, offset = 1, actionButton("exit", "Quit"))),
-                                        fileInput('df_upload', 'Choose .csv data file to upload',
-                                                  accept = c(".csv")),
-                                        varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
-                                        p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
-                                        numericInput("n_expert", "Number of Experts", value = 1, min = 1),
-                                        numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
-                                        # numericInput("scale1", "Scale for density", value = 1),
-                                        numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,#max(df$time)*2,
-                                                                                                                    digits = 0)),
-                                        checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
+  missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
+  
+  if (length(missing_packages) > 0) {
+    stop("You need to install the following R packages to run the application: ", paste(missing_packages, collapse = ", "))
+  }
+  
+  options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
+  
+  
+  ui = fluidPage(shinyjs::useShinyjs(),
+                 #add_busy_bar(color = "blue"),
+                 # add_busy_gif(
+                 #   src = "https://jeroen.github.io/images/banana.gif",
+                 #   height = 70, width = 70
+                 # ),
+                 shinybusy::add_busy_spinner(spin = "semipolar"),
+                 # tags$style('.container-fluid {
+                 #               background-color: #7b8cde;
+                 #}'),
+                 titlePanel("ShinyExpertsurv"),
+                 sidebarPanel(
+                   wellPanel(
+                     #fluidRow(column(3, downloadButton("report", "Download report")),
+                     #column(2, offset = 1, actionButton("exit", "Quit"))),
+                     fileInput('df_upload', 'Choose .csv data file to upload',
+                               accept = c(".csv")),
+                     varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
+                     p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
+                     numericInput("n_expert", "Number of Experts", value = 1, min = 1),
+                     numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
+                     # numericInput("scale1", "Scale for density", value = 1),
+                     numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,#max(df$time)*2,
+                                                                                                 digits = 0)),
+                     checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
+                     
+                     checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
+                     
+                     
+                     selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
+                                 choices = c("Linear Pool" = "linear pool",
+                                             "Logarithmic Pool"= "log pool"), 
+                                 selected = "linear pool"),
+                     selectInput(inputId ="dist_select", label = "Select the best fitting distribution for Expert Pooling", 
+                                 choices = c("Best Fitting" = "best",
+                                             "Normal"= "normal",
+                                             "T-distribution" = "t",
+                                             "Gamma" = "gamma",
+                                             "Log-Normal" = "lognormal",
+                                             "Beta" = "beta"), 
+                                 selected = "best"),
+                     actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")
+                     
+                   ),
+                   
+                   hr(),
+                   
+                   tabsetPanel(id = "Timepoints",
+                               tabPanel("Timepoints1",
+                                        numericInput(paste0("time1"), label= "Timepoint", value= 1),
+                                        textInput('quant_vec1', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
                                         
-                                        checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
-                                        
-                                        
-                                        selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
-                                                    choices = c("Linear Pool" = "linear pool",
-                                                                "Logarithmic Pool"= "log pool"), 
-                                                    selected = "linear pool"),
-                                        selectInput(inputId ="dist_select", label = "Select the best fitting distribution for Expert Pooling", 
-                                                    choices = c("Best Fitting" = "best",
-                                                                "Normal"= "normal",
-                                                                "T-distribution" = "t",
-                                                                "Gamma" = "gamma",
-                                                                "Log-Normal" = "lognormal",
-                                                                "Beta" = "beta"), 
-                                                    selected = "best"),
-                                        actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")
-                                        
-                                      ),
-                                      
-                                      hr(),
-                                      
-                                      tabsetPanel(id = "Timepoints",
-                                                  tabPanel("Timepoints1",
-                                                           numericInput(paste0("time1"), label= "Timepoint", value= 1),
-                                                           textInput('quant_vec1', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
-                                                           
-                                                           helpText("Enter the judgements in the table below,
+                                        helpText("Enter the judgements in the table below,
                                                               one column per expert. Enter quantile values corresponding to the cumulative probabilities. 
                                                              Enter Most Likely Values (i.e. Mode) for each expert if included."),
-                                                           shinyMatrix::matrixInput(
-                                                             inputId = "matrix1",
-                                                             value = m_default_gen(),
-                                                             class = "numeric",
-                                                             cols = list(names = TRUE,
-                                                                         editableNames = FALSE),
-                                                             rows = list(names = FALSE,
-                                                                         editableNames = FALSE)),
-                                                           shinyMatrix::matrixInput(
-                                                             inputId = "matrix1_mode",
-                                                             value = m_default_gen2(),
-                                                             class = "numeric",
-                                                             cols = list(names = TRUE,
-                                                                         editableNames = FALSE),
-                                                             rows = list(names = TRUE,
-                                                                         editableNames = FALSE)),
-                                                           
-                                                           
-                                                           plotOutput(paste0("expert_plot1"))),
-                                                  
-                                                  tabPanel("Timepoints2",
-                                                           numericInput(paste0("time2"), label= "Timepoint", value= 1),
-                                                           textInput('quant_vec2', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
-                                                           helpText("Enter the judgements in the table below, one column per expert. Enter quantile values corresponding to the cumulative probabilities."),
-                                                           
-                                                           shinyMatrix::matrixInput(
-                                                             inputId = "matrix2",
-                                                             value = m_default_gen(),
-                                                             class = "numeric",
-                                                             cols = list(names = TRUE,
-                                                                         editableNames = FALSE),
-                                                             rows = list(names = FALSE,
-                                                                         editableNames = FALSE)),
-                                                           shinyMatrix::matrixInput(
-                                                             inputId = "matrix2_mode",
-                                                             value = m_default_gen2(),
-                                                             class = "numeric",
-                                                             cols = list(names = TRUE,
-                                                                         editableNames = FALSE),
-                                                             rows = list(names = TRUE,
-                                                                         editableNames = FALSE)),
-                                                           
-                                                           plotOutput(paste0("expert_plot2")))
-                                      )),
-                                    mainPanel(
-                                      #withSpinner(tableOutput('tb'), type = 2),
-                                      h3("Kaplan-Meier Survival Plot"),
-                                      plotOutput(paste0("plot_km_expert1")),
-                                      fluidRow(column(selectInput("opinion_type", label = "Choose opinion type", 
-                                                                  choices = c("Survival at timepoint(s)" = "survival",
-                                                                              "Mean difference between survival"= "mean",
-                                                                              "No expert opinion" = "no_expert"), 
-                                                                  selected = "survival"), width = 3),
-                                               
-                                               column(selectInput("stat_type", label = "Choose statistical approach", 
-                                                                  choices = c("Frequentist" = "mle","Bayesian" = "bayes"), 
-                                                                  selected = "mle"), width = 3),
-                                               column(shinyWidgets::pickerInput(
-                                                 inputId = "param_mod", 
-                                                 label = "Choose models:", 
-                                                 choices = c("Exponential" = "exp",
-                                                             "Weibull" = "wei",
-                                                             "Gompertz" = "gomp",
-                                                             "Log-Logistic"= "llo",
-                                                             "Log-normal" = "lno",
-                                                             "Generalized-Gamma" = "gga",
-                                                             "Royston-Parmar" = "rps"), 
-                                                 options = list(
-                                                   `actions-box` = TRUE, 
-                                                   size = 10,
-                                                   `selected-text-format` = "count > 3"
-                                                 ), 
-                                                 multiple = TRUE,
-                                                 selected  = c("exp", "wei")
-                                               ), width = 3),
-                                               column(selectInput("id_trt", label = "Select name of treatment corresponding to expert opinion",
-                                                                  choices =  character(0)), width = 3)),
-                                      
-                                      fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
-                                               column(selectInput("gof_type", label = "Choose goodness of fit measure", 
-                                                                  choices = c("AIC" = "aic","BIC" = "bic"), 
-                                                                  selected = "AIC"), width = 3),
-                                               column(selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots", 
-                                                                  choices = c("Yes" = "yes",
-                                                                              "No"= "no"), 
-                                                                  selected = "no"), width = 3)),  
-                                      
-                                      plotOutput("plot_gof"),
-                                      
-                                      fluidRow(column(textInput('file_name', 'Enter filename for saved output', "Output-File"),
-                                                      width =3),
-                                               column(selectInput("outFormat",label = "Report format", 
-                                                                  choices = list(html = "html_document", 
-                                                                                 pdf = "pdf_document", Word = "word_document")), width = 3)),
-                                      fluidRow(column(downloadButton("save_output", "Download R objects"), width = 3),
-                                               column(downloadButton("report","Download report"),width = 3))
-                                    )                          
+                                        shinyMatrix::matrixInput(
+                                          inputId = "matrix1",
+                                          value = m_default_gen(),
+                                          class = "numeric",
+                                          cols = list(names = TRUE,
+                                                      editableNames = FALSE),
+                                          rows = list(names = FALSE,
+                                                      editableNames = FALSE)),
+                                        shinyMatrix::matrixInput(
+                                          inputId = "matrix1_mode",
+                                          value = m_default_gen2(),
+                                          class = "numeric",
+                                          cols = list(names = TRUE,
+                                                      editableNames = FALSE),
+                                          rows = list(names = TRUE,
+                                                      editableNames = FALSE)),
+                                        
+                                        
+                                        plotOutput(paste0("expert_plot1"))),
+                               
+                               tabPanel("Timepoints2",
+                                        numericInput(paste0("time2"), label= "Timepoint", value= 1),
+                                        textInput('quant_vec2', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
+                                        helpText("Enter the judgements in the table below, one column per expert. Enter quantile values corresponding to the cumulative probabilities."),
+                                        
+                                        shinyMatrix::matrixInput(
+                                          inputId = "matrix2",
+                                          value = m_default_gen(),
+                                          class = "numeric",
+                                          cols = list(names = TRUE,
+                                                      editableNames = FALSE),
+                                          rows = list(names = FALSE,
+                                                      editableNames = FALSE)),
+                                        shinyMatrix::matrixInput(
+                                          inputId = "matrix2_mode",
+                                          value = m_default_gen2(),
+                                          class = "numeric",
+                                          cols = list(names = TRUE,
+                                                      editableNames = FALSE),
+                                          rows = list(names = TRUE,
+                                                      editableNames = FALSE)),
+                                        
+                                        plotOutput(paste0("expert_plot2")))
+                   )),
+                 mainPanel(
+                   #withSpinner(tableOutput('tb'), type = 2),
+                   h3("Kaplan-Meier Survival Plot"),
+                   plotOutput(paste0("plot_km_expert1")),
+                   fluidRow(column(selectInput("opinion_type", label = "Choose opinion type", 
+                                               choices = c("Survival at timepoint(s)" = "survival",
+                                                           "Mean difference between survival"= "mean",
+                                                           "No expert opinion" = "no_expert"), 
+                                               selected = "survival"), width = 3),
+                            
+                            column(selectInput("stat_type", label = "Choose statistical approach", 
+                                               choices = c("Frequentist" = "mle","Bayesian" = "bayes"), 
+                                               selected = "mle"), width = 3),
+                            column(shinyWidgets::pickerInput(
+                              inputId = "param_mod", 
+                              label = "Choose models:", 
+                              choices = c("Exponential" = "exp",
+                                          "Weibull" = "wei",
+                                          "Gompertz" = "gomp",
+                                          "Log-Logistic"= "llo",
+                                          "Log-normal" = "lno",
+                                          "Generalized-Gamma" = "gga",
+                                          "Royston-Parmar" = "rps"), 
+                              options = list(
+                                `actions-box` = TRUE, 
+                                size = 10,
+                                `selected-text-format` = "count > 3"
+                              ), 
+                              multiple = TRUE,
+                              selected  = c("exp", "wei")
+                            ), width = 3),
+                            column(selectInput("id_trt", label = "Select name of treatment corresponding to expert opinion",
+                                               choices =  character(0)), width = 3)),
+                   
+                   fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
+                            column(selectInput("gof_type", label = "Choose goodness of fit measure", 
+                                               choices = c("AIC" = "aic","BIC" = "bic"), 
+                                               selected = "AIC"), width = 3),
+                            column(selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots", 
+                                               choices = c("Yes" = "yes",
+                                                           "No"= "no"), 
+                                               selected = "no"), width = 3)),  
+                   
+                   plotOutput("plot_gof"),
+                   
+                   fluidRow(column(textInput('file_name', 'Enter filename for saved output', "Output-File"),
+                                   width =3),
+                            column(selectInput("outFormat",label = "Report format", 
+                                               choices = list(html = "html_document", 
+                                                              pdf = "pdf_document", Word = "word_document")), width = 3)),
+                   fluidRow(column(downloadButton("save_output", "Download R objects"), width = 3),
+                            column(downloadButton("report","Download report"),width = 3))
+                 )                          
   )
   
   
@@ -397,6 +397,13 @@ if (length(missing_packages) > 0) {
       }
     })
     
+    observeEvent(input$Timepoints, {
+      i <- as.numeric(gsub("Timepoints", "", input$Timepoints))
+      output$expert_plot <- renderPlot({
+        value[[paste0("expert_plot", i)]]
+      })
+      
+    })
     
     
     observeEvent({
@@ -518,7 +525,9 @@ if (length(missing_packages) > 0) {
             if(input$n_expert == 1){
               output_pool[[2]][["layers"]][[3]] <-NULL
               output_pool[[2]][["layers"]][[2]] <-NULL
-            }         
+            }  
+            
+            #browser()
             value[[paste0("expert_plot",i)]] <- output_pool[[2]]
             times_expert = input[[paste0("time",i)]]
             times_expert_vec <- c(times_expert_vec, times_expert)
@@ -856,11 +865,14 @@ if (length(missing_packages) > 0) {
     })
     
     observeEvent(input$update_expert, {
-      for(i in 1:input$n_timepoint){
-        output[[paste0("expert_plot",i)]] <- renderPlot(value[[paste0("expert_plot",i)]])
-        
+      for (i in 1:input$n_timepoint) {
+        local({
+          j <- i  # Use a local variable to ensure correct value in the loop
+          output[[paste0("expert_plot", j)]] <- renderPlot({
+            value[[paste0("expert_plot", j)]]
+          })
+        })
       }
-      
       shinyjs::hide("plot_gof")
     })
     
@@ -993,9 +1005,9 @@ if (length(missing_packages) > 0) {
 }
 
 
-# tmpfun <- get("elicit_surv", envir = asNamespace("expertsurv"))
-# environment(elicit_surv) <- environment(tmpfun)
-# attributes(elicit_surv) <- attributes(tmpfun)  
-# assignInNamespace("elicit_surv", elicit_surv, ns="expertsurv")
+#tmpfun <- get("elicit_surv", envir = asNamespace("expertsurv"))
+#environment(elicit_surv) <- environment(tmpfun)
+#attributes(elicit_surv) <- attributes(tmpfun)  
+#assignInNamespace("elicit_surv", elicit_surv, ns="expertsurv")
 
 

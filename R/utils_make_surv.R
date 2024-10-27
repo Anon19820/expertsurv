@@ -294,9 +294,16 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
     
     if(method=="bayes") {
       knots <- exArgs$data.stan$knots
+      # Offset doesn't work anymore
+      sim <- lapply(sim, function(mat) {
+        df <- as.data.frame(mat)
+        df$gamma1 <- df$gamma1 + df$offset
+        df <- df[, !names(df) %in% "offset"]
+        return(df)
+      })
+      
       mat <- lapply(sim,function(x) {
         gamma=as_tibble(x) %>% select(contains("gamma"))
-        offset=as_tibble(x) %>% select(offset)
         matrix(
           unlist(
             lapply(1:nsim,function(i){
@@ -308,7 +315,6 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
                 knots=knots,
                 scale=scale,
                 timescale=timescale,
-                offset=as.numeric(offset%>% slice(i)),
                 log=log
               ))
             })
@@ -323,7 +329,7 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
       } else {
         X=X %>% as_tibble()
       }
-###      if(exists("offset",where=exArgs)) {offset=exArgs$offset} else {offset=0}
+      ###      if(exists("offset",where=exArgs)) {offset=exArgs$offset} else {offset=0}
       mat=lapply(sim,function(x) {
         gamma=as_tibble(x) %>% select(contains("gamma"))
         matrix(unlist(
@@ -340,7 +346,7 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
               log=log
             ))
           })
-          ),nrow=length(t),ncol=nsim,byrow=FALSE
+        ),nrow=length(t),ncol=nsim,byrow=FALSE
         )
       })
     }
@@ -357,7 +363,7 @@ compute_surv_curve <- function(sim,exArgs,nsim,dist,t,method,X) {
   }
   for (i in 1:length(mat)){colnames(mat[[i]])=paste0("S_",1:nsim)}
   mat <- mat %>% lapply(function(x) bind_cols(tibble(t=t),as_tibble(x)))
-
+  
   return(mat)
 }
 

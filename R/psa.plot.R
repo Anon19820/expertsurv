@@ -56,7 +56,7 @@ psa.plot <- function(psa,...) {
   # xlim = a vector of limits for the times
   
   exArgs=list(...)
-
+  
   # Creates the dataset to plot with the survival curves for all profiles  
   strata=lapply(1:nrow(psa$des.mat),function(x) {
     psa$des.mat %>% as_tibble() %>% select(-matches("(Intercept)",everything())) %>% slice(x) %>% 
@@ -65,7 +65,7 @@ psa.plot <- function(psa,...) {
   toplot=lapply(1:length(psa$S),function(i) {
     psa$S[[i]] %>% bind_cols(strata=as.factor(as.character(strata[i,])))
   }) %>% bind_rows(.)
-
+  
   if(exists("alpha",where=exArgs)){alpha=exArgs$alpha} else {alpha=0.2}
   if(exists("name_labs",where=exArgs)){name_labs=exArgs$name_labs} else {name_labs="Profile"}
   
@@ -90,8 +90,8 @@ psa.plot <- function(psa,...) {
           legend.background=element_blank()) +
     labs(y="Survival",x="Time",title=NULL,
          color=name_labs) 
-
-    # If there are more than 1 simulation, then there also are the low and upp extremes and plots them too
+  
+  # If there are more than 1 simulation, then there also are the low and upp extremes and plots them too
   if(any(grepl("low",names(toplot)))) {
     psa.plot=psa.plot+geom_ribbon(data=toplot,aes(x=t,y=S,ymin=low,ymax=upp,fill=strata),alpha=alpha,show.legend=F)
   }
@@ -110,7 +110,10 @@ psa.plot <- function(psa,...) {
     psa.plot=psa.plot+labs(title=exArgs$main)+theme(plot.title=element_text(size=18,face="bold"))
   }
   if(exists("labs",where=exArgs)) {
-    psa.plot=psa.plot+scale_color_discrete(labels=exArgs$labs)
+    
+    current_colors <- unique(ggplot2::ggplot_build(psa.plot)$data[[1]]$colour)
+    
+    psa.plot=psa.plot+ scale_color_manual(values = current_colors, labels = exArgs$labs)
   }
   if(exists("xlim",where=exArgs)){
     psa.plot=psa.plot+xlim(exArgs$xlim)
