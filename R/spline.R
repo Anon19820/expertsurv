@@ -812,6 +812,7 @@ flexsurv.splineinits.cox <- function(t=NULL, mf, mml, aux)
 ##' \dontrun{
 ##' splw2 <- expertsurv:::flexsurvreg(Surv(recyrs, censrec) ~ group, data=bc, dist="weibull")
 ##' }
+##' @noRd
 flexsurvspline <- function(formula, data, weights, bhazard, rtrunc, subset,
                            k=0, knots=NULL, bknots=NULL, scale="hazard", timescale="log", spline="rp",expert_opinion = NULL, ...){
     ## Get response matrix from the formula.  Only need this to obtain

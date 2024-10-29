@@ -207,6 +207,7 @@
 #'## Plot marginal survival with expected survival superimposed                                            
 #'plot(standsurv_weib_expected, expected=TRUE)
 #'}
+#' @noRd
 standsurv <- function(object, newdata = NULL, at = list(list()), atreference = 1, 
                                   type = "survival", t = NULL, 
                                   ci = FALSE, se = FALSE, boot = FALSE, B = NULL, 

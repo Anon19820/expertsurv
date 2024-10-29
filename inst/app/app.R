@@ -1,223 +1,47 @@
-
-`%!in%` = Negate(`%in%`)
-import_pattern <-function (filepath){
-  if (nchar(readChar(filepath, file.info(filepath)$size)) == 
-      0) {
-    warning(paste(filepath, "imported 0 characters."))
-  }
-  readChar(filepath, file.info(filepath)$size)
-}
-
-extract_pattern <- function (filepath, keyword, preserve = FALSE){
-  stopifnot(is.logical(preserve), length(keyword) == 1)
-  x <- import_pattern(filepath)
-  keyword <- as.character(keyword)
-  if (!grepl(keyword, x)) 
-    stop("Couldn't find keyword in provided file.")
-  locations <- gregexpr(keyword, x)[[1]]
-  if (length(locations) < 2) 
-    stop("Keyword only appears once in provided file.")
-  if (length(locations) > 2) 
-    warning("Keyword found in more than two places. \n                                     extract_pattern will only pull text between\n                                     the first two occurances.")
-  if (preserve) {
-    substr(x, locations[[1]], locations[[2]] + nchar(keyword))
-  }
-  else {
-    substr(x, locations[[1]] + nchar(keyword), locations[[2]] - 
-             1)
-  }
-}
-use_parameters <- function (template, names, init.params = TRUE, is.file = FALSE){
-  stopifnot(is.logical(init.params), is.logical(is.file), length(template) == 1)
-  if (is.file) {
-    content <- import_pattern(template)
-    x <- extract_pattern(template, "---", preserve = TRUE)
-  }
-  else {
-    content <- template
-    locations <- gregexpr("---", content)[[1]]
-    if (length(locations) < 2) {
-      stop("Not detecting YAML markers in the provided template. Did you mean\n           to use is.file = TRUE?")
-    }
-    x <- substr(content, locations[[1]], locations[[2]] + 
-                  nchar("---"))
-  }
-  header_length <- nchar(x)
-  dots <- names
-  new_params <- paste0(vapply(lapply(dots, rlang::as_name), 
-                              function(x) paste0("  ", x, ": NA\n"), character(1)), 
-                       collapse = "")
-  if (init.params) {
-    init_params <- paste0(vapply(lapply(dots, rlang::as_name), 
-                                 function(x) paste0(x, " <- params$", x, "\n"), character(1)), 
-                          collapse = "")
-  }
-  if (grepl("params:", x)) {
-    param_start <- regexpr("params:", x)[[1]][[1]]
-    param_end <- regexpr("\n[[:alpha:]]", substr(x, param_start, 
-                                                 header_length))[[1]][[1]] + param_start - 1
-    if (init.params) {
-      paste0(substr(x, 1, param_end), new_params, substr(x, 
-                                                         param_end + 1, header_length), "```{r, echo = FALSE}\n", init_params, 
-             "```\n", substr(content, header_length, nchar(content)))
-    }
-    else {
-      paste0(substr(x, 1, param_end), new_params, substr(x, 
-                                                         param_end + 1, header_length), substr(content, 
-                                                                                               header_length, nchar(content)))
-    }
-  }
-  else {
-    if (init.params) {
-      paste0(substr(x, 1, header_length - 4), "params:\n", 
-             new_params, "---\n", "```{r, echo = FALSE}\n\n", init_params, 
-             "```\n", substr(content, header_length, nchar(content)))
-    }
-    else {
-      paste0(substr(x, 1, header_length - 4), "params:\n", 
-             new_params, "---\n", substr(content, header_length, 
-                                         nchar(content)))
-    }
-  }
-}
-
-
-m_default_gen <- function(){ #Might add arguments to this function
+  source("shiny-helper-funs.R")
   
-  m_default <- matrix(nrow = 3, ncol = 2)
-  colnames(m_default) <- c("Cum Prob", "Expert_1")
-  #rownames(m_default) <- rep("Expert_1",3)
-  m_default[,1] <- c(0.025, 0.5, 0.975)
-  return(m_default)
-}
-
-m_default_gen2 <- function(){ #Might add arguments to this function
-  
-  m_default <- matrix(nrow = 1, ncol = 1)
-  colnames(m_default) <- c("Expert_1")
-  rownames(m_default) <- "MLV"
-  return(m_default)
-}
-
-
-return_pooled_info <- function(input_mat, St_indic = 1,dist = "best", mode =NULL){
-  #dist_considered <- c("normal","t","gamma", "lognormal", "beta") 
-  
-  if(St_indic == 1){
-    lower_bound = 0
-    upper_bound = 1
-  }else{
-    lower_bound = -Inf
-    upper_bound = Inf
-  }
-  
-  
-  fit.eval <- fitdist_mod(input_mat[,2:ncol(input_mat), drop = F],
-                          probs = input_mat[,1], upper = upper_bound, lower = lower_bound, 
-                          expertnames = paste0("Expert_",1:(ncol(input_mat)-1)),
-                          mode = mode, trunc = St_indic)
-  # browser()
-  
-  plts_pool <- makePoolPlot(fit= fit.eval,
-                            xl =lower_bound,
-                            xu =upper_bound,
-                            d = dist,
-                            w = 1,
-                            lwd =1,
-                            xlab = "x",
-                            ylab =expression(f[X](x)),
-                            legend_full = TRUE,
-                            ql = NULL,
-                            qu = NULL,
-                            nx = 200,
-                            addquantile = FALSE,
-                            fs = 12,
-                            expertnames = paste0("Expert_",1:(ncol(input_mat)-1)),
-                            St_indic =St_indic)
-  
-  dfs_pool <-  plts_pool[["data"]]
-  if(dist == "best"){
-    selc_fit <- fit.eval$best.fitting[,"best.fit"]
-  }else{
-    selc_fit <- rep(dist, length(fit.eval$best.fitting[,"best.fit"]))
-  }
-  selc_fit_loc <- sapply(selc_fit, function(x){which(x  == names(fit.eval$ssq))})
-  
-  pool.df_output <- matrix(nrow = length(selc_fit),ncol = 3)
-  colnames(pool.df_output) <- c("param1", "param2", "param3")
-  
-  for(j in 1:length(selc_fit_loc)){
-    pool.df_output[j,1:length(fit.eval[[selc_fit_loc[j]]][j,])] <-  as.numeric(as.vector(fit.eval[[selc_fit_loc[j]]][j,]))
-  }
-  dfs_expert <- data.frame(dist = names(selc_fit_loc), wi = 1/nrow(pool.df_output), pool.df_output)
-  
-  return(list(dfs_expert, plts_pool))
-}
-
-
-#' Elicit survival judgements interactively and estimate survival models
-#'
-#' Opens up a web browser (using the shiny package), from which you can specify
-#' judgements and fit distributions for multiple timepoints and experts.
-#' Plots of the fitted density functions are provided overlayed on the survival data (where appropriate).
-#'
-#' Once the elicitation is complete the analysis can be run.
-#' Click "Download R objects" to download the ``expertsurv`` object generated from the analysis.
-#' Click "Download report" to generate a report including plots and parameter values for the parametric survival models.
-#'
-#' For detailed instructions use \code{browseVignettes("expertsurv")}
-#' @param compile_mods list of compiled stan models generated by ``compile_stan()``. Supplying the compiled stan models will greatly speed up the computation of the Bayesian analysis (otherwise each time a stan model is run it will be compiled (and not reused between runs)).
-#' @export
-#' @author Philip Cooney <phcooney@@tcd.ie>
-#' @examples
-#' \dontrun{
-#' elicit_surv()
-#' }
-elicit_surv <- function (compile_mods = NULL){
-  required_packages <- c("shiny", "shinyWidgets", "shinycssloaders", "shinyjs", "shinyMatrix", "shinybusy")
-  
-  missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
-  
-  if (length(missing_packages) > 0) {
-    stop("You need to install the following R packages to run the application: ", paste(missing_packages, collapse = ", "))
-  }
+  # Access compile_mods from the global environment
+  compile_mods <- .GlobalEnv$compile_mods
   
   options(spinner.color="#0275D8", spinner.color.background="#ffffff", spinner.size=2)
   
-  
+ 
   ui = fluidPage(shinyjs::useShinyjs(),
-                 #add_busy_bar(color = "blue"),
-                 # add_busy_gif(
-                 #   src = "https://jeroen.github.io/images/banana.gif",
-                 #   height = 70, width = 70
-                 # ),
-                 shinybusy::add_busy_spinner(spin = "semipolar"),
-                 # tags$style('.container-fluid {
-                 #               background-color: #7b8cde;
-                 #}'),
-                 titlePanel("ShinyExpertsurv"),
+                 shinybusy::add_busy_spinner(spin = "semipolar"),			 
+				tags$head(tags$title("ShinyExpertsurv")),  
+                 titlePanel(
+                   div(style = "display: flex; align-items: center;",
+                       img(src = "hexsticker.png", height = "150px", style = "margin-left: 20px;"),
+                       h1("ShinyExpertsurv", style = "flex-grow: 1;")
+                   )
+                 ),
+                 tags$head(
+                   tags$style(HTML(".fixed-height {min-height: 100px; /* Adjust this value as needed */ }")),
+                   tags$style(HTML("#run_analysis {
+                                      font-size: 18px;
+                                      color: #FFFFFF;
+                                      background-color: #5bc0de;
+                                      border: 2px solid #000000;
+                                      width: 100%;
+                                      height: 60px;}"))),
                  sidebarPanel(
                    wellPanel(
-                     #fluidRow(column(3, downloadButton("report", "Download report")),
-                     #column(2, offset = 1, actionButton("exit", "Quit"))),
+                     h3("Reference Documents"),
+                     tags$a(href = "README.html", "expertsurv Package README"),
+                     tags$br(),
+                     tags$a(href = "ShinyExpertsurv-Vignette.html", "ShinyExpertsurv App README")),
+                   wellPanel(
                      fileInput('df_upload', 'Choose .csv data file to upload',
                                accept = c(".csv")),
                      varSelectInput("variables", "Variable:", data.frame(NULL), multiple = TRUE),
                      p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
                      numericInput("n_expert", "Number of Experts", value = 1, min = 1),
                      numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
-                     # numericInput("scale1", "Scale for density", value = 1),
-                     numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,#max(df$time)*2,
-                                                                                                 digits = 0)),
+                     numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,digits = 0)),
                      checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
-                     
                      checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
-                     
-                     
                      selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
-                                 choices = c("Linear Pool" = "linear pool",
-                                             "Logarithmic Pool"= "log pool"), 
-                                 selected = "linear pool"),
+                                 choices = c("Linear Pool" = "linear pool","Logarithmic Pool"= "log pool"),selected = "linear pool"),
                      selectInput(inputId ="dist_select", label = "Select the best fitting distribution for Expert Pooling", 
                                  choices = c("Best Fitting" = "best",
                                              "Normal"= "normal",
@@ -226,17 +50,12 @@ elicit_surv <- function (compile_mods = NULL){
                                              "Log-Normal" = "lognormal",
                                              "Beta" = "beta"), 
                                  selected = "best"),
-                     actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")
-                     
-                   ),
-                   
+                     actionButton(paste0('update_expert'), "Plot/Update Survival Curves and Expert Opinions")),
                    hr(),
-                   
                    tabsetPanel(id = "Timepoints",
                                tabPanel("Timepoints1",
                                         numericInput(paste0("time1"), label= "Timepoint", value= 1),
                                         textInput('quant_vec1', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
-                                        
                                         helpText("Enter the judgements in the table below,
                                                               one column per expert. Enter quantile values corresponding to the cumulative probabilities. 
                                                              Enter Most Likely Values (i.e. Mode) for each expert if included."),
@@ -256,15 +75,11 @@ elicit_surv <- function (compile_mods = NULL){
                                                       editableNames = FALSE),
                                           rows = list(names = TRUE,
                                                       editableNames = FALSE)),
-                                        
-                                        
                                         plotOutput(paste0("expert_plot1"))),
-                               
                                tabPanel("Timepoints2",
                                         numericInput(paste0("time2"), label= "Timepoint", value= 1),
                                         textInput('quant_vec2', 'Enter a Vector of Quantiles', "0.025,0.5,0.975"),
                                         helpText("Enter the judgements in the table below, one column per expert. Enter quantile values corresponding to the cumulative probabilities."),
-                                        
                                         shinyMatrix::matrixInput(
                                           inputId = "matrix2",
                                           value = m_default_gen(),
@@ -282,67 +97,79 @@ elicit_surv <- function (compile_mods = NULL){
                                           rows = list(names = TRUE,
                                                       editableNames = FALSE)),
                                         
-                                        plotOutput(paste0("expert_plot2")))
-                   )),
+                                        plotOutput(paste0("expert_plot2"))))),
                  mainPanel(
-                   #withSpinner(tableOutput('tb'), type = 2),
                    h3("Kaplan-Meier Survival Plot"),
-                   plotOutput(paste0("plot_km_expert1")),
-                   fluidRow(column(selectInput("opinion_type", label = "Choose opinion type", 
-                                               choices = c("Survival at timepoint(s)" = "survival",
-                                                           "Mean difference between survival"= "mean",
-                                                           "No expert opinion" = "no_expert"), 
-                                               selected = "survival"), width = 3),
-                            
-                            column(selectInput("stat_type", label = "Choose statistical approach", 
-                                               choices = c("Frequentist" = "mle","Bayesian" = "bayes"), 
-                                               selected = "mle"), width = 3),
-                            column(shinyWidgets::pickerInput(
-                              inputId = "param_mod", 
-                              label = "Choose models:", 
-                              choices = c("Exponential" = "exp",
-                                          "Weibull" = "wei",
-                                          "Gompertz" = "gomp",
-                                          "Log-Logistic"= "llo",
-                                          "Log-normal" = "lno",
-                                          "Generalized-Gamma" = "gga",
-                                          "Royston-Parmar" = "rps"), 
+                   plotOutput("plot_km_expert1"),
+                   
+                   fluidRow(
+                     column(width = 3, actionButton("run_analysis", "Run Analysis")),
+                     column(width = 3, 
+                            selectInput("opinion_type", label = "Choose opinion type",
+                                        choices = c("Survival at timepoint(s)" = "survival",
+                                                    "Mean difference between survival" = "mean",
+                                                    "No expert opinion" = "no_expert"),
+                                        selected = "survival")),
+                     column(width = 3, class = "fixed-height", 
+                            selectInput("stat_type", label = "Choose statistical approach",
+                                        choices = c("Frequentist" = "mle", "Bayesian" = "bayes"),
+                                        selected = "mle"),
+                            conditionalPanel(
+                              condition = "input.stat_type == 'bayes'",
+                              numericInput("iterations", "Number of iterations:", value = 2000)
+                            )),
+                     column(width = 3, 
+                            shinyWidgets::pickerInput(
+                              inputId = "param_mod",
+                              label = "Choose models:",
+                              choices = c("Exponential" = "exp", "Weibull" = "wei", "Gompertz" = "gomp", 
+                                          "Log-Logistic"= "llo", "Log-normal" = "lno", "Generalized-Gamma" = "gga",
+                                          "Royston-Parmar (1 knot)" = "rps"),
                               options = list(
-                                `actions-box` = TRUE, 
+                                `actions-box` = TRUE,
                                 size = 10,
                                 `selected-text-format` = "count > 3"
-                              ), 
+                              ),
                               multiple = TRUE,
                               selected  = c("exp", "wei")
-                            ), width = 3),
-                            column(selectInput("id_trt", label = "Select name of treatment corresponding to expert opinion",
-                                               choices =  character(0)), width = 3)),
+                            )),
+                     column(width = 3, 
+                            selectInput("id_trt", label = "Select name of treatment corresponding to expert opinion",
+                                        choices =  character(0)))
+                   ),
                    
-                   fluidRow(column(actionButton("run_analysis", "Run Analysis"), width = 3),
-                            column(selectInput("gof_type", label = "Choose goodness of fit measure", 
-                                               choices = c("AIC" = "aic","BIC" = "bic"), 
-                                               selected = "AIC"), width = 3),
-                            column(selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots", 
-                                               choices = c("Yes" = "yes",
-                                                           "No"= "no"), 
-                                               selected = "no"), width = 3)),  
+                   fluidRow(
+                     column(width = 3, 
+                            selectInput("gof_type", label = "Choose goodness of fit measure",
+                                        choices = c("AIC" = "aic", "BIC" = "bic"),
+                                        selected = "AIC")),
+                     column(width = 3, 
+                            selectInput("incl_psa", label = "Include Statistical Uncertainty in Plots",
+                                        choices = c("Yes" = "yes", "No" = "no"),
+                                        selected = "no"))
+                   ),
                    
                    plotOutput("plot_gof"),
                    
-                   fluidRow(column(textInput('file_name', 'Enter filename for saved output', "Output-File"),
-                                   width =3),
-                            column(selectInput("outFormat",label = "Report format", 
-                                               choices = list(html = "html_document", 
-                                                              pdf = "pdf_document", Word = "word_document")), width = 3)),
-                   fluidRow(column(downloadButton("save_output", "Download R objects"), width = 3),
-                            column(downloadButton("report","Download report"),width = 3))
-                 )                          
+                   fluidRow(
+                     column(width = 3, textInput('file_name', 'Enter filename for saved output', "Output-File")),
+                     column(width = 3, 
+                            selectInput("outFormat", label = "Report format",
+                                        choices = list(html = "html_document", pdf = "pdf_document", Word = "word_document")))
+                   ),
+                   
+                   fluidRow(
+                     column(width = 3, downloadButton("save_output", "Download R objects")),
+                     column(width = 3, downloadButton("report", "Download report"))
+                   )
+                 )
+                 
   )
   
   
   create_server <- function(compile_mods){function(input, output, session){
     
-    shinyjs::hide("incl_psa")
+    #shinyjs::hide("incl_psa") 
     
     value <- reactiveValues(
       m_default = m_default_gen(),
@@ -379,7 +206,6 @@ elicit_surv <- function (compile_mods = NULL){
       value$df_upload <- df_upload
       #varSelectInput("variables", "Variable:", df_upload, multiple = TRUE),
       vars <- names(df_upload)
-      
       # Update select input immediately after clicking on the action button. 
       updateSelectInput(session, "variables","Variable:", choices = vars)
       
@@ -406,13 +232,15 @@ elicit_surv <- function (compile_mods = NULL){
     })
     
     
-    observeEvent({
-      input$update_expert
-      #      input$variables
-    },{
-      #browser()
-      #df_upload %>% dplyr::select(!!!input$variables)
-      #browser()
+    observeEvent({input$variables},{
+    
+      if(length(input$variables) == 2 & exists("value$df_work")){
+        df_work$arm <- 1
+      }
+    })
+    
+    
+    observeEvent({input$update_expert},{
       if(length(input$variables) >= 2 ){
         df_work <- value$df_upload %>% dplyr::select(!!!input$variables)
         
@@ -428,7 +256,6 @@ elicit_surv <- function (compile_mods = NULL){
         
         
         if(length(trt_vec) == 1){
-          #browser()
           result.km <- survfit(Surv(time, status) ~ 1, data = df_work, conf.type="log-log")
           km.data <- data.frame(cbind(result.km[[c("time")]],
                                       result.km[[c("surv")]],
@@ -446,10 +273,9 @@ elicit_surv <- function (compile_mods = NULL){
                                                                "No expert opinion" = "no_expert"), selected  = prev_input)
           shinyjs::hide("id_trt") #hide id_trt panel
           value$id_trt <- NULL
-          
           df_work$arm <- 1
         }else{
-          #browser()
+          
           shinyjs::show("id_trt") #hide id_trt panel
           trt_vec_char <- as.character(trt_vec)
           
@@ -490,14 +316,7 @@ elicit_surv <- function (compile_mods = NULL){
           geom_step(aes(x  = Time, y =upper, col = factor(arm)))+
           geom_step(aes(x  = Time, y =lower, col = factor(arm)))+
           theme_light()#+
-        #scale_x_continuous(expand = c(0, 0))+#, breaks=seq(0, 30, 2)) + 
-        #scale_y_continuous(expand = c(0, 0))#, breaks=seq(0, 1, 0.05))
-        
-        
-        #### If expert opinion is avialble   
-        
-        
-        
+  
         if(!any(is.na(input[["matrix1"]][,2]))){ # If Expert opinions are not NA values
           
           times_expert_vec <- c()
@@ -526,8 +345,7 @@ elicit_surv <- function (compile_mods = NULL){
               output_pool[[2]][["layers"]][[3]] <-NULL
               output_pool[[2]][["layers"]][[2]] <-NULL
             }  
-            
-            #browser()
+
             value[[paste0("expert_plot",i)]] <- output_pool[[2]]
             times_expert = input[[paste0("time",i)]]
             times_expert_vec <- c(times_expert_vec, times_expert)
@@ -737,8 +555,14 @@ elicit_surv <- function (compile_mods = NULL){
     
     
     observeEvent(input$run_analysis, {
-      #browser()
-      id_trt_work<- min(which(as.character(value$df_work[["arm"]]) == input$id_trt))
+      
+      if(input$id_trt == ""){
+        id_trt_work<- 1
+      }else{
+        #browser()
+        id_trt_work<- min(which(as.character(value$df_work[["arm"]]) == input$id_trt))
+      }
+      
       if(input$opinion_type == "mean"){
         id_comp_work<- min(which(as.character(value$df_work[["arm"]]) != input$id_trt))
         timepoint_expert_work <- NULL 
@@ -757,7 +581,7 @@ elicit_surv <- function (compile_mods = NULL){
       }
       #browser()
       if(!is.null(value$param_expert)& input$opinion_type != "no_expert"){
-        
+        #browser()
         mod_fit  <- try({fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
                                            distr=input$param_mod,
                                            method=input$stat_type,
@@ -769,36 +593,16 @@ elicit_surv <- function (compile_mods = NULL){
                                            id_comp = id_comp_work,
                                            id_St  = id_trt_work,
                                            k = 1,
+                                           iter = input$iterations,
                                            compile_mods = compile_mods)})
-        
-        # if(class(mod_fit)=="try-error"){
-        #   paste('Model estimation failed; Note Frequentist approach is typically much more "fragile" when expert opinion is in conflict with the data.')
-        # }
-        
-        
         value$mod_fit <- mod_fit
       }
       
       if(input$opinion_type == "no_expert"){
         
-        
-        #param_expert_vague <- list()
-        #param_expert_vague[[1]] <- data.frame(dist = "beta", wi = 1, param1 = 1, param2 = 1, param2 = NA)
-        
-        # mod_fit  <- fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
-        #                               distr=input$param_mod,
-        #                               method=input$stat_type,
-        #                               pool_type = input$pool_type_eval,#"log pool", 
-        #                               opinion_type = "survival",
-        #                               times_expert = 2, 
-        #                               param_expert = param_expert_vague,
-        #                               k = 1,
-        #                               id_St  = 1)
-        
-        
         mod_fit  <- fit.models.expert(formula=as.formula(formula_text),data=value$df_work,
                                       distr=input$param_mod,
-                                      method=input$stat_type)
+                                      method=input$stat_type, k = 1)
         
         value$mod_fit <- mod_fit
       }
@@ -809,53 +613,29 @@ elicit_surv <- function (compile_mods = NULL){
       validate(need(class(value$mod_fit)!="try-error","Model estimation failed; Note Frequentist approach is typically much more fragile when expert opinion is in conflict with the data." ))
       
       if(input$incl_psa == "yes"){
-        #browser()
-        models <- names(value$mod_fit$models)
-        psa_outuput <- list()
-        
-        for(i in 1:length(value$mod_fit$models)){
-          psa <- make.surv(fit = value$mod_fit,mod = i, nsim = 1000, t = seq(0,input$xlim,length.out = 1000))
-          df_temp  <- t(apply(psa$mat[[1]], 1,quantile, probs = c(0.025, 0.5,.975))) %>% data.frame()
-          df_temp$time <- seq(0,input$xlim,length.out = 1000)
-          mod_name <- names(value$mod_fit$models)[i]
-          psa_outuput[[mod_name]] <- df_temp %>% mutate(model = mod_name)
-        }
-        
-        df_final_plot <- do.call(rbind.data.frame, psa_outuput)
-        df_final_plot$models <- factor(df_final_plot$model, levels = unique(df_final_plot$model))
-        #browser()
-        if(input$opinion_type == "survival"){
-          ggplot(data = df_final_plot, aes(y = X50., x = time, group = models, colour = models))+
-            geom_line()+
-            geom_line(data = df_final_plot ,aes(y = X97.5., x = time),linetype="dotdash")+
-            geom_line(data = df_final_plot ,aes(y = X2.5., x = time), linetype="dotdash")+
-            geom_step(data =value$km.data, mapping = aes(x = Time,y =Survival, col = factor(arm)),inherit.aes = FALSE)+
-            geom_ribbon(data = value$df.linear_all, aes(x = x, y = y, xmin= x, xmax =times_expert, group=times_expert), 
-                        fill = "sky blue", alpha = 0.5, colour = "grey")
+        if(input$stat_type == "bayes"){
+          nsim_eval <- input$iterations
         }else{
-          ggplot(data = df_final_plot, aes(y = X50., x = time, group = models, colour = models))+
-            geom_line()+
-            geom_line(data = df_final_plot ,aes(y = X97.5., x = time),linetype="dotdash")+
-            geom_line(data = df_final_plot ,aes(y = X2.5., x = time), linetype="dotdash")+
-            geom_step(value$km.data, mapping = aes(x = Time,y =Survival, col = factor(arm)),inherit.aes = FALSE)+
-            geom_step(value$km.data, mapping = aes(x = Time,y =lower, col = factor(arm)),inherit.aes = FALSE)+
-            geom_step(value$km.data, mapping = aes(x = Time,y =upper, col = factor(arm)),inherit.aes = FALSE)
-          
+          nsim_eval <- 1000
         }
+        plot_ci <- TRUE
         
       }else{
+        nsim_eval <- 1
+        plot_ci <- FALSE
+      }
         
-        if(input$opinion_type == "survival"){
-          plot(value$mod_fit, add.km = TRUE,t = seq(0,input$xlim,length.out = 1000))+
+      if(input$opinion_type == "survival"){
+          plot(value$mod_fit, add.km = TRUE,t = seq(0,input$xlim,length.out = 100),nsim  = nsim_eval, plot_ci = plot_ci)+
             geom_ribbon(data = value$df.linear_all, aes(x = x, y = y, xmin= x, xmax =times_expert, group=times_expert), 
                         fill = "sky blue", alpha = 0.5, colour = "grey")
           
         }else{
-          plot(value$mod_fit, add.km = TRUE,t = seq(0,input$xlim,length.out = 1000))
+          plot(value$mod_fit, add.km = TRUE,t = seq(0,input$xlim,length.out = 100),nsim  = nsim_eval, plot_ci = plot_ci)
           
         } 
         
-      }  
+        
     })
     
     
@@ -995,19 +775,9 @@ elicit_surv <- function (compile_mods = NULL){
     
   }}
   
-  
-  shiny::runApp(list(ui = ui, server = create_server(compile_mods)),launch.browser = TRUE)
-  
-  
-  #  ),launch.browser = TRUE)
-  
-  
-}
 
+  shinyApp(ui = ui, server = create_server(compile_mods = compile_mods))
+  
 
-#tmpfun <- get("elicit_surv", envir = asNamespace("expertsurv"))
-#environment(elicit_surv) <- environment(tmpfun)
-#attributes(elicit_surv) <- attributes(tmpfun)  
-#assignInNamespace("elicit_surv", elicit_surv, ns="expertsurv")
 
 

@@ -152,6 +152,10 @@ runMLE <- function (x, exArgs){
   else {
     method_mle <- "BFGS"
   }
+  
+  
+  expert_opinion_param_save <- expert_opinion_flex
+  
   tic <- proc.time()
   if (x == "survspline") {
     if (exists("bhazard", where = exArgs)) {
@@ -227,5 +231,5 @@ runMLE <- function (x, exArgs){
   model_name <- d3
   list(model = model, aic = model$AIC, bic = -2 * model$loglik + 
          model$npars * log(model$N), dic = NULL, time2run = toc[3], 
-       model_name = model_name)
+       model_name = model_name, expert_opinion_param_save = expert_opinion_param_save)
 }

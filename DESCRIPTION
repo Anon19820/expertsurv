@@ -12,7 +12,7 @@ Authors@R:
            family = "White",
            role = "ths",
            comment = c(ORCID = "0000-0002-7268-5163")))
-Description: Enables users to incorporate expert opinion with parametric survival analysis using a Bayesian or frequentist approach. Expert Opinion can be provided on the survival probabilities at certain time-point(s) or for the difference in mean survival between two treatment arms.Please reference its use as Cooney, P., White, A. (2023) <doi:10.1177/0272989X221150212>.
+Description: Enables users to incorporate expert opinion with parametric survival analysis using a Bayesian or frequentist approach. Expert Opinion can be provided on the survival probabilities at certain time-point(s) or for the difference in mean survival between two treatment arms. Please reference it's use as Cooney, P., White, A. (2023) <doi:10.1177/0272989X221150212>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -38,6 +38,7 @@ Imports:
     rlang,
     rms,
     rstan (>= 2.26.0),
+	rstantools (>= 2.2.0),
     rstpm2,
     scales,
     SHELF,
@@ -86,4 +87,5 @@ Suggests:
 	eha
 VignetteBuilder: knitr
 RdMacros: Rdpack
+Logo: inst/figures/hexsticker.png
 Config/testthat/edition: 3

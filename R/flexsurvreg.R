@@ -46,113 +46,113 @@ call_distfn_quiet <- function(fn, args){
 
 logLikFactory <- function(Y, X=0, weights, bhazard, rtrunc, dlist,
                           inits, dfns, aux, mx, fixedpars=NULL,expert_opinion) {
-    pars   <- inits
-    npars  <- length(pars)
-    nbpars <- length(dlist$pars)
-    insert.locations <- setdiff(seq_len(npars), fixedpars)
+  pars   <- inits
+  npars  <- length(pars)
+  nbpars <- length(dlist$pars)
+  insert.locations <- setdiff(seq_len(npars), fixedpars)
+  
+  ## which are the subjects with known event times
+  event <- Y[,"status"] == 1
+  event.times <- Y[event, "time1"]
+  lcens.times <- Y[!event, "time2"]
+  rcens.times <- Y[!event, "time1"]
+  
+  par.transform <- buildTransformer(inits, nbpars, dlist)
+  
+  aux.pars <- buildAuxParms(aux, dlist)
+  
+  do.bhazard <- any(bhazard > 0)
+  
+  loglik <- rep.int(0, nrow(Y))
+  ## the ... here is to work around optim
+  function(optpars, ...) {
     
-    ## which are the subjects with known event times
-    event <- Y[,"status"] == 1
-    event.times <- Y[event, "time1"]
-    lcens.times <- Y[!event, "time2"]
-    rcens.times <- Y[!event, "time1"]
+    pars[insert.locations] <- optpars
+    raw.pars <- pars
+    pars <- as.list(pars)
     
-    par.transform <- buildTransformer(inits, nbpars, dlist)
-
-    aux.pars <- buildAuxParms(aux, dlist)
-
-    do.bhazard <- any(bhazard > 0)
-
-    loglik <- rep.int(0, nrow(Y))
-    ## the ... here is to work around optim
-    function(optpars, ...) {
-
-        pars[insert.locations] <- optpars
-        raw.pars <- pars
-        pars <- as.list(pars)
-
-        pars.event <- pars.nevent <- pars
-        if (npars > nbpars) {
-            beta <- raw.pars[(nbpars+1):npars]
-            for (i in dlist$pars){
-                pars[[i]] <- pars[[i]] +
-                    X[,mx[[i]],drop=FALSE] %*% beta[mx[[i]]]
-                pars.event[[i]] <- pars[[i]][event]
-                pars.nevent[[i]] <- pars[[i]][!event]
-            }
-        }
-
-        fnargs <- c(par.transform(pars),
-                    aux.pars)
-        fnargs.event <- c(par.transform(pars.event),
-                          aux.pars)
-        fnargs.nevent <- c(par.transform(pars.nevent),
-                           aux.pars)
-        
-        ## Generic survival model likelihood contributions
-        ## Observed deaths
-        dargs <- fnargs.event
-        dargs$x <- event.times
-        dargs$log <- TRUE
-        logdens <- call_distfn_quiet(dfns$d, dargs)
-        
-        ## Left censoring times (upper bound for event time) 
-        if (!all(event)){
-            pmaxargs <- fnargs.nevent
-            pmaxargs$q <- lcens.times # Inf if right-censored, giving pmax=1
-            pmax <- call_distfn_quiet(dfns$p, pmaxargs)
-            pmax[pmaxargs$q==Inf] <- 1  # in case user-defined function doesn't already do this
-        ## Right censoring times (lower bound for event time) 
-            pargs <- fnargs.nevent
-            pargs$q <- rcens.times
-            pmin <- call_distfn_quiet(dfns$p, pargs)
-        } 
-        
-        targs   <- fnargs
-        ## Left-truncation
-        targs$q <- Y[,"start"]
-        plower <- call_distfn_quiet(dfns$p, targs)
-
-        ## Right-truncation
-        targs$q <- rtrunc
-        pupper <- call_distfn_quiet(dfns$p, targs)
-        pupper[rtrunc==Inf] <- 1 # in case the user's function doesn't already do this
-        pobs <- pupper - plower # prob of being observed = 1 - 0 if no truncation 
-
-        if (do.bhazard){
-            # Adjust for background hazard in relative survival models
-            pargs   <- fnargs.event
-            pargs$q <- event.times
-            pminb   <- call_distfn_quiet(dfns$p, pargs)
-            logsurv_excess <- log(1 - pminb)
-            loghaz_excess  <- logdens - logsurv_excess
-            haz_excess <- exp(loghaz_excess)
-            logdens_offset <- log(1 + bhazard[event] / haz_excess) # = log(haz_allcause / haz_excess)
-            if (!all(event)) {               # background survival S* and left or interval censoring 
-              b_condsurv <- 1 - bhazard[!event]  # this is S*(end) / S*(start)
-              b_condsurv[lcens.times==Inf] <- 0  # when end=Inf, i.e. right censoring
-            }
-            if (any(is.finite(rtrunc)))
-              stop("models with both right truncation and background hazards not supported")
-        } else {
-            logdens_offset <- 0
-        }
-        ## Express as vector of individual likelihood contributions
-        loglik[event] <- (logdens + logdens_offset)
-        if (!all(event)){
-           if (do.bhazard)
-             loglik[!event] <- log((pmax - 1)*b_condsurv  +  1 - pmin)
-           else
-             loglik[!event] <- log(pmax - pmin)
-        }
-
-        loglik <- loglik - log(pobs)
-			
-        
-        
-   if (!is.null(expert_opinion)) {
-     pargs.expert <- fnargs 
-     
+    pars.event <- pars.nevent <- pars
+    if (npars > nbpars) {
+      beta <- raw.pars[(nbpars+1):npars]
+      for (i in dlist$pars){
+        pars[[i]] <- pars[[i]] +
+          X[,mx[[i]],drop=FALSE] %*% beta[mx[[i]]]
+        pars.event[[i]] <- pars[[i]][event]
+        pars.nevent[[i]] <- pars[[i]][!event]
+      }
+    }
+    
+    fnargs <- c(par.transform(pars),
+                aux.pars)
+    fnargs.event <- c(par.transform(pars.event),
+                      aux.pars)
+    fnargs.nevent <- c(par.transform(pars.nevent),
+                       aux.pars)
+    
+    ## Generic survival model likelihood contributions
+    ## Observed deaths
+    dargs <- fnargs.event
+    dargs$x <- event.times
+    dargs$log <- TRUE
+    logdens <- call_distfn_quiet(dfns$d, dargs)
+    
+    ## Left censoring times (upper bound for event time) 
+    if (!all(event)){
+      pmaxargs <- fnargs.nevent
+      pmaxargs$q <- lcens.times # Inf if right-censored, giving pmax=1
+      pmax <- call_distfn_quiet(dfns$p, pmaxargs)
+      pmax[pmaxargs$q==Inf] <- 1  # in case user-defined function doesn't already do this
+      ## Right censoring times (lower bound for event time) 
+      pargs <- fnargs.nevent
+      pargs$q <- rcens.times
+      pmin <- call_distfn_quiet(dfns$p, pargs)
+    } 
+    
+    targs   <- fnargs
+    ## Left-truncation
+    targs$q <- Y[,"start"]
+    plower <- call_distfn_quiet(dfns$p, targs)
+    
+    ## Right-truncation
+    targs$q <- rtrunc
+    pupper <- call_distfn_quiet(dfns$p, targs)
+    pupper[rtrunc==Inf] <- 1 # in case the user's function doesn't already do this
+    pobs <- pupper - plower # prob of being observed = 1 - 0 if no truncation 
+    
+    if (do.bhazard){
+      # Adjust for background hazard in relative survival models
+      pargs   <- fnargs.event
+      pargs$q <- event.times
+      pminb   <- call_distfn_quiet(dfns$p, pargs)
+      logsurv_excess <- log(1 - pminb)
+      loghaz_excess  <- logdens - logsurv_excess
+      haz_excess <- exp(loghaz_excess)
+      logdens_offset <- log(1 + bhazard[event] / haz_excess) # = log(haz_allcause / haz_excess)
+      if (!all(event)) {               # background survival S* and left or interval censoring 
+        b_condsurv <- 1 - bhazard[!event]  # this is S*(end) / S*(start)
+        b_condsurv[lcens.times==Inf] <- 0  # when end=Inf, i.e. right censoring
+      }
+      if (any(is.finite(rtrunc)))
+        stop("models with both right truncation and background hazards not supported")
+    } else {
+      logdens_offset <- 0
+    }
+    ## Express as vector of individual likelihood contributions
+    loglik[event] <- (logdens + logdens_offset)
+    if (!all(event)){
+      if (do.bhazard)
+        loglik[!event] <- log((pmax - 1)*b_condsurv  +  1 - pmin)
+      else
+        loglik[!event] <- log(pmax - pmin)
+    }
+    
+    loglik <- loglik - log(pobs)
+    
+    
+    
+    if (!is.null(expert_opinion)) {
+      pargs.expert <- fnargs 
+      
       if (expert_opinion$St_indic == 1) {
         
         pargs.expert <- lapply(pargs.expert, function(x) {
@@ -182,25 +182,31 @@ logLikFactory <- function(Y, X=0, weights, bhazard, rtrunc, dlist,
         }
         psurv_expert <- diff(do.call(dfns$mean, pargs.rmst))
       }
-     LL_expert <- rep(NA, length(expert_opinion$times))
+      LL_expert <- rep(NA, length(expert_opinion$times))
+      
       for (q in 1:length(expert_opinion$times)) {
         param_expert_mat <- abind::adrop(expert_opinion$param_expert[,, q, drop = F], drop = 3)
+        surv_eval_temp <- psurv_expert[q]
+    
+        if(do.bhazard & exists("bhazard_par", where = expert_opinion) &expert_opinion$St_indic == 1){
+          surv_eval_temp <- surv_eval_temp*expert_opinion$bhazard_par[q]
+        }
         
-        LL_expert[q] <- expert_log_dens(psurv_expert[q], 
-                                                     df = param_expert_mat, expert_opinion$pool, 
-                                                     k_norm = expert_opinion$k_norm[q], St_indic = expert_opinion$St_indic)
+        LL_expert[q] <- expert_log_dens(surv_eval_temp, 
+                                        df = param_expert_mat, expert_opinion$pool, 
+                                        k_norm = expert_opinion$k_norm[q], St_indic = expert_opinion$St_indic)
       }
       ret <- -sum(loglik*weights, LL_expert)
     }
     else {
-       ret <- -sum(loglik*weights)
-    
+      ret <- -sum(loglik*weights)
+      
     }	
-		
-	attr(ret, "indiv") <- loglik
+    
+    attr(ret, "indiv") <- loglik
     ret		
-		
-    }
+    
+  }
 }
 
 minusloglik.flexsurv <- function(optpars, Y, X=0, weights, bhazard, rtrunc, 
@@ -915,7 +921,7 @@ compress.model.matrices <- function(mml){
 ##' #expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist=custom.exp2)
 ##' #expertsurv:::flexsurvreg(Surv(futime, fustat) ~ 1, data = ovarian, dist="exp")
 ##' ## should give same answer
-##' 
+##' @noRd
 flexsurvreg <- function(formula, anc=NULL, data, weights, bhazard, rtrunc, subset, na.action, dist,
                         inits, fixedpars=NULL, dfns=NULL, aux=NULL, cl=0.95,
                         integ.opts=NULL, sr.control=survreg.control(), hessian=TRUE, hess.control=NULL,expert_opinion = NULL, ...)
@@ -1048,7 +1054,7 @@ flexsurvreg <- function(formula, anc=NULL, data, weights, bhazard, rtrunc, subse
                                               dfns=dfns,
                                               aux=aux, mx=mx,
                                               fixedpars=fixedpars, 
-											                        expert_opinion= expert_opinion),
+											  expert_opinion= expert_opinion),
                              gr=gr,
                              Y=Y, X=X, weights=weights,
                              bhazard=bhazard, rtrunc=rtrunc, dlist=dlist,
@@ -1339,7 +1345,7 @@ coef.flexsurvreg <- function(object, ...){
 ##' 
 ##' @keywords models
 ##' 
-##' 
+##' @noRd
 nobs.flexsurvreg <- function(object, cens=TRUE, ...){
   if (cens) ind <- seq(length.out=nrow(object$data$Y)) else ind <- which(object$data$Y[,"status"] == 1)
   sum(object$data$m[ind,"(weights)"])

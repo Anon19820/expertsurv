@@ -4,10 +4,10 @@
 #' Incorporating Expert Opinion with Parametric Survival Models
 #' 
 #' Contains functions to include expert opinion with the parametric models commonly 
-#' used in health economic modelling. Theoretical details are described elsewhere \insertCite{Cooney.2023}{expertsurv}.  Borrows many function from the ``survHE`` package \insertCite{Baio.2020}{expertsurv}. 
+#' used in health economic modelling. Theoretical details are described elsewhere \insertCite{Cooney.2023}{expertsurv}.  Borrows many functions from the ``survHE`` package \insertCite{Baio.2020}{expertsurv} and ``flexsurv`` package \insertCite{flexsurv}{expertsurv}. 
 #' 
 #' \tabular{ll}{ Package: \tab expertsurv \cr Type: \tab Package\cr Version: \tab
-#' 1.3.0\cr Date: \tab 2023-09-22\cr License: \tab MIT + file LICENSE \cr LazyLoad: \tab
+#' 1.4.0\cr Date: \tab 2023-09-22\cr License: \tab MIT + file LICENSE \cr LazyLoad: \tab
 #' yes\cr } Integrate expert opinions on survival and mean differences in survival with common parametric survival models using either a Bayesian or frequentist framework.
 #' 
 #' @name expertsurv-package
@@ -64,7 +64,7 @@
 #' @importFrom Rcpp sourceCpp
 "_PACKAGE"
 
-.onUnload <- function(libpath) {
-    library.dynam.unload("expertsurv", libpath)
-}
+#.onUnload <- function(libpath) {
+ #   library.dynam.unload("expertsurv", libpath)
+#}
 

@@ -19,12 +19,12 @@ utils::globalVariables(c("(Intercept)", "expert",'times_expert','weights','sum_w
 						'qlnorm', 'qlogis', 'qnorm', 'qt', 'quantile', 'qweibull',
 						'reformulate', 'rf', 'rgamma', 'rlnorm', 'runif',
 						'rweibull', 'sd', 'setNames', 'terms', 'time', 'uniroot',
-						'update', 'var', 'vcov', 'weighted.mean','scaling_fac','fx_final'))
+						'update', 'var', 'vcov', 'weighted.mean','scaling_fac','fx_final','compiled_models_saved'))
 						 
 
 
 
-#' Title
+#' Helper function to modify the NAMESPACE with roxygen2
 #'
 #' @param x 
 #'
@@ -32,6 +32,9 @@ utils::globalVariables(c("(Intercept)", "expert",'times_expert','weights','sum_w
 #' @importFrom Rdpack reprompt
 #' @noRd
 #' @import broom
+#' @import rstantools
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib expertsurv, .registration = TRUE
 cran_req <- function(x){
   return(x)
 }

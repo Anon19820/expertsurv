@@ -1,27 +1,30 @@
 ---
-title: "Incoporating Expert Opinion with Parametric Survival Models"
+title: "<img src='C:/Users/phili/OneDrive/PhD/R_packages_2023/expertsurv/inst/figures/hexsticker.png' align='left' height='150'/> Introduction to Expertsurv"
 output: rmarkdown::html_vignette
-bibliography: 
-- references.bib
+bibliography: "`r system.file('REFERENCES.bib', package = 'expertsurv')`"
 vignette: >
-  %\VignetteIndexEntry{expertsurv-Vignette}
+  %\VignetteIndexEntry{Introduction to Expertsurv}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE,echo = FALSE}
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>")
+  comment = "#>",
+  fig.align = 'center',
+  out.width = '70%'
+)
 library("expertsurv")
-
-options(rmarkdown.html_vignette.check_title = FALSE)
-
-
 ```
 
-# expert-surv
+<br clear='all'/>
 
+# Overview
+
+<br clear="all"/>
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -104,14 +107,13 @@ cred_int_val <- cred_int(plot_opinion1,val = "log pool", interval = c(0.025, 0.9
 
 ```{r echo = FALSE, fig.cap = "Expert prior distributions"}
 
-image_path <- system.file("image/Vignette_Example_1_Expert_Opinion.png", package ="expertsurv")
+knitr::include_graphics(system.file("image/Vignette_Example_1_Expert_Opinion.png", package = "expertsurv"))
 
-knitr::include_graphics(image_path)
 ```
 
 
 
-We load and fit the data as follows (in this example considering just the Weibull and Gompertz models), with `pool_type = "log pool"` specifying that we want to use the  logarithmic pooling (rather than default "linear pool"). We do this as we wish to compare the results to the penalized maximum likelihood estimates in the next section.
+We load and fit the data as follows (in this example considering just the Weibull and Gompertz models), with `pool_type = "log pool"` specifying that we want to use the  logarithmic pooling (rather than default "linear pool"). We do this as we wish to compare the results to the penalized maximum likelihood estimates in the next section. The stan models are not compiled at installation, in fact, they are accessed as saved objects from the `inst` folder. Therefore, it is much quicker to include the extra argument `compile_mods = compiled_models_saved` than requiring stan to recompile the model at each evaluation.
 
 ```
 
@@ -121,36 +123,39 @@ data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10,
 #Set the opinion type to "survival"
 
 example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-                                        distr=c("wph", "gomp"),
-                                        method="bayes",
-                                        iter = 5000,
-                                        pool_type = "log pool", 
-                                        opinion_type = "survival",
-                                        times_expert = timepoint_expert, 
-                                        param_expert = param_expert_example1)
+                               distr=c("wph", "gomp"),
+                               method="bayes",
+                               iter = 5000,
+                               pool_type = "log pool", 
+                               opinion_type = "survival",
+                               times_expert = timepoint_expert, 
+                               param_expert = param_expert_example1,
+                               compile_mods = compiled_models_saved)
 
 ```
 Both visual fit and model fit statistics highlight that the Weibull model is a poor fit to both the expert opinion and data (black line referring to the $95\%$ confidence region for the experts prior belief). 
 
+The below code provides the goodness of fit (in this case DIC, however, I prefer WAIC or PML).
+Also presented is the survival plots, at the posterior mean values. If opinion was included on survival outcomes it can be helpful to visualize the density of the expert opinion by `plot_opinion = TRUE`.
+
+
 ```
-model.fit.plot(example1, type = "dic")
+model.fit.plot(example1, type = "dic") #Also "waic" or "pml"
 
 #N.B. plot.expertsurv (ported directly from survHE) plots the survival function at the posterior mean parameter values
 #     while it is more robust to use the entire posterior sample (make.surv), however, in this case both results are similar. 
 
- plot(example1, add.km = T, t = 0:30)+
-  theme_light()+
-  scale_x_continuous(expand = c(0, 0), limits = c(0,NA), breaks=seq(0, 30, 2)) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, NA), breaks=seq(0, 1, 0.05))+
-  geom_segment(aes(x = 14, y = cred_int_val[1], xend = 14, yend = cred_int_val[2]))
+ plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
 
 ```
 ```{r echo = FALSE, fig.cap = "Model Comparison"}
-#knitr::include_graphics("inst/image/Vignette_Example_1_DIC.png")
+knitr::include_graphics(system.file("image/Vignette_Example_1_DIC.png", package = "expertsurv"))
+
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior"}
-#knitr::include_graphics("inst/image/Vignette_Example_1.png")
+
+knitr::include_graphics(system.file("image/Vignette_Example_1.png", package = "expertsurv"))
 ```
 
 
@@ -196,12 +201,14 @@ unique(data$arm)
 ```
 
 ```
-survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),data=data2,
+#We want our opinion to refer to the treatment called "0" 
+example2  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),
+                                        data=data2,
                                         distr=c("wei"),
                                         method="hmc",
                                         iter = 5000,
                                         opinion_type = "survival",
-                                        id_St = min(which(data2$arm ==0)), #We want our opinion to refer to the treatment called "0" 
+                                        id_St = min(which(data2$arm ==0)), 
                                         times_expert = timepoint_expert, 
                                         param_expert = param_expert_example2)
 ```
@@ -210,7 +217,10 @@ We can remove the impact of expert opinion omitting the arguments relating to `o
 
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior (left) and Vague prior (right)"}
-#knitr::include_graphics("inst/image/Vignette_Example_2.png")
+
+knitr::include_graphics(system.file("image/Vignette_Example_2.png", package = "expertsurv"))
+
+
 ```
 
 The survival function for "arm 1" has been shifted downwards slightly, however the covariate for the accelerated time factor has markedly increased to counteract the lower survival probability for the reference (arm 0).
@@ -242,13 +252,15 @@ survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(ar
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival difference"}
-#knitr::include_graphics("inst/image/Vignette_Example_3.png")
+
+knitr::include_graphics(system.file("image/Vignette_Example_3.png", package = "expertsurv"))
+
 ```
 
 
 ## Compatability with underlying packages survHE and flexsurv
 
-As stated in the introduction this package relies on many of the core functions of the `survHE, flexsurv` packages [@Baio.2020,@flexsurv]. Because future versions of `survHE` and `flexsurv` may introduce conflicts with the current implementation, we have directly ported the key functions from these packages into the package so that `expertsurv` no longer imports `survHE,flexsurv` (of course all credit for those functions goes to [@Baio.2020,@flexsurv]).
+As stated in the introduction this package relies on many of the core functions of the `survHE, flexsurv` packages [@Baio.2020] and [@flexsurv]. Because future versions of `survHE` and `flexsurv` may introduce conflicts with the current implementation, we have directly ported the key functions from these packages into the package so that `expertsurv` no longer imports `survHE,flexsurv` (of course all credit for those functions goes to [@Baio.2020,@flexsurv]).
 
 
 

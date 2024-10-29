@@ -3,7 +3,7 @@
 \name{compute_ICs_stan}
 \alias{compute_ICs_stan}
 \title{Helper function to compute the information criteria statistics
-when using bayes as the inferential engine. 'rstan' does not do
+when using bayes as the inferential engine. `rstan' does not compute
 DIC automatically and AIC/BIC are also not standard for Bayesian
 models, so can compute them post-hoc by manipulating the
 likelihood functions.}
@@ -11,11 +11,11 @@ likelihood functions.}
 compute_ICs_stan(model, distr3, data.stan)
 }
 \arguments{
-\item{model}{The 'rstan' object with the model fit}
+\item{model}{The `rstan' object with the model fit}
 
-\item{distr3}{The 'rstan' object with the model fit}
+\item{distr3}{The `rstan' object with the model fit}
 
-\item{data.stan}{The 'data' object with the model fit}
+\item{data.stan}{The `data' object with the model fit}
 }
 \value{
 \item{list}{A list containing the modified name of the
@@ -24,7 +24,7 @@ labels (humane-readable name)}.
 }
 \description{
 Helper function to compute the information criteria statistics
-when using bayes as the inferential engine. 'rstan' does not do
+when using bayes as the inferential engine. `rstan' does not compute
 DIC automatically and AIC/BIC are also not standard for Bayesian
 models, so can compute them post-hoc by manipulating the
 likelihood functions.

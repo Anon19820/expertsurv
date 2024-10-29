@@ -14,6 +14,6 @@ Generated from \code{expertsurv::compile_stan()}
 compiled_models_saved
 }
 \description{
-Pre-compiled stan models that can be made accessed by \code{expertsurv::compiled_models_saved}
+Pre-compiled stan models that can be accessed by \code{expertsurv::compiled_models_saved}. These compiled stan models can be supplied to the \code{fit.models.expert} function with the argument \code{compile_mods}. This greatly facilitates the estimation of the parametric survival models run by stan.
 }
 \keyword{datasets}

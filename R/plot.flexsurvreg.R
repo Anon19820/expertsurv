@@ -87,7 +87,7 @@
 ##' @author C. H. Jackson \email{chris.jackson@@mrc-bsu.cam.ac.uk}
 ##' @seealso \code{\link{flexsurvreg}}
 ##' @keywords models hplot
-##' 
+##' @noRd
 plot.flexsurvreg <- function(x, newdata=NULL, X=NULL, type="survival", fn=NULL, t=NULL, start=0,
                              est=TRUE, ci=NULL, B=1000, cl=0.95,
                              col.obs="black", lty.obs=1, lwd.obs=1,

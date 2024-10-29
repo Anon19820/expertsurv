@@ -140,6 +140,7 @@
 ##' press).
 ##'
 ##' @keywords models
+##' @noRd
 summary.flexsurvreg <- function(object, newdata=NULL, X=NULL, type="survival",
                                     fn=NULL, t=NULL, quantiles=0.5, start=0, cross=TRUE,
                                     ci=TRUE, se=FALSE, B=1000, cl=0.95,
@@ -465,7 +466,7 @@ add.covs <- function(x, pars, beta, X, transform=FALSE){  ## TODO option to tran
 ##'     expertsurv:::normboot.flexsurvreg(fite, B=10, X=matrix(50,nrow=1))
 ##'     expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
 ##'     fite$res
-
+##' @noRd
 normboot.flexsurvreg <- function(x, B, newdata=NULL, X=NULL, transform=FALSE, raw=FALSE, tidy=FALSE, rawsim=NULL){
     if (x$ncovs > 0 && !raw) {
         if (is.null(X)) {

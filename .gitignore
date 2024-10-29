@@ -10,4 +10,12 @@ inst/doc
 ^NAMESPACE_backup2
 ^NAMESPACE_backup
 ^references-remove\.bib$
-
+^Makefile$
+^Hexsticker.*\.png$
+^Hexsticker.*\.pptx$
+^hexsticker.*\.png$
+^hexsticker.*\.pptx$
+^hexsticker.*\.xcf
+inst/app/www/hexsticker-large.png
+File-Size-Optimization.R
+/README_files/

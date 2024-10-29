@@ -63,7 +63,6 @@ plot_ggplot_expertsurv <- function (exArgs, scale_expert_plot = 0.4) {
                slice(mods) %>% arrange(obj)
 
   sel_mods <- unique(match(all_models$obj, names(survHE_objs)))
-
   toplot <- lapply(sel_mods, function(i) {
     make_data_surv(survHE_objs[[i]], mods = all_models %>% filter(obj == names(survHE_objs)[i]) %>% pull(mod),
                    nsim = nsim, t = t, newdata = newdata, add.km = add.km)[[1]] %>%
@@ -78,8 +77,21 @@ plot_ggplot_expertsurv <- function (exArgs, scale_expert_plot = 0.4) {
   } else {
     datakm <- NULL
   }
+  
+  
+  if(exists("plot_ci", exArgs)) {
+    plot_ci <- exArgs$plot_ci
+  }else{
+    plot_ci <- FALSE
+  }
+  
+  if(exists("ci_plot_ribbon", exArgs)) {
+    ci_plot_ribbon <- exArgs$ci_plot_ribbon
+  }else{
+    ci_plot_ribbon <- FALSE
+  }
 
-  surv.curv <- make_surv_curve_plot(toplot, datakm, mods)
+  surv.curv <- make_surv_curve_plot(toplot, datakm, mods,plot_ci = plot_ci,ci_plot_ribbon = ci_plot_ribbon)
 
   if (exists("lab.profile", exArgs)) {
     surv.curv <- surv.curv + scale_linetype_manual(labels = exArgs$lab.profile, values = 1:length(exArgs$lab.profile))
@@ -247,13 +259,15 @@ make_data_surv <- function(x,mods=1:length(x$models),nsim=1,t=NULL,newdata=NULL,
 #' @param toplot The dataset with the relevant data
 #' @param dataKM The dataset with the (optional) data for the KM estimate
 #' @param mods The models to be plotted (a vector of numbers)
+#' @param plot_ci Plot the statistical uncertainty? If FALSE and n_sim > 1, it will plot the average of the survival estimates, rather than the survival at the estimated parameter values. For MLE approach this should be very similar (due to asymptotic normality), however, for the Bayesian approach the survival at the posterior mean parameters may be different to the average survival from the posterior (although ususually not the case). 
+#' @param ci_plot_ribbon Plot the statistical uncertainty as a ribbon (TRUE) or dashed line (FALSE)
 #' @return \item{out}{A list with the dataset to be plotted including the survival curves}
 #' @import ggplot2
 #' @note Something will go here
 #' @author Gianluca Baio
 #' @keywords Parametric survival models
 #' @noRd 
-make_surv_curve_plot <- function(toplot,datakm=NULL,mods) {
+make_surv_curve_plot <- function(toplot,datakm=NULL,mods, plot_ci = TRUE,ci_plot_ribbon = FALSE) {
   # Does the model have covariates?
   if (all(toplot$strata=="=")) {
     # In this case not (intercept only), so remove the linetype as not needed
@@ -295,9 +309,27 @@ make_surv_curve_plot <- function(toplot,datakm=NULL,mods) {
     # This ensures that the model legend is always before the profile legend
     guides(color=guide_legend(order=1),
            linetype=guide_legend(order=2))
+  
+
   # If uses more than 1 simulation from distribution of survival curves, then add ribbon
-  if(any(grepl("low",names(toplot)))) {
-    surv.curv=surv.curv+geom_ribbon(data=toplot,aes(x=t,y=S,ymin=low,ymax=upp,group=model_name:strata),alpha=.2)
+  if(any(grepl("low",names(toplot))) & plot_ci) {
+    
+    if(ci_plot_ribbon){
+      surv.curv=surv.curv+geom_ribbon(data=toplot,aes(x=t,y=S,ymin=low,ymax=upp,group=model_name:strata),alpha=.2)
+    }else{
+  
+      if(length(levels(toplot$object_name))==1) {
+        surv.curv=surv.curv+ 
+          geom_line(data=toplot,aes(x=t,y=low,group=model_name:strata,col=model_name),size=.9, linetype = "dashed")+ 
+          geom_line(data=toplot,aes(x=t,y=upp,group=model_name:strata,col=model_name),size=.9, linetype = "dashed")
+      } else {
+        surv.curv=surv.curv+
+          geom_line(data=toplot,aes(x=t,y=low,group=model_name:strata:object_name,col=object_name:model_name),size=.9,linetype="dashed")+
+          geom_line(data=toplot,aes(x=t,y=upp,group=model_name:strata:object_name,col=object_name:model_name),size=.9,linetype="dashed")  
+      }
+      
+      
+    }
   }
   
   # Add KM plot? 

@@ -108,7 +108,7 @@
 ##'
 ##' Seaman, S., Presanis, A. and Jackson, C. (2020) Review of methods for
 ##' estimating distribution of time to event from right-truncated data.
-##'
+##' @noRd
 survrtrunc <- function(t, rtrunc, tmax, data=NULL, eps=0.001, conf.int=0.95){
     t <- eval(substitute(t), data, parent.frame())
     rtrunc <- eval(substitute(rtrunc), data, parent.frame())

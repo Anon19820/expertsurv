@@ -41,7 +41,7 @@
 ##' simulate(fit, seed=1002, newdata=nd, start=500)
 ##' simulate(fit2, nsim=3, seed=1002, newdata=nd)
 ##' simulate(fit2, nsim=3, seed=1002, newdata=nd, start=c(500,1000))
-##'
+##' @noRd
 simulate.flexsurvreg <- function(object, nsim=1, seed=NULL,
                                  newdata=NULL, start=NULL, censtime=NULL, tidy=FALSE,...) {
   if (is.null(newdata))

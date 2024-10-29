@@ -1,10 +1,9 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# expert-surv
+# <img src="inst/figures/hexsticker.png" align="left" height="150"/> expertsurv
 
-<!-- badges: start -->
-<!-- badges: end -->
+<br clear="all"/> <!-- badges: start --> <!-- badges: end -->
 
 The goal of `expertsurv` is to incorporate expert opinion into an
 analysis of time to event data. `expertsurv` uses many of the core
@@ -18,7 +17,7 @@ to the `fit.models` function of `survHE`.
 ## Installation
 
 You can install the released version of expertsurv from
-[CRAN](https://cran.r-project.org/web/packages/expertsurv/) with:
+[CRAN](https://CRAN.R-project.org/package=expertsurv) with:
 
 ``` r
 install("expertsurv")
@@ -96,7 +95,7 @@ $9.0−11.9\%$ calculated with the function below:
 
 <div class="figure" style="text-align: center">
 
-<img src="inst/image/Vignette_Example_1_Expert_Opinion.png" alt="Expert prior distributions" width="70%" />
+<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1_Expert_Opinion.png" alt="Expert prior distributions" width="70%" />
 <p class="caption">
 Expert prior distributions
 </p>
@@ -107,7 +106,11 @@ We load and fit the data as follows (in this example considering just
 the Weibull and Gompertz models), with `pool_type = "log pool"`
 specifying that we want to use the logarithmic pooling (rather than
 default “linear pool”). We do this as we wish to compare the results to
-the penalized maximum likelihood estimates in the next section.
+the penalized maximum likelihood estimates in the next section. The stan
+models are not compiled at installation, in fact, they are accessed as
+saved objects from the `inst` folder. Therefore, it is much quicker to
+include the extra argument `compile_mods = compiled_models_saved` than
+requiring stan to recompile the model at each evaluation.
 
 
     data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10, 10, time),
@@ -116,32 +119,48 @@ the penalized maximum likelihood estimates in the next section.
     #Set the opinion type to "survival"
 
     example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-                                            distr=c("wph", "gomp"),
-                                            method="bayes",
-                                            iter = 5000,
-                                            pool_type = "log pool", 
-                                            opinion_type = "survival",
-                                            times_expert = timepoint_expert, 
-                                            param_expert = param_expert_example1)
+                                   distr=c("wph", "gomp"),
+                                   method="bayes",
+                                   iter = 5000,
+                                   pool_type = "log pool", 
+                                   opinion_type = "survival",
+                                   times_expert = timepoint_expert, 
+                                   param_expert = param_expert_example1,
+                                   compile_mods = compiled_models_saved)
 
 Both visual fit and model fit statistics highlight that the Weibull
 model is a poor fit to both the expert opinion and data (black line
 referring to the $95\%$ confidence region for the experts prior belief).
 
-    model.fit.plot(example1, type = "dic")
+The below code provides the goodness of fit (in this case DIC, however,
+I prefer WAIC or PML). Also presented is the survival plots, at the
+posterior mean values. If opinion was included on survival outcomes it
+can be helpful to visualize the density of the expert opinion by
+`plot_opinion = TRUE`. Statistical uncertainty can also be plotted using
+the `plot_ci = TRUE` argument and by specifying `nsim` equal to however
+many simulations you desire (for Bayesian models this must be less than
+the total number of simulations from the posterior). By default the
+confidence/credible intervals are plotted as dashed lines, however, if
+an area/ribbon plot is preferred then set `ci_plot_ribbon = TRUE`. Even
+if not requiring statistical uncertainty in the plots, I recommend
+`nsim` is set to a reasonable number. If `nsim = 1` as by default, the
+maximum likelihood estimates or the posterior mean of the parameters
+will be use to plot the results. In most cases this should suffice
+(particularly for maximum likelihood), however, it is possible that the
+posterior/likelihood is non-normal and the expected survival estimated
+by the full sampling distribution is different to that at it’s
+expectation/max likelihood estimate.
+
+    model.fit.plot(example1, type = "dic") #Also "waic" or "pml"
 
     #N.B. plot.expertsurv (ported directly from survHE) plots the survival function at the posterior mean parameter values
     #     while it is more robust to use the entire posterior sample (make.surv), however, in this case both results are similar. 
 
-     plot(example1, add.km = T, t = 0:30)+
-      theme_light()+
-      scale_x_continuous(expand = c(0, 0), limits = c(0,NA), breaks=seq(0, 30, 2)) + 
-      scale_y_continuous(expand = c(0, 0), limits = c(0, NA), breaks=seq(0, 1, 0.05))+
-      geom_segment(aes(x = 14, y = cred_int_val[1], xend = 14, yend = cred_int_val[2]))
+     plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
 
 <div class="figure" style="text-align: center">
 
-<img src="inst/image/Vignette_Example_1_DIC.png" alt="Model Comparison" width="70%" />
+<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1_DIC.png" alt="Model Comparison" width="70%" />
 <p class="caption">
 Model Comparison
 </p>
@@ -150,7 +169,7 @@ Model Comparison
 
 <div class="figure" style="text-align: center">
 
-<img src="inst/image/Vignette_Example_1.png" alt="Survival function with Expert prior" width="70%" />
+<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1.png" alt="Survival function with Expert prior" width="70%" />
 <p class="caption">
 Survival function with Expert prior
 </p>
@@ -180,8 +199,7 @@ Bayesian model.
 <!-- knitr::include_graphics("inst/image/MLE-Weibull-Gomp.png") -->
 <!-- ``` -->
 <!--$\texttt{expertsurv}$ modifies some of the $\texttt{flexsurv}$ functions, so if you wish to use revert to the original $\texttt{flexsurv}$ functions within the same session you should run the following commands:
-
-```
+&#10;```
     unloadNamespace("flexsurv") #Unload flexsurv and associated name spaces
     require("flexsurv") #reload flexsurv
 ```-->
@@ -206,12 +224,14 @@ unique(data$arm)
 #> [1] 0 1
 ```
 
-    survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),data=data2,
+    #We want our opinion to refer to the treatment called "0" 
+    example2  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),
+                                            data=data2,
                                             distr=c("wei"),
-                                            method="hmc",
+                                            method="bayes",
                                             iter = 5000,
                                             opinion_type = "survival",
-                                            id_St = min(which(data2$arm ==0)), #We want our opinion to refer to the treatment called "0" 
+                                            id_St = min(which(data2$arm ==0)), 
                                             times_expert = timepoint_expert, 
                                             param_expert = param_expert_example2)
 
@@ -221,7 +241,7 @@ the function.
 
 <div class="figure" style="text-align: center">
 
-<img src="inst/image/Vignette_Example_2.png" alt="Survival function with Expert prior (left) and Vague prior (right)" width="70%" />
+<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_2.png" alt="Survival function with Expert prior (left) and Vague prior (right)" width="70%" />
 <p class="caption">
 Survival function with Expert prior (left) and Vague prior (right)
 </p>
@@ -253,7 +273,7 @@ convergence.
 
     survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),data=data2,
                                                          distr=c("gom"),
-                                                         method="hmc",
+                                                         method="bayes",
                                                          iter = 5000,
                                                          opinion_type = "mean",
                                                          id_trt = min(which(data2$arm ==1)), # Survival difference is  Mean_surv[id_trt]- Mean_surv[id_comp] 
@@ -264,7 +284,7 @@ convergence.
 
 <div class="figure" style="text-align: center">
 
-<img src="inst/image/Vignette_Example_3.png" alt="Survival difference" width="70%" />
+<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_3.png" alt="Survival difference" width="70%" />
 <p class="caption">
 Survival difference
 </p>
@@ -274,12 +294,12 @@ Survival difference
 ## Compatability with underlying packages survHE and flexsurv
 
 As stated in the introduction this package relies on many of the core
-functions of the `survHE, flexsurv` packages Jackson (2016). Because
-future versions of `survHE` and `flexsurv` may introduce conflicts with
-the current implementation, we have directly ported the key functions
-from these packages into the package so that `expertsurv` no longer
-imports `survHE,flexsurv` (of course all credit for those functions goes
-to Jackson (2016)).
+functions of the `survHE, flexsurv` packages (Baio 2020) and (Jackson
+2016). Because future versions of `survHE` and `flexsurv` may introduce
+conflicts with the current implementation, we have directly ported the
+key functions from these packages into the package so that `expertsurv`
+no longer imports `survHE,flexsurv` (of course all credit for those
+functions goes to Jackson (2016)).
 
 If you run in issues, bugs or just features which you feel would be
 useful, please let me know (<phcooney@tcd.ie>) and I will investigate
@@ -336,9 +356,85 @@ Because the analysis is done in JAGS and Stan we can leverage the
     #For JAGS Models # Gamma, Gompertz, Generalized Gamma
     ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
 
+## General Population Mortality
+
+Because `expertsurv` uses `flexsurv` functions internally the models fit
+by penalized maximum likelihood `method = "mle"` inherit the
+`flexsurvreg` class. This means that we can leverage advanced approaches
+such as the inclusion of general population mortality. This is discussed
+in more detail in the package documentation of the `flexsurv` package
+and more specifically the `standsurv` vignette (Sweeting 2023), however,
+the key point to note is that the parameter estimates obtained from the
+survival models are for the *relative* survival model and therefore are
+not representative of the all-cause survival (which typically considers
+the disease specific and general population mortality hazards).
+
+After making the modifications to the `bc` dataset as in the `standsurv`
+vignette, we assume a the expert believes that the expected survival for
+the “Good” group is $40\%$ with a standard deviation of $5\%$ and can be
+characterized by a Normal distribution at 20 years.
+
+We fit a Gompertz distribution and note the survival below.
+
+
+    timepoint_expert <- 20
+
+    example1  <- fit.models.expert(formula=Surv(recyrs,censrec)~as.factor(group2),data=bc,
+                                   distr=c("gomp"),
+                                   method="mle",
+                                   opinion_type = "survival",
+                                   times_expert = timepoint_expert, 
+                                   param_expert = param_expert_example1,
+                                   id_St = min(which(bc$group2 =="Good")))
+
+``` r
+plot(example_gpm, add.km = T, t = 0:50,plot_opinion  = TRUE)
+#> Joining with `by = join_by(times_expert)`
+```
+
+<img src="README_files/figure-gfm/unnamed-chunk-10-1.png" width="70%" style="display: block; margin: auto;" />
+
+We have not, however, considered the impact of general population
+mortality, and in this example the expected survival of the general
+population is approximately $50\%$. Therefore, the expert’s belief that
+the expected survival of the “Good” group is $40\%$ implies that the
+hazard of the this group approaches that of the general population. To
+include this, we first need to extract the parameters of the expert
+opinion that were used in the previous model (I don’t currently have a
+function to do this without running the `fit.models.expert` first).
+
+The survival of the general population at the elicited timepoint is
+added to the `expert_opinion_flex` list and supplied to the exposed
+`expertsurv:::flexsurvreg` function (this is the `flexsurvreg` function
+which is only available internally to the `expertsurv` package and so
+does not conflict with `flexsurv::flexsurvreg`).
+
+    expert_opinion_flex <- example1$misc$flex_expert_opinion[[1]]
+    expert_opinion_flex$bhazard_par <- c(0.5)
+
+    model.gomp.sep.rs <- expertsurv:::flexsurvreg(Surv(recyrs, censrec)~as.factor(group2),  
+                                         data=bc, dist="gompertz",
+                                         anc = list(shape = ~ as.factor(group2)),
+                                         bhazard=exprate,expert_opinion = expert_opinion_flex)
+
+Using the `standsurv` functions (as documented by (Sweeting 2023)) we
+can generate the all-cause hazards and survival. While the all cause
+survival is broadly similar to the predicted survival for the “Good”
+group without general population mortality adjustment at the timepoint
+of 20 years, the adjustment ensures that the “Good” group survival does
+not exceed the general population mortality which would be the case at a
+timepoint of 30 years.
+
+Although theoretically possible, the general population mortality
+adjustment has not been implemented for the situation when expert
+opinion is provided for differences in mean survival.
+
+<img src="README_files/figure-gfm/unnamed-chunk-11-1.png" width="70%" style="display: block; margin: auto;" /><img src="README_files/figure-gfm/unnamed-chunk-11-2.png" width="70%" style="display: block; margin: auto;" />
+
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-Baio.2020" class="csl-entry">
 
@@ -353,7 +449,7 @@ Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
 
 Cooney, Philip, and Arthur White. 2023. “Direct Incorporation of Expert
 Opinion into Parametric Survival Models to Inform Survival
-Extrapolation.” *Medical Decision Making* 43 (3): 325–36.
+Extrapolation.” *Medical Decision Making* 1 (1): 0272989X221150212.
 <https://doi.org/10.1177/0272989X221150212>.
 
 </div>
@@ -387,6 +483,14 @@ Scientific.” *The American Statistician* 73 (sup1): 69–81.
 
 Oakley, Jeremy. 2021. *SHELF: Tools to Support the Sheffield Elicitation
 Framework*. <https://CRAN.R-project.org/package=SHELF>.
+
+</div>
+
+<div id="ref-Sweeting2023" class="csl-entry">
+
+Sweeting, Michael. 2023. “Standsurv: Marginal Survival and Hazards of
+Fitted Flexsurvreg Models.”
+<https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html>.
 
 </div>
 

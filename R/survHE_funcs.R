@@ -2,7 +2,7 @@
 #'
 #' Implementation of survival models with expert opinion on the survival probabilities or expected difference in survival.
 #' Function is equivalent to the `fit.models` in `survHE` except for the inclusion of the "expert_type" and "param_expert" arguments. 
-#' Worked examples can be found in the [README](https://github.com/Philip-Cooney/expertsurv/blob/master/README.md) file.
+#' Worked examples can be found in the README.
 #' Note that the default method is "bayes", however, the user may use "mle"  (method "inla" is not included).
 #'
 #' @param formula As per `fit.models` in `survHE`
@@ -49,8 +49,16 @@
 #' plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
 #' model.fit.plot(example1, type = "aic")  #Plot AIC 
 #'
-#'
-                               
+#'# Running Bayesian approach - `iter` should be much higher, only for illustration
+#' example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+#'                      	distr=c("wei", "gomp"),
+#'                      	method="bayes",
+#'                      	opinion_type = "survival",
+#'                          times_expert = timepoint_expert, 
+#'                          param_expert = param_expert_example1,
+#'							iter = 50, 
+#'							compile_mods = expertsurv::compiled_models_saved)
+#'                               
 fit.models.expert <- function(formula = NULL, data, distr = NULL, method = "bayes", 
                               expert_type = "survival", param_expert = NULL, ...){
   exArgs <- list(...)
@@ -655,14 +663,14 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
 
 
 #' Helper function to compute the information criteria statistics
-#' when using bayes as the inferential engine. 'rstan' does not do
+#' when using bayes as the inferential engine. `rstan' does not compute
 #' DIC automatically and AIC/BIC are also not standard for Bayesian
 #' models, so can compute them post-hoc by manipulating the 
 #' likelihood functions.
 #' 
-#' @param model The 'rstan' object with the model fit
-#' @param distr3 The 'rstan' object with the model fit
-#' @param data.stan The 'data' object with the model fit
+#' @param model The `rstan' object with the model fit
+#' @param distr3 The `rstan' object with the model fit
+#' @param data.stan The `data' object with the model fit
 #' @return \item{list}{A list containing the modified name of the 
 #' distribution, the acronym (3-letters abbreviation), or the
 #' labels (humane-readable name)}.
@@ -759,6 +767,21 @@ format_output_fit.models <- function (output, method, distr, formula, data){
   else {
     misc$km = make_KM(formula, data)
   }
+  
+  
+  if(method =="mle"){
+  # Initialize an empty list for flex_expert_opinion
+  flex_expert_opinion <- list()
+  
+  # Loop through each sublist in output and extract expert_opinion_param_save
+  for (i in seq_along(output)) {
+    flex_expert_opinion[[i]] <- output[[i]]$expert_opinion_param_save
+  }
+  
+  misc$flex_expert_opinion <- flex_expert_opinion
+  
+  }
+  
   if (method == "bayes") {
     misc$data.stan <- lapply(output, function(x) x$data.stan)
     model.fitting$dic2 <- unlist(lapply(output, function(x) x$dic2))

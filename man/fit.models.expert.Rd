@@ -42,7 +42,7 @@ An object of class \code{expertsurv} which contains the parameters of the models
 \description{
 Implementation of survival models with expert opinion on the survival probabilities or expected difference in survival.
 Function is equivalent to the \code{fit.models} in \code{survHE} except for the inclusion of the "expert_type" and "param_expert" arguments.
-Worked examples can be found in the \href{https://github.com/Philip-Cooney/expertsurv/blob/master/README.md}{README} file.
+Worked examples can be found in the README.
 Note that the default method is "bayes", however, the user may use "mle"  (method "inla" is not included).
 }
 \examples{
@@ -69,6 +69,15 @@ example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
 plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
 model.fit.plot(example1, type = "aic")  #Plot AIC 
 
-
+# Running Bayesian approach - `iter` should be much higher, only for illustration
+example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                     	distr=c("wei", "gomp"),
+                     	method="bayes",
+                     	opinion_type = "survival",
+                         times_expert = timepoint_expert, 
+                         param_expert = param_expert_example1,
+						iter = 50, 
+						compile_mods = expertsurv::compiled_models_saved)
+                              
 }
 \keyword{models}

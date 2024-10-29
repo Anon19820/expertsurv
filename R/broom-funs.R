@@ -41,6 +41,7 @@
 #' expertsurv:::tidy.flexsurvreg(fitg)
 #' expertsurv:::tidy.flexsurvreg(fitg, pars = "coefs", transform = "coefs.exp")
 #' @keywords internal
+#' @noRd
 tidy.flexsurvreg <- function(x, conf.int = FALSE, conf.level = 0.95,
                              pars = "all", transform = "none", ...)
 {
