@@ -5,7 +5,7 @@ library(rmarkdown)
 library(fs)
 
 # Path to your README.Rmd
-readme_path <- "README.Rmd"
+readme_path <- "README - Copy.Rmd"
 
 # Path to your vignettes directory
 vignette_dir <- "vignettes"
@@ -38,6 +38,9 @@ replacement <- c(
   "---"
 )
 
+
+#knitr::include_graphics(system.file("image/Vignette_Example_1_DIC.png", package = "expertsurv"))
+
 if (length(start_end) == 2) {
   readme_content <- c(replacement, readme_content[(start_end[2]+1):length(readme_content)])
 }
@@ -56,6 +59,17 @@ replacement_string <- "# Overview"
 readme_content <- gsub(string_rep,
                         replacement_string,
                           readme_content)
+
+
+grepl("knitr::include_graphics(paste0(\"inst/image/\",img_temp))",
+      #  "knitr::include_graphics(system.file(paste0(\"image/\",img_temp), package = \"expertsurv\"))",
+                       readme_content, fixed = TRUE)
+readme_content <- gsub("knitr::include_graphics(paste0(\"inst/image/\",img_temp))",
+                       "knitr::include_graphics(system.file(paste0(\"image/\",img_temp), package = \"expertsurv\"))", fixed= TRUE,
+                       readme_content)
+
+
+
 
 # Write the modified content back to the file
 writeLines(readme_content, vignette_path)

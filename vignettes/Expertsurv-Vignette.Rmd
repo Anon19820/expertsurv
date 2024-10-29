@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   fig.align = 'center',
   out.width = '70%'
 )
-library("expertsurv")
+
 ```
 
 <br clear='all'/>
@@ -106,9 +106,8 @@ cred_int_val <- cred_int(plot_opinion1,val = "log pool", interval = c(0.025, 0.9
 ```
 
 ```{r echo = FALSE, fig.cap = "Expert prior distributions"}
-
-knitr::include_graphics(system.file("image/Vignette_Example_1_Expert_Opinion.png", package = "expertsurv"))
-
+img_temp <- "Vignette_Example_1_Expert_Opinion.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 ```
 
 
@@ -136,26 +135,25 @@ example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
 Both visual fit and model fit statistics highlight that the Weibull model is a poor fit to both the expert opinion and data (black line referring to the $95\%$ confidence region for the experts prior belief). 
 
 The below code provides the goodness of fit (in this case DIC, however, I prefer WAIC or PML).
-Also presented is the survival plots, at the posterior mean values. If opinion was included on survival outcomes it can be helpful to visualize the density of the expert opinion by `plot_opinion = TRUE`.
+Also presented is the survival plots, at the posterior mean values. If opinion was included on survival outcomes it can be helpful to visualize the density of the expert opinion by `plot_opinion = TRUE`. Statistical uncertainty can also be plotted using the `plot_ci = TRUE` argument and by specifying `nsim` equal to however many simulations you desire (for Bayesian models this must be less than the total number of simulations from the posterior). By default the confidence/credible intervals are plotted as dashed lines, however, if an area/ribbon plot is preferred then set `ci_plot_ribbon = TRUE`. 
 
+Even if statistical uncertainty is not required in the plots, I recommend `nsim` is set to a reasonable number. If `nsim = 1` as by default, the maximum likelihood estimates or the posterior mean of the parameters will be used to plot the results. In most cases this should suffice (particularly for maximum likelihood), however, the expected survival estimated by the full sampling distribution may be different to the estimate at it's expectation/max likelihood estimate. This more likely in the Bayesian analysis if the posterior is non-normal. In the below plot the results for both approaches are similar and therefore, we omit these arguments.
 
 ```
 model.fit.plot(example1, type = "dic") #Also "waic" or "pml"
-
-#N.B. plot.expertsurv (ported directly from survHE) plots the survival function at the posterior mean parameter values
-#     while it is more robust to use the entire posterior sample (make.surv), however, in this case both results are similar. 
-
- plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
+plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
 
 ```
 ```{r echo = FALSE, fig.cap = "Model Comparison"}
-knitr::include_graphics(system.file("image/Vignette_Example_1_DIC.png", package = "expertsurv"))
+
+img_temp <- "Vignette_Example_1_DIC.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior"}
-
-knitr::include_graphics(system.file("image/Vignette_Example_1.png", package = "expertsurv"))
+img_temp <- "Vignette_Example_1.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 ```
 
 
@@ -193,11 +191,11 @@ param_expert_example2[[1]] <- data.frame(dist = c("norm"),
                                          param3 = c(NA))
 ```
 
-```{r}
+```
 #Check the coding of the arm variable
 #Comparator is 0, which is our id_St
 unique(data$arm)
-
+[1] 0 1
 ```
 
 ```
@@ -205,7 +203,7 @@ unique(data$arm)
 example2  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),
                                         data=data2,
                                         distr=c("wei"),
-                                        method="hmc",
+                                        method="bayes",
                                         iter = 5000,
                                         opinion_type = "survival",
                                         id_St = min(which(data2$arm ==0)), 
@@ -218,8 +216,8 @@ We can remove the impact of expert opinion omitting the arguments relating to `o
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior (left) and Vague prior (right)"}
 
-knitr::include_graphics(system.file("image/Vignette_Example_2.png", package = "expertsurv"))
-
+img_temp <- "Vignette_Example_2.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 
 ```
 
@@ -240,7 +238,7 @@ param_expert3[[1]] <- data.frame(dist = "norm", wi = 1, param1 = 5, param2 = 0.2
 
 survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),data=data2,
                                                      distr=c("gom"),
-                                                     method="hmc",
+                                                     method="bayes",
                                                      iter = 5000,
                                                      opinion_type = "mean",
                                                      id_trt = min(which(data2$arm ==1)), # Survival difference is  Mean_surv[id_trt]- Mean_surv[id_comp] 
@@ -253,7 +251,8 @@ survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(ar
 
 ```{r echo = FALSE, fig.cap = "Survival difference"}
 
-knitr::include_graphics(system.file("image/Vignette_Example_3.png", package = "expertsurv"))
+img_temp <- "Vignette_Example_3.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 
 ```
 
@@ -328,6 +327,174 @@ ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
 
 ```
 
+## General Population Mortality 
 
+Because `expertsurv` uses `flexsurv` functions internally the models fit by penalized maximum likelihood `method = "mle"` inherit the `flexsurvreg` class. This means that we can leverage advanced approaches such as the inclusion of general population mortality. This is discussed in more detail in the package documentation of the `flexsurv` package and more specifically the `standsurv` vignette [@Sweeting2023], however, the key point to note is that the parameter estimates obtained from the survival models are for the _relative_ survival model and therefore are not representative of the all-cause survival (which typically considers the disease specific and general population mortality hazards).  
+
+After making the modifications to the `bc` dataset as in the `standsurv` vignette, we assume a the expert believes that the expected survival for the "Good" group is $40\%$ with a standard deviation of $5\%$ and can be characterized by a Normal distribution at 20 years. 
+
+
+```{r include = FALSE, eval=FALSE}
+library("expertsurv"); library("dplyr"); library("ggplot2")
+data(bc)
+set.seed(236236)
+## Age at diagnosis is correlated with survival time. A longer survival time 
+## gives a younger mean age
+bc$age <- rnorm(dim(bc)[1], mean = 65 - scale(bc$recyrs, scale=F), sd = 5)
+## Create age at diagnosis in days - used later for matching to expected rates
+bc$agedays <- floor(bc$age * 365.25)
+## Create some random diagnosis dates between 01/01/1984 and 31/12/1989
+bc$diag <- as.Date(floor(runif(dim(bc)[1], as.Date("01/01/1984", "%d/%m/%Y"), 
+                               as.Date("31/12/1989", "%d/%m/%Y"))), 
+                   origin="1970-01-01")
+## Create sex (assume all are female)
+bc$sex <- factor("female")
+## 2-level prognostic variable
+bc$group2 <- ifelse(bc$group=="Good", "Good", "Medium/Poor")
+head(bc)
+
+
+## reshape US lifetable to be a tidy data.frame, and convert rates to per person-year as flexsurv regression is in years
+survexp.us.df <- as.data.frame.table(survexp.us, responseName = "exprate") %>%
+  mutate(exprate = 365.25 * exprate)
+survexp.us.df$age <- as.numeric(as.character(survexp.us.df$age))
+survexp.us.df$year <- as.numeric(as.character(survexp.us.df$year))
+
+## Obtain attained age and attained calendar year in (whole) years
+bc <- bc %>% mutate(attained.age.yr = floor(age + recyrs),
+                    attained.year = lubridate::year(diag + rectime))
+
+## merge in (left join) expected rates at event time
+bc <- bc %>% left_join(survexp.us.df, by = c("attained.age.yr"="age", 
+                                             "attained.year"="year", 
+                                             "sex"="sex")) 
+
+param_expert_example_gpm <- list()
+param_expert_example_gpm[[1]] <- data.frame(dist = c("norm"),
+                                         wi = c(1), # Ensure Weights sum to 1
+                                         param1 = c(0.40),
+                                         param2 = c(0.05),
+                                         param3 = c(NA))
+
+timepoint_expert <- 20
+
+example_gpm  <- expertsurv::fit.models.expert(formula=Surv(recyrs,censrec)~as.factor(group2),data=bc,
+                               distr=c("gomp"),
+                               method="mle",
+                               opinion_type = "survival",
+                               times_expert = timepoint_expert, 
+                               param_expert = param_expert_example_gpm,
+                               id_St = min(which(bc$group2 =="Good")))
+
+expert_opinion_flex <- example_gpm$misc$flex_expert_opinion[[1]]
+expert_opinion_flex$bhazard_par <- c(0.5)
+
+model.gomp.sep.rs <- expertsurv:::flexsurvreg(Surv(recyrs, censrec)~as.factor(group2),  
+                                     data=bc, dist="gompertz",
+                                     anc = list(shape = ~ as.factor(group2)),
+                                     bhazard=exprate,expert_opinion = expert_opinion_flex)
+
+
+
+## All-cause survival
+ss.gomp.sep.rs.surv <- flexsurv::standsurv(model.gomp.sep.rs,
+                                    type = "survival",
+                                    at = list(list(group2 = "Good"),
+                                              list(group2 = "Medium/Poor")),
+                                    t = seq(0,30,length=50),
+                                    rmap=list(sex = sex,
+                                              year = diag,
+                                              age = agedays
+                                    ),
+                                    ratetable = survexp.us,
+                                    scale.ratetable = 365.25,
+                                    newdata = bc)
+#> Marginal all-cause survival will be calculated
+#> Calculating marginal expected survival and hazard
+
+# All-cause hazard
+ss.gomp.sep.rs.haz <- flexsurv::standsurv(model.gomp.sep.rs,
+                                   type = "hazard",
+                                   at = list(list(group2 = "Good"),
+                                             list(group2 = "Medium/Poor")),
+                                   t = seq(0,30,length=50),
+                                   rmap=list(sex = sex,
+                                             year = diag,
+                                             age = agedays
+                                   ),
+                                   ratetable = survexp.us,
+                                   scale.ratetable = 365.25,
+                                   newdata = bc)
+
+plot(example_gpm, add.km = T, t = 0:50,plot_opinion  = TRUE)
+ggsave("inst/image/Vignette_Example_4.png", units = "in", width = 8, height = 6)
+
+
+plot(ss.gomp.sep.rs.surv, expected = T)+theme_bw()+ylab("Survival")+labs(color = "")+
+  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
+    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
+ggsave("inst/image/Vignette_Example_5.png", units = "in", width = 8, height = 6)
+
+
+plot(ss.gomp.sep.rs.haz, expected = T)+theme_bw()+ylab("Hazard")+labs(color = "")+
+  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
+    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
+ggsave("inst/image/Vignette_Example_6.png", units = "in", width = 8, height = 6)
+
+
+```
+
+We fit a Gompertz distribution and note the survival below. 
+
+```
+
+timepoint_expert <- 20
+
+example1  <- fit.models.expert(formula=Surv(recyrs,censrec)~as.factor(group2),data=bc,
+                               distr=c("gomp"),
+                               method="mle",
+                               opinion_type = "survival",
+                               times_expert = timepoint_expert, 
+                               param_expert = param_expert_example1,
+                               id_St = min(which(bc$group2 =="Good")))
+
+
+```
+
+```{r echo = FALSE, fig.cap = "Survival Estimates without General Population Mortality"}
+
+img_temp <- "Vignette_Example_4.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
+
+```
+
+
+We have not, however, considered the impact of general population mortality, and in this example the expected survival of the general population is approximately $50\%$. Therefore, the expert's belief that the expected survival of the "Good" group is $40\%$ implies that the hazard of the this group approaches that of the general population. To include this, we first need to extract the parameters of the expert opinion that were used in the previous model (I don't currently have a function to do this without running the `fit.models.expert` first).
+
+The survival of the general population at the elicited timepoint is added to the `expert_opinion_flex` list and supplied to the exposed `expertsurv:::flexsurvreg` function (this is the `flexsurvreg` function which is only available internally to the `expertsurv` package and so does not conflict with `flexsurv::flexsurvreg`). Furthermore, we no longer assume proportional hazards so that we can illustrate the hazards of the "Good" group.
+
+```
+expert_opinion_flex <- example1$misc$flex_expert_opinion[[1]]
+expert_opinion_flex$bhazard_par <- c(0.5)
+
+model.gomp.sep.rs <- expertsurv:::flexsurvreg(Surv(recyrs, censrec)~as.factor(group2),  
+                                     data=bc, dist="gompertz",
+                                     anc = list(shape = ~ as.factor(group2)),
+                                     bhazard=exprate,expert_opinion = expert_opinion_flex)
+```
+
+Using the `standsurv` functions (as documented by [@Sweeting2023]) we can generate the all-cause hazards and survival. While the all cause survival is broadly similar to the predicted survival for the "Good" group without general population mortality adjustment at the timepoint of 20 years, the adjustment ensures that the "Good" group survival does not exceed the general population mortality which would be the case at a timepoint of 30 years. 
+
+Although theoretically possible, the general population mortality adjustment has not been implemented for the situation when expert opinion is provided for differences in mean survival. 
+
+```{r echo = FALSE, fig.cap = "All-cause Survival Estimates including General Population Mortality"}
+img_temp <- "Vignette_Example_5.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
+```
+
+```{r echo = FALSE, fig.cap = "All-cause Hazard Functions including General Population Mortality"}
+img_temp <- "Vignette_Example_6.png"
+knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
+```
 
 ## References 

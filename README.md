@@ -95,7 +95,7 @@ $9.0−11.9\%$ calculated with the function below:
 
 <div class="figure" style="text-align: center">
 
-<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1_Expert_Opinion.png" alt="Expert prior distributions" width="70%" />
+<img src="inst/image/Vignette_Example_1_Expert_Opinion.png" alt="Expert prior distributions" width="70%" />
 <p class="caption">
 Expert prior distributions
 </p>
@@ -141,26 +141,25 @@ the `plot_ci = TRUE` argument and by specifying `nsim` equal to however
 many simulations you desire (for Bayesian models this must be less than
 the total number of simulations from the posterior). By default the
 confidence/credible intervals are plotted as dashed lines, however, if
-an area/ribbon plot is preferred then set `ci_plot_ribbon = TRUE`. Even
-if not requiring statistical uncertainty in the plots, I recommend
-`nsim` is set to a reasonable number. If `nsim = 1` as by default, the
-maximum likelihood estimates or the posterior mean of the parameters
-will be use to plot the results. In most cases this should suffice
-(particularly for maximum likelihood), however, it is possible that the
-posterior/likelihood is non-normal and the expected survival estimated
-by the full sampling distribution is different to that at it’s
-expectation/max likelihood estimate.
+an area/ribbon plot is preferred then set `ci_plot_ribbon = TRUE`.
+
+Even if statistical uncertainty is not required in the plots, I
+recommend `nsim` is set to a reasonable number. If `nsim = 1` as by
+default, the maximum likelihood estimates or the posterior mean of the
+parameters will be used to plot the results. In most cases this should
+suffice (particularly for maximum likelihood), however, the expected
+survival estimated by the full sampling distribution may be different to
+the estimate at it’s expectation/max likelihood estimate. This more
+likely in the Bayesian analysis if the posterior is non-normal. In the
+below plot the results for both approaches are similar and therefore, we
+omit these arguments.
 
     model.fit.plot(example1, type = "dic") #Also "waic" or "pml"
-
-    #N.B. plot.expertsurv (ported directly from survHE) plots the survival function at the posterior mean parameter values
-    #     while it is more robust to use the entire posterior sample (make.surv), however, in this case both results are similar. 
-
-     plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
+    plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
 
 <div class="figure" style="text-align: center">
 
-<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1_DIC.png" alt="Model Comparison" width="70%" />
+<img src="inst/image/Vignette_Example_1_DIC.png" alt="Model Comparison" width="70%" />
 <p class="caption">
 Model Comparison
 </p>
@@ -169,7 +168,7 @@ Model Comparison
 
 <div class="figure" style="text-align: center">
 
-<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_1.png" alt="Survival function with Expert prior" width="70%" />
+<img src="inst/image/Vignette_Example_1.png" alt="Survival function with Expert prior" width="70%" />
 <p class="caption">
 Survival function with Expert prior
 </p>
@@ -217,12 +216,10 @@ represents the group for which the expert opinion is provided.
                                              param2 = c(0.005),
                                              param3 = c(NA))
 
-``` r
-#Check the coding of the arm variable
-#Comparator is 0, which is our id_St
-unique(data$arm)
-#> [1] 0 1
-```
+    #Check the coding of the arm variable
+    #Comparator is 0, which is our id_St
+    unique(data$arm)
+    [1] 0 1
 
     #We want our opinion to refer to the treatment called "0" 
     example2  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(arm),
@@ -241,7 +238,7 @@ the function.
 
 <div class="figure" style="text-align: center">
 
-<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_2.png" alt="Survival function with Expert prior (left) and Vague prior (right)" width="70%" />
+<img src="inst/image/Vignette_Example_2.png" alt="Survival function with Expert prior (left) and Vague prior (right)" width="70%" />
 <p class="caption">
 Survival function with Expert prior (left) and Vague prior (right)
 </p>
@@ -284,7 +281,7 @@ convergence.
 
 <div class="figure" style="text-align: center">
 
-<img src="../../../../AppData/Local/R/win-library/4.4/expertsurv/image/Vignette_Example_3.png" alt="Survival difference" width="70%" />
+<img src="inst/image/Vignette_Example_3.png" alt="Survival difference" width="70%" />
 <p class="caption">
 Survival difference
 </p>
@@ -387,12 +384,14 @@ We fit a Gompertz distribution and note the survival below.
                                    param_expert = param_expert_example1,
                                    id_St = min(which(bc$group2 =="Good")))
 
-``` r
-plot(example_gpm, add.km = T, t = 0:50,plot_opinion  = TRUE)
-#> Joining with `by = join_by(times_expert)`
-```
+<div class="figure" style="text-align: center">
 
-<img src="README_files/figure-gfm/unnamed-chunk-10-1.png" width="70%" style="display: block; margin: auto;" />
+<img src="inst/image/Vignette_Example_4.png" alt="Survival Estimates without General Population Mortality" width="70%" />
+<p class="caption">
+Survival Estimates without General Population Mortality
+</p>
+
+</div>
 
 We have not, however, considered the impact of general population
 mortality, and in this example the expected survival of the general
@@ -407,7 +406,9 @@ The survival of the general population at the elicited timepoint is
 added to the `expert_opinion_flex` list and supplied to the exposed
 `expertsurv:::flexsurvreg` function (this is the `flexsurvreg` function
 which is only available internally to the `expertsurv` package and so
-does not conflict with `flexsurv::flexsurvreg`).
+does not conflict with `flexsurv::flexsurvreg`). Furthermore, we no
+longer assume proportional hazards so that we can illustrate the hazards
+of the “Good” group.
 
     expert_opinion_flex <- example1$misc$flex_expert_opinion[[1]]
     expert_opinion_flex$bhazard_par <- c(0.5)
@@ -429,7 +430,23 @@ Although theoretically possible, the general population mortality
 adjustment has not been implemented for the situation when expert
 opinion is provided for differences in mean survival.
 
-<img src="README_files/figure-gfm/unnamed-chunk-11-1.png" width="70%" style="display: block; margin: auto;" /><img src="README_files/figure-gfm/unnamed-chunk-11-2.png" width="70%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+
+<img src="inst/image/Vignette_Example_5.png" alt="All-cause Survival Estimates including General Population Mortality" width="70%" />
+<p class="caption">
+All-cause Survival Estimates including General Population Mortality
+</p>
+
+</div>
+
+<div class="figure" style="text-align: center">
+
+<img src="inst/image/Vignette_Example_6.png" alt="All-cause Hazard Functions including General Population Mortality" width="70%" />
+<p class="caption">
+All-cause Hazard Functions including General Population Mortality
+</p>
+
+</div>
 
 ## References
 

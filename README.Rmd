@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   fig.align = 'center',
   out.width = '70%'
 )
-library("expertsurv"); library("dplyr"); library("ggplot2")
+
 ```
 
 # <img src="inst/figures/hexsticker.png" align="left" height="150"/> expertsurv
@@ -100,9 +100,8 @@ cred_int_val <- cred_int(plot_opinion1,val = "log pool", interval = c(0.025, 0.9
 ```
 
 ```{r echo = FALSE, fig.cap = "Expert prior distributions"}
-
-knitr::include_graphics(system.file("image/Vignette_Example_1_Expert_Opinion.png", package = "expertsurv"))
-
+img_temp <- "Vignette_Example_1_Expert_Opinion.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 ```
 
 
@@ -140,13 +139,15 @@ plot(example1, add.km = T, t = 0:30,plot_opinion  = TRUE)
 
 ```
 ```{r echo = FALSE, fig.cap = "Model Comparison"}
-knitr::include_graphics(system.file("image/Vignette_Example_1_DIC.png", package = "expertsurv"))
+
+img_temp <- "Vignette_Example_1_DIC.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 
 ```
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior"}
-
-knitr::include_graphics(system.file("image/Vignette_Example_1.png", package = "expertsurv"))
+img_temp <- "Vignette_Example_1.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 ```
 
 
@@ -184,11 +185,11 @@ param_expert_example2[[1]] <- data.frame(dist = c("norm"),
                                          param3 = c(NA))
 ```
 
-```{r}
+```
 #Check the coding of the arm variable
 #Comparator is 0, which is our id_St
 unique(data$arm)
-
+[1] 0 1
 ```
 
 ```
@@ -209,8 +210,8 @@ We can remove the impact of expert opinion omitting the arguments relating to `o
 
 ```{r echo = FALSE, fig.cap = "Survival function with Expert prior (left) and Vague prior (right)"}
 
-knitr::include_graphics(system.file("image/Vignette_Example_2.png", package = "expertsurv"))
-
+img_temp <- "Vignette_Example_2.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 
 ```
 
@@ -244,7 +245,8 @@ survHE.data.model  <- fit.models.expert(formula=Surv(time2,status2)~as.factor(ar
 
 ```{r echo = FALSE, fig.cap = "Survival difference"}
 
-knitr::include_graphics(system.file("image/Vignette_Example_3.png", package = "expertsurv"))
+img_temp <- "Vignette_Example_3.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 
 ```
 
@@ -326,7 +328,8 @@ Because `expertsurv` uses `flexsurv` functions internally the models fit by pena
 After making the modifications to the `bc` dataset as in the `standsurv` vignette, we assume a the expert believes that the expected survival for the "Good" group is $40\%$ with a standard deviation of $5\%$ and can be characterized by a Normal distribution at 20 years. 
 
 
-```{r include = FALSE}
+```{r include = FALSE, eval=FALSE}
+library("expertsurv"); library("dplyr"); library("ggplot2")
 data(bc)
 set.seed(236236)
 ## Age at diagnosis is correlated with survival time. A longer survival time 
@@ -417,7 +420,20 @@ ss.gomp.sep.rs.haz <- flexsurv::standsurv(model.gomp.sep.rs,
                                    scale.ratetable = 365.25,
                                    newdata = bc)
 
+plot(example_gpm, add.km = T, t = 0:50,plot_opinion  = TRUE)
+ggsave("inst/image/Vignette_Example_4.png", units = "in", width = 8, height = 6)
 
+
+plot(ss.gomp.sep.rs.surv, expected = T)+theme_bw()+ylab("Survival")+labs(color = "")+
+  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
+    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
+ggsave("inst/image/Vignette_Example_5.png", units = "in", width = 8, height = 6)
+
+
+plot(ss.gomp.sep.rs.haz, expected = T)+theme_bw()+ylab("Hazard")+labs(color = "")+
+  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
+    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
+ggsave("inst/image/Vignette_Example_6.png", units = "in", width = 8, height = 6)
 
 
 ```
@@ -439,13 +455,17 @@ example1  <- fit.models.expert(formula=Surv(recyrs,censrec)~as.factor(group2),da
 
 ```
 
-```{r}
-plot(example_gpm, add.km = T, t = 0:50,plot_opinion  = TRUE)
+```{r echo = FALSE, fig.cap = "Survival Estimates without General Population Mortality"}
+
+img_temp <- "Vignette_Example_4.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
+
 ```
+
 
 We have not, however, considered the impact of general population mortality, and in this example the expected survival of the general population is approximately $50\%$. Therefore, the expert's belief that the expected survival of the "Good" group is $40\%$ implies that the hazard of the this group approaches that of the general population. To include this, we first need to extract the parameters of the expert opinion that were used in the previous model (I don't currently have a function to do this without running the `fit.models.expert` first).
 
-The survival of the general population at the elicited timepoint is added to the `expert_opinion_flex` list and supplied to the exposed `expertsurv:::flexsurvreg` function (this is the `flexsurvreg` function which is only available internally to the `expertsurv` package and so does not conflict with `flexsurv::flexsurvreg`).
+The survival of the general population at the elicited timepoint is added to the `expert_opinion_flex` list and supplied to the exposed `expertsurv:::flexsurvreg` function (this is the `flexsurvreg` function which is only available internally to the `expertsurv` package and so does not conflict with `flexsurv::flexsurvreg`). Furthermore, we no longer assume proportional hazards so that we can illustrate the hazards of the "Good" group.
 
 ```
 expert_opinion_flex <- example1$misc$flex_expert_opinion[[1]]
@@ -461,18 +481,14 @@ Using the `standsurv` functions (as documented by [@Sweeting2023]) we can genera
 
 Although theoretically possible, the general population mortality adjustment has not been implemented for the situation when expert opinion is provided for differences in mean survival. 
 
-```{r, echo = FALSE}
-
-plot(ss.gomp.sep.rs.surv, expected = T)+theme_bw()+ylab("Survival")+labs(color = "")+
-  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
-    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
-
-plot(ss.gomp.sep.rs.haz, expected = T)+theme_bw()+ylab("Hazard")+labs(color = "")+
-  scale_color_manual( values = c("Expected" = "Black", "group2=Good" = "red","group2=Medium/Poor" = "blue"),
-    labels = c("Expected" = "Expected", "group2=Good" ="Group - Good" , "group2=Medium/Poor"="Group - Medium/Poor" )) 
-
-
+```{r echo = FALSE, fig.cap = "All-cause Survival Estimates including General Population Mortality"}
+img_temp <- "Vignette_Example_5.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
 ```
 
+```{r echo = FALSE, fig.cap = "All-cause Hazard Functions including General Population Mortality"}
+img_temp <- "Vignette_Example_6.png"
+knitr::include_graphics(paste0("inst/image/",img_temp))
+```
 
 ## References 
