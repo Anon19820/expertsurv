@@ -313,8 +313,9 @@ Default priors should work in most situations, but still need to be considered. 
 Because the analysis is done in JAGS and Stan we can leverage the `ggmcmc` package [@ggmcmc.2016]:
 
 ```
+library(ggmcmc)
 #For Stan Models # Log-Normal, RP, Exponential, Weibull
-ggmcmc(ggs(example1$models$`Exponential`), file = "Exponential.pdf")
+ggmcmc(ggs(rstan::As.mcmc.list(example1$models$`Exponential`)), file = "Exponential.pdf")
 
 #For JAGS Models # Gamma, Gompertz, Generalized Gamma
 ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")

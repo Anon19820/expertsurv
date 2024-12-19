@@ -1,11 +1,13 @@
 Gompertz.jags <- "
 data{
-for(i in 1:n){
-zeros[i] <- 0
-}
-for(i in 1:n_time_expert){
-zero2[i] <- 0
- }
+  for(i in 1:n){
+    zeros[i] <- 0
+  }
+  for(i in 1:n_time_expert){
+    zero2[i] <- 0
+  }
+  zero_prior <- 0 
+  C <- 1000 
 }
 
 model{
@@ -62,8 +64,15 @@ for (i in 1:n_time_expert){
 
  } 
  
+  deriv1 <- abs(exp(-(mu[id_St]/alpha)*(exp(alpha*time_expert[1]) - 1)) * (mu[id_St]/(alpha^2)*(exp(alpha*time_expert[1])-1) - (mu[id_St]/alpha)*(exp(alpha*time_expert[1]) * time_expert[1])))
+  deriv2 <- abs(-(exp(-(mu[id_St]/alpha)*(exp(alpha*time_expert[1]) - 1))*((1/alpha)*(exp(alpha*time_expert[1]) - 1))))
+  
+  zero.mean_prior <- -log(deriv1+deriv2) + C
+  zero_prior ~ dpois(zero.mean_prior)
+ 
+ 
 rate = exp(beta[1])
-C <- 10000
+
 s <- 0.0001
 
 }"
@@ -76,7 +85,12 @@ for(i in 1:n){
   }
 for(i in 1:n_time_expert){
     zero2[i] <- 0
- }
+}
+ 
+  zero_prior <- 0 
+  C <- 1000 
+  epsilon <- 0.0001
+ 
 }
 
 model{
@@ -124,12 +138,15 @@ for (i in 1:n_time_expert){
 
  } 
 
+  deriv1 <- ((1- pgamma(time_expert[1],alpha+epsilon,lambda[id_St])) - (1 - pgamma(time_expert[1],alpha-epsilon,lambda[id_St])))/(2*epsilon)
+  deriv2 <- ((1- pgamma(time_expert[1],alpha,lambda[id_St]+epsilon)) - (1 - pgamma(time_expert[1],alpha,lambda[id_St]-epsilon)))/(2*epsilon)
 
-alpha ~ dgamma(a_alpha,b_alpha);
+  zero.mean_prior <- -log(abs(deriv1)+abs(deriv2)) + C
+  zero_prior ~ dpois(zero.mean_prior)
 
-rate <- exp(beta[1]);
+  alpha ~ dgamma(a_alpha,b_alpha);
+  rate <- exp(beta[1]);
 
-C <- 10000
 
 }"
 GenGamma.jags <- "
@@ -139,6 +156,10 @@ data{
     for(i in 1:n){
     zero[i] <- 0
     }
+    
+  zero_prior <- 0 
+  C <- 1000 
+  epsilon <- 0.0001
 }
 
 
@@ -192,7 +213,7 @@ for (i in 1:n_time_expert){
 r ~ dgamma(a_alpha,b_alpha);
 b ~ dgamma(a_alpha,b_alpha);
 
-C <- 10000
+
 sigma <- 1/(b*pow(r,0.5))
 Q <- pow(r,-0.5)
 mu <- -beta_jags[1] + (log(r)/b)
@@ -203,6 +224,15 @@ for(i in 2:H){
 beta[i] <- beta_jags[i]
 
 }
+
+
+
+  deriv1 <- ((1-pgen.gamma(time_expert[1],r+epsilon,lambda[id_St],b)) - (1-pgen.gamma(time_expert[1],r-epsilon,lambda[id_St],b)))/(2*epsilon)
+  deriv2 <- ((1-pgen.gamma(time_expert[1],r,lambda[id_St]+epsilon,b)) - (1-pgen.gamma(time_expert[1],r,lambda[id_St]-epsilon,b)))/(2*epsilon)
+  deriv3 <- ((1-pgen.gamma(time_expert[1],r,lambda[id_St],b+epsilon)) - (1-pgen.gamma(time_expert[1],r,lambda[id_St],b-epsilon)))/(2*epsilon)
+
+  zero.mean_prior <- -log(abs(deriv1)+abs(deriv2)+abs(deriv3)) + C
+  zero_prior ~ dpois(zero.mean_prior)
 
 
 }"

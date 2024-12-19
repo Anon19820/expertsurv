@@ -5,7 +5,7 @@ library(rmarkdown)
 library(fs)
 
 # Path to your README.Rmd
-readme_path <- "README - Copy.Rmd"
+readme_path <- "README.Rmd"
 
 # Path to your vignettes directory
 vignette_dir <- "vignettes"

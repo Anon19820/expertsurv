@@ -293,10 +293,15 @@ runBAYES <- function (x, exArgs){
     if(d3 %in% c( "gom")){
       parameters.to.save_jags = c("alpha","beta", "rate")
       
+      
+      if(class(init) != "character"){
+        modelinits <- init
+      }else{
       #Inits as per flexsurvreg (reparameterized)
       modelinits <- function(){
         beta = c(log(1/mean(data.jags$t)*stats::runif(1,0.8,1.5)),rep(0,data.jags$H -1))
         list(alpha1 = stats::runif(1,0.001,0.003),alpha2 = stats::runif(1,0.001,0.003), beta = beta) 
+        }
       }
       
     }else if(d3 == "gga"){ #(d3 == "gga")
@@ -306,14 +311,25 @@ runBAYES <- function (x, exArgs){
       data.jags$is.censored <- ifelse(data.jags$d==0, 1, 0)
       data.jags$t_jags <- ifelse(data.jags$is.censored ==1, NA, data.jags$t) 
       data.jags$t_cen <- data.jags$t+data.jags$d
-      modelinits <- function(){list(t_jags = tinits1)}
+      
+      if(class(init) != "character"){
+        modelinits <- init
+      }else{
+        modelinits <- function(){list(t_jags = tinits1)}
+      }
       #Stop JAGS Warning messages
       data.jags <- data.jags[names(data.jags) %!in% c("t", "d", "a0")]
       
       
     }else{ #"gam",
       parameters.to.save_jags = c("alpha","beta", "rate")
-      modelinits <- NULL
+      
+      if(class(init) != "character"){
+        modelinits <- init
+      }else{
+        modelinits <- NULL
+      }
+      
     }
     data.jags <- data.jags[names(data.jags) %!in% "max_param"]
     

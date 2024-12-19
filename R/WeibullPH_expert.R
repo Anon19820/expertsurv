@@ -25,6 +25,21 @@ functions {
       log_Sind_rtn = -pow((t/scale),shape);
     return log_Sind_rtn;
   }
+  
+	// Defines the numerical derivatives
+	
+    real derivative(real x,  real shape, real scale, int param) {
+    real derivs;
+	
+    if(param==1){//scale
+		derivs = abs(-(exp(-scale*(x^shape))*(x^shape)));
+    }else{
+		derivs = abs(-(exp(-scale*(x^shape))*(scale*((x^shape)*log(x)))));
+    }
+    
+    return (derivs);
+  }
+  
 
 
       // Defines difference in expected survival
@@ -153,7 +168,7 @@ transformed parameters {
 
     St_expert[i] = exp(log_Sind(time_expert[i],alpha,mu[id_St]));
     }else
-	  St_expert[i] = Surv_diff(alpha,mu[id_trt],mu[id_comp]);
+	St_expert[i] = Surv_diff(alpha,mu[id_trt],mu[id_comp]);
 
   }
 
@@ -174,6 +189,8 @@ model {
 
 
   }
+  
+    target += log(derivative(St_expert[1],alpha,mu[id_St],1)+ derivative(St_expert[1],alpha,mu[id_St],2));
 
 }
 

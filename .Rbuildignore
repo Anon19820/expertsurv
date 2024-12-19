@@ -41,3 +41,6 @@ inst/image/backup/Vignette_Example_3.png
 File-Size-Optimization.R
 /README_files/
 
+^/R/GenF implementation Jags.R$
+
+^/R/Prior Density examples.R$
