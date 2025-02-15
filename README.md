@@ -618,4 +618,10 @@ This approach is not considered in the `expertsurv` package as the
 impact of the prior (either uniform or vague), typically is very minor
 \[@Cooney.2023\].
 
+# Potential Future Updates
+
+- Allow expert opinions to be represented by SkewNormal distributions
+- Hazard plots
+- T.B.C.
+
 ## References
