@@ -1455,11 +1455,11 @@ makePoolPlot <- function (fit, xl, xu, d = "best", w = 1, lwd = 1, xlab = "x",
                           ylab = expression(f[X](x)), legend_full = TRUE, ql = NULL, 
                           qu = NULL, nx = 500, addquantile = FALSE, fs = 12, expertnames = NULL, 
                           St_indic){
-  logt.error <- utils::getFromNamespace("logt.error", "SHELF")
-  gamma.error <- utils::getFromNamespace("gamma.error", "SHELF")
-  lognormal.error <- utils::getFromNamespace("lognormal.error", 
+  logt_error <- utils::getFromNamespace("logt.error", "SHELF")
+  gamma_error <- utils::getFromNamespace("gamma.error", "SHELF")
+  lognormal_error <- utils::getFromNamespace("lognormal.error", 
                                              "SHELF")
-  logt.error <- utils::getFromNamespace("logt.error", "SHELF")
+  logt_error <- utils::getFromNamespace("logt.error", "SHELF")
   makeGroupPlot <- utils::getFromNamespace("makeGroupPlot", 
                                            "SHELF")
   makeLinearPoolPlot <- utils::getFromNamespace("makeLinearPoolPlot", 
