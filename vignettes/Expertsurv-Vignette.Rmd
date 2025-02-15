@@ -1,5 +1,5 @@
 ---
-title: "<img src='C:/Users/phili/OneDrive/PhD/R_packages_2023/expertsurv/inst/figures/hexsticker.png' align='left' height='150'/> Introduction to Expertsurv"
+title: "<img src=\"`r system.file('figures/hexsticker.png', package = 'expertsurv')`\" align='left' height='150'/> Introduction to Expertsurv"
 output: rmarkdown::html_vignette
 bibliography: "`r system.file('REFERENCES.bib', package = 'expertsurv')`"
 vignette: >
@@ -15,9 +15,11 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.align = 'center',
-  out.width = '70%'
+  out.width = '70%',
+  error = TRUE,
+  message = TRUE,
+  warning = TRUE
 )
-
 ```
 
 <br clear='all'/>
@@ -319,8 +321,9 @@ Default priors should work in most situations, but still need to be considered. 
 Because the analysis is done in JAGS and Stan we can leverage the `ggmcmc` package [@ggmcmc.2016]:
 
 ```
+library(ggmcmc)
 #For Stan Models # Log-Normal, RP, Exponential, Weibull
-ggmcmc(ggs(example1$models$`Exponential`), file = "Exponential.pdf")
+ggmcmc(ggs(rstan::As.mcmc.list(example1$models$`Exponential`)), file = "Exponential.pdf")
 
 #For JAGS Models # Gamma, Gompertz, Generalized Gamma
 ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
@@ -328,6 +331,8 @@ ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
 ```
 
 ## General Population Mortality 
+
+_Please note that this functionality is still in an experimental stage_
 
 Because `expertsurv` uses `flexsurv` functions internally the models fit by penalized maximum likelihood `method = "mle"` inherit the `flexsurvreg` class. This means that we can leverage advanced approaches such as the inclusion of general population mortality. This is discussed in more detail in the package documentation of the `flexsurv` package and more specifically the `standsurv` vignette [@Sweeting2023], however, the key point to note is that the parameter estimates obtained from the survival models are for the _relative_ survival model and therefore are not representative of the all-cause survival (which typically considers the disease specific and general population mortality hazards).  
 
@@ -496,5 +501,164 @@ knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expert
 img_temp <- "Vignette_Example_6.png"
 knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expertsurv"))
 ```
+
+
+## Setting Initial values to estimate models (Particularly Gompertz)
+
+In most cases, the models are estimated successfully. However, there are instances where the choice of initial values is crucial. This is especially significant for the Gompertz model when using Bayesian methods. The Gompertz model is fit using the _zero's_ trick (since it is not available as a probability distribution in JAGS). To mitigate these issues, `expertsurv` fits the Gompertz model using penalized maximum likelihood and then uses these penalized maximum likelihood estimates as initial values for the Bayesian approach.
+
+If this approach also fails, user-defined initial values can be provided as shown below.
+
+
+```
+#alpha is the same as the shape parameter in the flexsurv Gompertz model
+#beta is the same as the log(rate) parameter flexsurv Gompertz model.
+#beta can also include the log(HR) for any covariates
+alpha <- 1
+beta <- 1
+
+#beta needs to be a vector of length equal to H
+#H is 2 whether or not one covariate has been included, however,
+#if more than one covariate is included it is the number of covariates +1.
+#It can also be accessed from a successfully fit Bayesian model.
+#example1_bayes[["misc"]][["data.stan"]][[1]]["H"]
+
+H <- 2
+if(data.jags$H > length(beta)){
+  beta <- c(beta, rep(0,H-length(beta)))
+}
+      
+modelinits <- function(){
+  list(alpha1 = alpha1,alpha2 = alpha2, beta = beta) 
+}
+#Finally create a function supplying these initial values and then supply 
+#them as a list with the name of the sublist being the model (i.e. gom)
+
+example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                                     distr=c("wei", "gom", "lno","llo","gam","wph","exp", "rps"),
+                                     method="bayes",
+                                     opinion_type = "survival",
+                                     times_expert = timepoint_expert, 
+                                     param_expert = param_expert_example1,
+                                     iter = 10000, 
+                                     k = 1,
+                                     knots = c(-1,0,0.5),
+                                     a0 = rep(0.0001, 3),
+                                     init = list(gom = modelinits),
+                                     compile_mods = compiled_models_saved,
+                                     expert_only = F)
+
+```
+
+Supplying initial values for models fit by penalized maximum likelihood is straightforward. By default, initial values for the model with expert opinion are taken from a model fit without data (this happens internally). However, there may be situations where the user wants to supply their own initial values.
+
+For example, if you wish to include expert opinion that is both strong (i.e., the distribution represents the belief with low variance) and significantly different from the survival generated based on data alone, setting the initial values to be equal to the maximum likelihood estimates may result in optimization failure.
+
+In such cases, it may make sense to first fit the model to the data with an expert opinion having the same expected value (i.e., mean of the distribution representing their belief) but a larger variance. The values obtained from this model could then be used as initial values for the model with the stronger expert opinion. Note that setting initial values (`inits`) is not implemented for the spline-based models.
+
+```
+require("dplyr")
+#Expert Opinion as a normal distribution centered on 0.1 with sd 0.005
+param_expert_example1 <- list()
+param_expert_example1[[1]] <- data.frame(dist = c("norm"),
+                                         wi = c(1), # Ensure Weights sum to 1
+                                         param1 = c(0.1),
+                                         param2 = c(0.01),
+                                        param3 = c(NA))
+timepoint_expert <- 14 # Expert opinion at t = 14
+
+data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10, 10, time),
+status2 = ifelse(time> 10, 0, status))
+
+#Set the expert opinion to be less strong... i.e. greater variance
+param_expert_example1_vague <- param_expert_example1
+param_expert_example1_vague[[1]][,4] <- 0.1
+
+example1_vague  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                              distr=c("wei", "gom"),
+                              method="mle",
+                              opinion_type = "survival",
+                              times_expert = timepoint_expert, 
+                              param_expert = param_expert_example1_vague)
+                              
+
+example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                               distr=c("gom","wei"),
+                               method="mle",
+                               opinion_type = "survival",
+                               times_expert = timepoint_expert, 
+                               param_expert = param_expert_example1,
+                               init = list(gomp = example1_vague$models$Gompertz$res[,1],
+                                           wei = example1_vague$models$`Weibull (AFT)`$res[,1]))
+                            
+```                              
+              
+
+## Technical note on the impact of priors
+
+The approach of [@Cooney.2023] integrates the expert opinion by considering inclusion of the expert opinion in terms of a loss function, however, the information could also be formulated as a valid prior distribution.
+
+Consider an expert who has a belief that expected survival of a population at 10 years ($t^*$) is normally distributed with a mean of 0.1 ($\mu_{expert}$) and standard deviation of 0.05 $\sigma_{expert}$. To implement this as a prior density we treat the parameters of the expert's opinion as hyperpriors.
+
+The density of this prior is specific to the survival model that we are estimating and we will first consider the exponential model with parameter $\theta$ and survival at the expert's elicited time of $S(t^*) = \exp\{{-\theta t^*\}}$. Setting the density of the prior to be $\pi(\theta|\mu_{expert},\sigma_{expert}) \propto \exp\left\{ -\frac{1}{2}\left(\frac{\exp(-\theta t^*) - \mu_i}{\sigma_i}\right)^2 \right\}$. This prior provides the the same density as including the information as a loss function and setting the prior on $\theta$ to uniform over the support of $\theta$ (i.e. $[0,\infty)$). 
+
+It is important to recognize that a uniform density on a parameter will not imply a uniform density on a transformation of that parameter. For the one parameter model this is straightforward to calculate via the change of variables technique. Defining $g(\theta)$ as the survival function of the exponential model, the inverse function of $g(\theta)$ is $g^{-1}(\theta) = \frac{-\log(S(t))}{t^*}$, we see that the density of $S(t^*)$ implied by a uniform prior is $|g^{-1}(\theta)|$ which is clearly non-uniform (with $|x|$ denoting the absolute value of $x$). For the model with the expert opinion as a normal distribution we can use the change-of-variables technique but in the opposite direction, i.e. given a normal density of the survival what is associated density for the parameter ($\theta$). We see that the density of this function is $\exp\left\{ -\frac{1}{2}\left(\frac{\exp(-\theta t^*) - \mu_i}{\sigma_i}\right)^2 \right\}|g'(\theta)|$ where $g'(\theta)$ is the derivative of the survival function with respect to $\theta$.
+
+In the case of a multiparameter model (e.g. Weibull), with parameter vector $\mathbf{\theta_m}$ of dimension $m$, $g(\mathbf{\theta_m})$ will not be invertible and obtaining a density for $p(\mathbf{\theta_m})$ will not be strictly possible. Interestingly for all survival models we have considered we can obtain the required density for the expert's belief using a prior of the form $p(\theta_m) \propto \exp \left\{ -\frac{1}{2}\left(\frac{S(t^*|\theta_m) - \mu_i}{\sigma_i}\right)^2 \right\}\sum_{i = 1}^m|g_{m}^{'}(\mathbf{\theta})|$  where $|g_{m}^{'}(\mathbf{\theta})|$ is the partial derivative of the function $g(\mathbf{\theta})$ with respect to $\theta_m$. In some situations it is only necessary to include one of the $m$ elements $|g_{m}^{'}(\mathbf{\theta})|$ (typically the largest element). It is important, however, to verify the prior density generates the appropriate density at the particular survival. For example with the log-logistic the density matched perfectly if the expert's opinion was near zero, however, if the opinion was near 0.5 the density had an unusal bimodal shape.
+
+This approach is not considered in the ``expertsurv`` package as the impact of the prior (either uniform or vague), typically is very minor [@Cooney.2023]. 
+
+              
+```{r, eval=FALSE, include=FALSE}                             
+
+#Uniform prior on lambda implies non uniform St*
+
+t_expert <- 10
+n <- 1000000
+a <- 0
+b <- .3
+lambda<-runif(n,a,b)
+St <-exp(-lambda*t_expert)
+St_vec <- seq(0,1, by = 0.001)
+
+St_1 <- exp(-Inf*t_expert)
+St_2<- exp(-b*t_expert)
+k <- -log(St_2)/t_expert
+
+plot(density(St))
+#lines(St_vec, -log(St_vec)/t_expert)
+lines(St_vec, (1/(St_vec*t_expert))/k, col = "red")
+
+
+
+#Uniform St* implies non uniform lambda
+
+t_expert <- 10
+n <- 1000000
+a <- 0.01
+b <- 0.999
+St<-runif(n,a,b)
+lambda <- -log(St)/t_expert
+lambda_vec <- seq(0,1, by = 0.001)
+
+lambda_1 <- -log(b)/t_expert
+lambda_2<- -log(a)/t_expert
+
+k <- -log(St_2)/t_expert
+
+plot(density(lambda))
+#lines(St_vec, -log(St_vec)/t_expert)
+lines(lambda_vec, t_expert*exp(-lambda_vec*t_expert), col = "red")
+
+
+```
+
+
+# Potential Future Updates
+
+- Allow expert opinions to be represented by SkewNormal distributions
+- Hazard plots
+- T.B.C.
+
 
 ## References 

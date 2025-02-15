@@ -50,14 +50,14 @@
 #' model.fit.plot(example1, type = "aic")  #Plot AIC 
 #'
 #'# Running Bayesian approach - `iter` should be much higher, only for illustration
-#' example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-#'                      	distr=c("wei", "gomp"),
-#'                      	method="bayes",
-#'                      	opinion_type = "survival",
-#'                          times_expert = timepoint_expert, 
-#'                          param_expert = param_expert_example1,
-#'							iter = 50, 
-#'							compile_mods = expertsurv::compiled_models_saved)
+#' #example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+#' #                     	distr=c("wei", "gomp"),
+#' #                     	method="bayes",
+#' #                     	opinion_type = "survival",
+#' #                        times_expert = timepoint_expert, 
+#' #                        param_expert = param_expert_example1,
+#' #						iter = 50, 
+#' #						compile_mods = expertsurv::compiled_models_saved)
 #'                               
 fit.models.expert <- function (formula = NULL, data, distr = NULL, method = "bayes", 
           expert_type = "survival", param_expert = NULL, ...){

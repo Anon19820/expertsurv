@@ -213,7 +213,7 @@ makeLinearPoolPlot <- function(fit, xl, xu, d = "best", w = 1, lwd, xlab, ylab,
 	p1 + theme(text = element_text(size = fs))
 }
 
-normal.error_mod <- function (parameters, values, probabilities, weights, mode,trunc =FALSE){
+normal_error_mod <- function (parameters, values, probabilities, weights, mode,trunc =FALSE){
   
   if(trunc){ #Survival Trunc
     Fx <- pnorm(values, parameters[1], exp(parameters[2]))
@@ -257,7 +257,7 @@ t_error_mod <- function (parameters, values, probabilities, weights, degreesfree
 }
 
 ##' @exportS3Method NULL
-gamma.error_mod <- function (parameters, values, probabilities, weights, mode,trunc=FALSE){
+gamma_error_mod <- function (parameters, values, probabilities, weights, mode,trunc=FALSE){
   
   if(trunc){ #Survival Trunc
     Fx <- stats::pgamma(values, exp(parameters[1]),exp(parameters[2]))
@@ -276,7 +276,7 @@ gamma.error_mod <- function (parameters, values, probabilities, weights, mode,tr
   return(res1)
 }
 
-lognormal.error_mod <-function (parameters, values, probabilities, weights, mode,trunc =FALSE){
+lognormal_error_mod <-function (parameters, values, probabilities, weights, mode,trunc =FALSE){
   
   if(trunc){ #Survival Trunc
     Fx <- stats::plnorm(values, parameters[1],exp(parameters[2]))
@@ -294,7 +294,7 @@ lognormal.error_mod <-function (parameters, values, probabilities, weights, mode
   }
   return(res1)
 }
-beta.error_mod <- function (parameters, values, probabilities, weights, mode ){
+beta_error_mod <- function (parameters, values, probabilities, weights, mode ){
   
   
   res1 <- sum(weights * (stats::pbeta(values, exp(parameters[1]), 
@@ -461,7 +461,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
 #     m <- (minvals * maxq - maxvals * minq)/(maxq - minq)
 #     v <- ((maxvals - minvals)/(maxq - minq))^2
 #     #browser()
-#     normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal.error_mod, 
+#     normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal_error_mod, 
 #                                values = vals[inc, i], probabilities = probs[inc, 
 #                                                                             i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
 #     normal.parameters[i, ] <- c(normal.fit$par[1], exp(normal.fit$par[2]))
@@ -486,7 +486,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
 #       m.scaled1 <- m - lower[i]
 #      # browser()
 #       gamma.fit <- stats::optim(c(log(m.scaled1^2/v), log(m.scaled1/v)), 
-#                                 gamma.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+#                                 gamma_error_mod, values = vals.scaled1, probabilities = probs[inc, 
 #                                                                                               i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
 #       gamma.parameters[i, ] <- exp(gamma.fit$par)
 #       ssq[i, "gamma"] <- gamma.fit$value
@@ -494,7 +494,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
 #       mlog <- (log(minvals - lower[i]) * maxq - log(maxvals - 
 #                                                       lower[i]) * minq)/(maxq - minq)
 #       lognormal.fit <- stats::optim(c(mlog, log(std)), 
-#                                     lognormal.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+#                                     lognormal_error_mod, values = vals.scaled1, probabilities = probs[inc, 
 #                                                                                                       i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
 #       lognormal.parameters[i, 1:2] <- c(lognormal.fit$par[1], 
 #                                         exp(lognormal.fit$par[2]))
@@ -518,7 +518,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
 #                                                               lower[i]))) {
 #         alp <- bet <- 1
 #       }
-#       beta.fit <- stats::optim(c(log(alp), log(bet)), beta.error_mod, 
+#       beta.fit <- stats::optim(c(log(alp), log(bet)), beta_error_mod, 
 #                                values = vals.scaled2, probabilities = probs[inc, 
 #                                                                             i], weights = weights[inc, i], mode = mode[i], lower = lower[i], upper = upper[i])
 #       beta.parameters[i, ] <- exp(beta.fit$par)
@@ -695,7 +695,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     m <- (minvals * maxq - maxvals * minq)/(maxq - minq)
     v <- ((maxvals - minvals)/(maxq - minq))^2
     
-    normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal.error_mod, 
+    normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal_error_mod, 
                                values = vals[inc, i], probabilities = probs[inc,i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
     normal.parameters[i, ] <- c(normal.fit$par[1], exp(normal.fit$par[2]))
     ssq[i, "normal"] <- normal.fit$value
@@ -719,7 +719,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
       m.scaled1 <- m - lower[i]
       # browser()
       gamma.fit <- stats::optim(c(log(m.scaled1^2/v), log(m.scaled1/v)), 
-                                gamma.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+                                gamma_error_mod, values = vals.scaled1, probabilities = probs[inc, 
                                                                                               i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
       gamma.parameters[i, ] <- exp(gamma.fit$par)
       ssq[i, "gamma"] <- gamma.fit$value
@@ -727,7 +727,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
       mlog <- (log(minvals - lower[i]) * maxq - log(maxvals - 
                                                       lower[i]) * minq)/(maxq - minq)
       lognormal.fit <- stats::optim(c(mlog, log(std)), 
-                                    lognormal.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+                                    lognormal_error_mod, values = vals.scaled1, probabilities = probs[inc, 
                                                                                                       i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
       lognormal.parameters[i, 1:2] <- c(lognormal.fit$par[1], 
                                         exp(lognormal.fit$par[2]))
@@ -751,7 +751,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
                                                               lower[i]))) {
         alp <- bet <- 1
       }
-      beta.fit <- stats::optim(c(log(alp), log(bet)), beta.error_mod, 
+      beta.fit <- stats::optim(c(log(alp), log(bet)), beta_error_mod, 
                                values = vals.scaled2, probabilities = probs[inc, 
                                                                             i], weights = weights[inc, i], mode = mode[i], lower = lower[i], upper = upper[i])
       beta.parameters[i, ] <- exp(beta.fit$par)

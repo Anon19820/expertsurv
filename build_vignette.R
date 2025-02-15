@@ -18,6 +18,9 @@ if (!dir_exists(vignette_dir)) {
 # Path to the new vignette
 vignette_path <- file.path(vignette_dir, "Expertsurv-Vignette.Rmd")
 
+if(FALSE){
+  
+
 # Copy README.Rmd to the vignettes directory
 file_copy(readme_path, vignette_path, overwrite = TRUE)
 
@@ -28,7 +31,7 @@ readme_content <- readLines(vignette_path)
 start_end <- grep("^---$", readme_content)
 replacement <- c(
   "---",
-  "title: \"<img src='C:/Users/phili/OneDrive/PhD/R_packages_2023/expertsurv/inst/figures/hexsticker.png' align='left' height='150'/> Introduction to Expertsurv\"",
+  "title: \"<img src=\\" `r system.file('figures/hexsticker.png', package = 'expertsurv')`"\\align='left' height='150'/> Introduction to Expertsurv\"",
   "output: rmarkdown::html_vignette",
   "bibliography: \"`r system.file('REFERENCES.bib', package = 'expertsurv')`\"",
   "vignette: >",
@@ -73,6 +76,18 @@ readme_content <- gsub("knitr::include_graphics(paste0(\"inst/image/\",img_temp)
 
 # Write the modified content back to the file
 writeLines(readme_content, vignette_path)
+
+}
+# You need to manually add the following lines
+# 
+# title: "<img src=\"`r system.file('figures/hexsticker.png', package = 'expertsurv')`\" align='left' height='150'/> Introduction to Expertsurv"
+# output: rmarkdown::html_vignette
+# bibliography: "`r system.file('REFERENCES.bib', package = 'expertsurv')`"
+# vignette: >
+#   %\VignetteIndexEntry{Introduction to Expertsurv}
+# %\VignetteEngine{knitr::rmarkdown}
+# %\VignetteEncoding{UTF-8}
+
 
 # Render the vignette
 rmarkdown::render(vignette_path, output_format = "html_vignette")

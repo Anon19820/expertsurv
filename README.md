@@ -7,9 +7,9 @@
 
 The goal of `expertsurv` is to incorporate expert opinion into an
 analysis of time to event data. `expertsurv` uses many of the core
-functions of the `survHE` package \[@Baio.2020\] and also the `flexsurv`
-package \[@flexsurv\]. Technical details of the implementation are
-detailed in \[@Cooney.2023\] and will not be repeated here.
+functions of the `survHE` package (Baio 2020) and also the `flexsurv`
+package (Jackson 2016). Technical details of the implementation are
+detailed in (Cooney and White 2023) and will not be repeated here.
 
 The key function is `fit.models.expert` and operates almost identically
 to the `fit.models` function of `survHE`.
@@ -77,12 +77,11 @@ parameters) and specify `timepoint_expert` as a vector of length 2 with
 the second element being the second timepoint.
 
 For details on assigning distributions to elicited probabilities and
-quantiles see the `SHELF` package \[@SHELF.2021\] and for an overview on
-methodological approaches to eliciting expert opinion see
-\[@OHagan.2019\]. We can see both the individual and pooled
-distributions using the following code (note that we could have used the
-output of the `fitdist` function from `SHELF` if we actually elicited
-quantiles from an expert):
+quantiles see the `SHELF` package (Oakley 2021) and for an overview on
+methodological approaches to eliciting expert opinion see (O’Hagan
+2019). We can see both the individual and pooled distributions using the
+following code (note that we could have used the output of the `fitdist`
+function from `SHELF` if we actually elicited quantiles from an expert):
 
     plot_opinion1 <- plot_expert_opinion(param_expert_example1[[1]], 
                         weights = param_expert_example1[[1]]$wi)
@@ -179,7 +178,7 @@ Survival function with Expert prior
 ## Expert Opinion using Penalized Maximum Likelihood
 
 We can also fit the model by Penalized Maximum Likelihood approaches
-based on code taken from the `flexsurv` package \[@flexsurv\]. All that
+based on code taken from the `flexsurv` package (Jackson 2016). All that
 is required that the `method="bayes"` is changed to `method="mle"` with
 the `iter` argument now redundant. One argument that maybe of interest
 is the `method_mle` which is the optimization procedure that `flexsurv`
@@ -292,12 +291,12 @@ Survival difference
 ## Compatability with underlying packages survHE and flexsurv
 
 As stated in the introduction this package relies on many of the core
-functions of the `survHE, flexsurv` packages \[@Baio.2020\] and
-\[@flexsurv\]. Because future versions of `survHE` and `flexsurv` may
-introduce conflicts with the current implementation, we have directly
-ported the key functions from these packages into the package so that
-`expertsurv` no longer imports `survHE,flexsurv` (of course all credit
-for those functions goes to \[@Baio.2020,@flexsurv\]).
+functions of the `survHE, flexsurv` packages (Baio 2020) and (Jackson
+2016). Because future versions of `survHE` and `flexsurv` may introduce
+conflicts with the current implementation, we have directly ported the
+key functions from these packages into the package so that `expertsurv`
+no longer imports `survHE,flexsurv` (of course all credit for those
+functions goes to Jackson (2016)).
 
 If you run in issues, bugs or just features which you feel would be
 useful, please let me know (<phcooney@tcd.ie>) and I will investigate
@@ -346,7 +345,7 @@ considerable differences are present the prior distributions should be
 investigated.
 
 Because the analysis is done in JAGS and Stan we can leverage the
-`ggmcmc` package \[@ggmcmc.2016\]:
+`ggmcmc` package (Fernández-i-Marín 2016):
 
     library(ggmcmc)
     #For Stan Models # Log-Normal, RP, Exponential, Weibull
@@ -364,12 +363,11 @@ by penalized maximum likelihood `method = "mle"` inherit the
 `flexsurvreg` class. This means that we can leverage advanced approaches
 such as the inclusion of general population mortality. This is discussed
 in more detail in the package documentation of the `flexsurv` package
-and more specifically the `standsurv` vignette \[@Sweeting2023\],
-however, the key point to note is that the parameter estimates obtained
-from the survival models are for the *relative* survival model and
-therefore are not representative of the all-cause survival (which
-typically considers the disease specific and general population
-mortality hazards).
+and more specifically the `standsurv` vignette (Sweeting 2023), however,
+the key point to note is that the parameter estimates obtained from the
+survival models are for the *relative* survival model and therefore are
+not representative of the all-cause survival (which typically considers
+the disease specific and general population mortality hazards).
 
 After making the modifications to the `bc` dataset as in the `standsurv`
 vignette, we assume a the expert believes that the expected survival for
@@ -423,7 +421,7 @@ of the “Good” group.
                                          anc = list(shape = ~ as.factor(group2)),
                                          bhazard=exprate,expert_opinion = expert_opinion_flex)
 
-Using the `standsurv` functions (as documented by \[@Sweeting2023\]) we
+Using the `standsurv` functions (as documented by (Sweeting 2023)) we
 can generate the all-cause hazards and survival. While the all cause
 survival is broadly similar to the predicted survival for the “Good”
 group without general population mortality adjustment at the timepoint
@@ -560,7 +558,7 @@ values (`inits`) is not implemented for the spline-based models.
 
 ## Technical note on the impact of priors
 
-The approach of \[@Cooney.2023\] integrates the expert opinion by
+The approach of (Cooney and White 2023) integrates the expert opinion by
 considering inclusion of the expert opinion in terms of a loss function,
 however, the information could also be formulated as a valid prior
 distribution.
@@ -616,7 +614,7 @@ unusal bimodal shape.
 
 This approach is not considered in the `expertsurv` package as the
 impact of the prior (either uniform or vague), typically is very minor
-\[@Cooney.2023\].
+(Cooney and White 2023).
 
 # Potential Future Updates
 
@@ -625,3 +623,66 @@ impact of the prior (either uniform or vague), typically is very minor
 - T.B.C.
 
 ## References
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-Baio.2020" class="csl-entry">
+
+Baio, Gianluca. 2020. “<span class="nocase">survHE</span>: Survival
+Analysis for Health Economic Evaluation and Cost-Effectiveness
+Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
+<https://doi.org/10.18637/jss.v095.i14>.
+
+</div>
+
+<div id="ref-Cooney.2023" class="csl-entry">
+
+Cooney, Philip, and Arthur White. 2023. “Direct Incorporation of Expert
+Opinion into Parametric Survival Models to Inform Survival
+Extrapolation.” *Medical Decision Making* 1 (1): 0272989X221150212.
+<https://doi.org/10.1177/0272989X221150212>.
+
+</div>
+
+<div id="ref-ggmcmc.2016" class="csl-entry">
+
+Fernández-i-Marín, Xavier. 2016. “<span class="nocase">ggmcmc</span>:
+Analysis of MCMC Samples and Bayesian Inference.” *Journal of
+Statistical Software* 70 (9): 1–20.
+<https://doi.org/10.18637/jss.v070.i09>.
+
+</div>
+
+<div id="ref-flexsurv" class="csl-entry">
+
+Jackson, Christopher. 2016. “<span class="nocase">flexsurv</span>: A
+Platform for Parametric Survival Modeling in R.” *Journal of Statistical
+Software* 70 (8): 1–33. <https://doi.org/10.18637/jss.v070.i08>.
+
+</div>
+
+<div id="ref-OHagan.2019" class="csl-entry">
+
+O’Hagan, Anthony. 2019. “Expert Knowledge Elicitation: Subjective but
+Scientific.” *The American Statistician* 73 (sup1): 69–81.
+<https://doi.org/10.1080/00031305.2018.1518265>.
+
+</div>
+
+<div id="ref-SHELF.2021" class="csl-entry">
+
+Oakley, Jeremy. 2021. *SHELF: Tools to Support the Sheffield Elicitation
+Framework*. <https://CRAN.R-project.org/package=SHELF>.
+
+</div>
+
+<div id="ref-Sweeting2023" class="csl-entry">
+
+Sweeting, Michael. 2023. “Standsurv: Marginal Survival and Hazards of
+Fitted Flexsurvreg Models.”
+<https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html>.
+
+</div>
+
+</div>
