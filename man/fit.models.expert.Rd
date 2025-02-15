@@ -77,15 +77,15 @@ model.fit.plot(example1, type = "aic")  #Plot AIC
 # path_all <- system.file("data",package = "expertsurv")
 # save(compiled_models_saved, file = paste0(path_all,"compiled_stan.RData"), compress = "xz")
 # You will then have access to the models from expertsurv::compiled_models_saved
-#example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-#                     	distr=c("wei", "gomp"),
-#                     	method="bayes",
-#                     	opinion_type = "survival",
-#                        times_expert = timepoint_expert, 
-#                        param_expert = param_expert_example1,
-#						iter = 50, 
-#						#compile_mods = expertsurv::compiled_models_saved
-#						compile_mods = expertsurv:::compile_stan("wei")) 
+example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                     			distr=c("wei", "gomp"),
+                     			method="bayes",
+                     			opinion_type = "survival",
+                        			times_expert = timepoint_expert, 
+                        			param_expert = param_expert_example1,
+									iter = 50, 
+									#compile_mods = expertsurv::compiled_models_saved
+									compile_mods = expertsurv:::compile_stan("wei")) 
 #Above we compile the stan model at evalulation (not recommended)                              
 }
 \keyword{models}
