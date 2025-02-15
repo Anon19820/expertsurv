@@ -34,7 +34,8 @@ fit.models.expert(
 \item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
 }}
 
-\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided. If conducting the Bayesian analysis it is much quicker to use the pre-compiled models by adding compile_mods = expertsurv::compiled_models_saved.}
+\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.
+If conducting the Bayesian analysis it is much quicker to use the pre-compiled models by adding compile_mods = expertsurv::compiled_models_saved. However, if running a version other than Windows you will have to compile the models using \code{expertsurv::compile_stan()}. You can then save the models in data folder of the installed package. This should then allow you to access the correct models (without recompiling every session).}
 }
 \value{
 An object of class \code{expertsurv} which contains the parameters of the models estimated with expert opinion.
@@ -70,14 +71,21 @@ plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
 model.fit.plot(example1, type = "aic")  #Plot AIC 
 
 # Running Bayesian approach - `iter` should be much higher, only for illustration
-example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-                     	distr=c("wei", "gomp"),
-                     	method="bayes",
-                     	opinion_type = "survival",
-                         times_expert = timepoint_expert, 
-                         param_expert = param_expert_example1,
-						iter = 50, 
-						compile_mods = expertsurv::compiled_models_saved)
-                              
+# It is best to set compile_mods = expertsurv::compiled_models_saved, however,if using
+# Linux you should compile all the models using
+# compiled_models_saved <- expertsurv:::compile_stan()
+# path_all <- system.file("data",package = "expertsurv")
+# save(compiled_models_saved, file = paste0(path_all,"compiled_stan.RData"), compress = "xz")
+# You will then have access to the models from expertsurv::compiled_models_saved
+#example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+#                     	distr=c("wei", "gomp"),
+#                     	method="bayes",
+#                     	opinion_type = "survival",
+#                        times_expert = timepoint_expert, 
+#                        param_expert = param_expert_example1,
+#						iter = 50, 
+#						#compile_mods = expertsurv::compiled_models_saved
+#						compile_mods = expertsurv:::compile_stan("wei")) 
+#Above we compile the stan model at evalulation (not recommended)                              
 }
 \keyword{models}
