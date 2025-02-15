@@ -251,6 +251,29 @@ if (window.hljs) {
 
 
 
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
 
 
 
@@ -359,10 +382,10 @@ expertsurv</h1>
 <p><br clear="all" /> <!-- badges: start --> <!-- badges: end --></p>
 <p>The goal of <code>expertsurv</code> is to incorporate expert opinion
 into an analysis of time to event data. <code>expertsurv</code> uses
-many of the core functions of the <code>survHE</code> package <span class="citation">[@Baio.2020]</span> and also the <code>flexsurv</code>
-package <span class="citation">[@flexsurv]</span>. Technical details of
-the implementation are detailed in <span class="citation">[@Cooney.2023]</span> and will not be repeated
-here.</p>
+many of the core functions of the <code>survHE</code> package <span class="citation">(Baio 2020)</span> and also the <code>flexsurv</code>
+package <span class="citation">(Jackson 2016)</span>. Technical details
+of the implementation are detailed in <span class="citation">(Cooney and
+White 2023)</span> and will not be repeated here.</p>
 <p>The key function is <code>fit.models.expert</code> and operates
 almost identically to the <code>fit.models</code> function of
 <code>survHE</code>.</p>
@@ -421,8 +444,8 @@ another list (i.e. param_expert_example1[[2]] with the relevant
 parameters) and specify <code>timepoint_expert</code> as a vector of
 length 2 with the second element being the second timepoint.</p>
 <p>For details on assigning distributions to elicited probabilities and
-quantiles see the <code>SHELF</code> package <span class="citation">[@SHELF.2021]</span> and for an overview on
-methodological approaches to eliciting expert opinion see <span class="citation">[@OHagan.2019]</span>. We can see both the individual
+quantiles see the <code>SHELF</code> package <span class="citation">(Oakley 2021)</span> and for an overview on
+methodological approaches to eliciting expert opinion see <span class="citation">(O’Hagan 2019)</span>. We can see both the individual
 and pooled distributions using the following code (note that we could
 have used the output of the <code>fitdist</code> function from
 <code>SHELF</code> if we actually elicited quantiles from an
@@ -511,7 +534,7 @@ Survival function with Expert prior
 <div id="expert-opinion-using-penalized-maximum-likelihood" class="section level2">
 <h2>Expert Opinion using Penalized Maximum Likelihood</h2>
 <p>We can also fit the model by Penalized Maximum Likelihood approaches
-based on code taken from the <code>flexsurv</code> package <span class="citation">[@flexsurv]</span>. All that is required that the
+based on code taken from the <code>flexsurv</code> package <span class="citation">(Jackson 2016)</span>. All that is required that the
 <code>method=&quot;bayes&quot;</code> is changed to <code>method=&quot;mle&quot;</code> with
 the <code>iter</code> argument now redundant. One argument that maybe of
 interest is the <code>method_mle</code> which is the optimization
@@ -614,12 +637,13 @@ Survival difference
 <div id="compatability-with-underlying-packages-survhe-and-flexsurv" class="section level2">
 <h2>Compatability with underlying packages survHE and flexsurv</h2>
 <p>As stated in the introduction this package relies on many of the core
-functions of the <code>survHE, flexsurv</code> packages <span class="citation">[@Baio.2020]</span> and <span class="citation">[@flexsurv]</span>. Because future versions of
-<code>survHE</code> and <code>flexsurv</code> may introduce conflicts
-with the current implementation, we have directly ported the key
-functions from these packages into the package so that
-<code>expertsurv</code> no longer imports <code>survHE,flexsurv</code>
-(of course all credit for those functions goes to <span class="citation">[@Baio.2020,@flexsurv]</span>).</p>
+functions of the <code>survHE, flexsurv</code> packages <span class="citation">(Baio 2020)</span> and <span class="citation">(Jackson
+2016)</span>. Because future versions of <code>survHE</code> and
+<code>flexsurv</code> may introduce conflicts with the current
+implementation, we have directly ported the key functions from these
+packages into the package so that <code>expertsurv</code> no longer
+imports <code>survHE,flexsurv</code> (of course all credit for those
+functions goes to <span class="citation">Jackson (2016)</span>).</p>
 <p>If you run in issues, bugs or just features which you feel would be
 useful, please let me know (<a href="mailto:phcooney@tcd.ie" class="email">phcooney@tcd.ie</a>) and I will investigate and update as
 required.</p>
@@ -664,7 +688,8 @@ should be compared against the maximum likelihood estimates. If
 considerable differences are present the prior distributions should be
 investigated.</p>
 <p>Because the analysis is done in JAGS and Stan we can leverage the
-<code>ggmcmc</code> package <span class="citation">[@ggmcmc.2016]</span>:</p>
+<code>ggmcmc</code> package <span class="citation">(Fernández-i-Marín
+2016)</span>:</p>
 <pre><code>library(ggmcmc)
 #For Stan Models # Log-Normal, RP, Exponential, Weibull
 ggmcmc(ggs(rstan::As.mcmc.list(example1$models$`Exponential`)), file = &quot;Exponential.pdf&quot;)
@@ -683,7 +708,7 @@ internally the models fit by penalized maximum likelihood
 This means that we can leverage advanced approaches such as the
 inclusion of general population mortality. This is discussed in more
 detail in the package documentation of the <code>flexsurv</code> package
-and more specifically the <code>standsurv</code> vignette <span class="citation">[@Sweeting2023]</span>, however, the key point to note
+and more specifically the <code>standsurv</code> vignette <span class="citation">(Sweeting 2023)</span>, however, the key point to note
 is that the parameter estimates obtained from the survival models are
 for the <em>relative</em> survival model and therefore are not
 representative of the all-cause survival (which typically considers the
@@ -736,7 +761,7 @@ model.gomp.sep.rs &lt;- expertsurv:::flexsurvreg(Surv(recyrs, censrec)~as.factor
                                      data=bc, dist=&quot;gompertz&quot;,
                                      anc = list(shape = ~ as.factor(group2)),
                                      bhazard=exprate,expert_opinion = expert_opinion_flex)</code></pre>
-<p>Using the <code>standsurv</code> functions (as documented by <span class="citation">[@Sweeting2023]</span>) we can generate the all-cause
+<p>Using the <code>standsurv</code> functions (as documented by <span class="citation">(Sweeting 2023)</span>) we can generate the all-cause
 hazards and survival. While the all cause survival is broadly similar to
 the predicted survival for the “Good” group without general population
 mortality adjustment at the timepoint of 20 years, the adjustment
@@ -863,7 +888,7 @@ example1  &lt;- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
 </div>
 <div id="technical-note-on-the-impact-of-priors" class="section level2">
 <h2>Technical note on the impact of priors</h2>
-<p>The approach of <span class="citation">[@Cooney.2023]</span>
+<p>The approach of <span class="citation">(Cooney and White 2023)</span>
 integrates the expert opinion by considering inclusion of the expert
 opinion in terms of a loss function, however, the information could also
 be formulated as a valid prior distribution.</p>
@@ -921,7 +946,7 @@ perfectly if the expert’s opinion was near zero, however, if the opinion
 was near 0.5 the density had an unusal bimodal shape.</p>
 <p>This approach is not considered in the <code>expertsurv</code>
 package as the impact of the prior (either uniform or vague), typically
-is very minor <span class="citation">[@Cooney.2023]</span>.</p>
+is very minor <span class="citation">(Cooney and White 2023)</span>.</p>
 </div>
 </div>
 <div id="potential-future-updates" class="section level1">
@@ -932,8 +957,45 @@ distributions</li>
 <li>Hazard plots</li>
 <li>T.B.C.</li>
 </ul>
-<div id="references" class="section level2">
-<h2>References</h2>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Baio.2020" class="csl-entry">
+Baio, Gianluca. 2020. <span>“<span class="nocase">survHE</span>:
+Survival Analysis for Health Economic Evaluation and Cost-Effectiveness
+Modeling.”</span> <em>Journal of Statistical Software</em> 95 (14):
+1–47. <a href="https://doi.org/10.18637/jss.v095.i14">https://doi.org/10.18637/jss.v095.i14</a>.
+</div>
+<div id="ref-Cooney.2023" class="csl-entry">
+Cooney, Philip, and Arthur White. 2023. <span>“Direct Incorporation of
+Expert Opinion into Parametric Survival Models to Inform Survival
+Extrapolation.”</span> <em>Medical Decision Making</em> 1 (1):
+0272989X221150212. <a href="https://doi.org/10.1177/0272989X221150212">https://doi.org/10.1177/0272989X221150212</a>.
+</div>
+<div id="ref-ggmcmc.2016" class="csl-entry">
+Fernández-i-Marín, Xavier. 2016. <span>“<span class="nocase">ggmcmc</span>: Analysis of <span>MCMC</span> Samples and
+<span>B</span>ayesian Inference.”</span> <em>Journal of Statistical
+Software</em> 70 (9): 1–20. <a href="https://doi.org/10.18637/jss.v070.i09">https://doi.org/10.18637/jss.v070.i09</a>.
+</div>
+<div id="ref-flexsurv" class="csl-entry">
+Jackson, Christopher. 2016. <span>“<span class="nocase">flexsurv</span>:
+A Platform for Parametric Survival Modeling in <span>R</span>.”</span>
+<em>Journal of Statistical Software</em> 70 (8): 1–33. <a href="https://doi.org/10.18637/jss.v070.i08">https://doi.org/10.18637/jss.v070.i08</a>.
+</div>
+<div id="ref-OHagan.2019" class="csl-entry">
+O’Hagan, Anthony. 2019. <span>“Expert Knowledge Elicitation: Subjective
+but Scientific.”</span> <em>The American Statistician</em> 73 (sup1):
+69–81. <a href="https://doi.org/10.1080/00031305.2018.1518265">https://doi.org/10.1080/00031305.2018.1518265</a>.
+</div>
+<div id="ref-SHELF.2021" class="csl-entry">
+Oakley, Jeremy. 2021. <em>SHELF: Tools to Support the Sheffield
+Elicitation Framework</em>. <a href="https://CRAN.R-project.org/package=SHELF">https://CRAN.R-project.org/package=SHELF</a>.
+</div>
+<div id="ref-Sweeting2023" class="csl-entry">
+Sweeting, Michael. 2023. <span>“Standsurv: Marginal Survival and Hazards
+of Fitted Flexsurvreg Models.”</span> <a href="https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html">https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html</a>.
+</div>
+</div>
 </div>
 </div>
 

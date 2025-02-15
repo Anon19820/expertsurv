@@ -3,7 +3,7 @@ output:
   github_document:
     md_extensions: +tex_math_dollars
     pandoc_args: ["--mathjax"]
-#bibliography: "`r system.file('REFERENCES.bib', package = 'expertsurv')`"
+bibliography: "`r system.file('REFERENCES.bib', package = 'expertsurv')`"
 
 ---
 
