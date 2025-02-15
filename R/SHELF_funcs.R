@@ -3,22 +3,22 @@
 
 #NAMESPACE HACK FOR CRAN; won't let me use SHELF 3 times :
 
-logt.error <- function(parameters, values, probabilities, weights, degreesfreedom){
+logt_error <- function(parameters, values, probabilities, weights, degreesfreedom){
 	sum(weights * (pt((log(values) - parameters[1]) / exp(parameters[2]), degreesfreedom) - probabilities)^2)
 }
 
 #' @keywords internal
-gamma.error <-
+gamma_error <-
 function(parameters, values, probabilities, weights){
 	sum(weights * (pgamma(values, exp(parameters[1]), exp(parameters[2])) -probabilities)^2)
 }
 
-lognormal.error <-
+lognormal_error <-
 function(parameters, values, probabilities, weights){
 	sum(weights * (plnorm(values, parameters[1], exp(parameters[2])) - probabilities)^2)
 }
 
-logt.error <- function(parameters, values, probabilities, weights, degreesfreedom){
+logt_error <- function(parameters, values, probabilities, weights, degreesfreedom){
 	sum(weights * (pt((log(values) - parameters[1]) / exp(parameters[2]), degreesfreedom) - probabilities)^2)
 }
 
