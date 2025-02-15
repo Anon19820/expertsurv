@@ -603,7 +603,7 @@ not be invertible and obtaining a density for $p(\mathbf{\theta_m})$
 will not be strictly possible. Interestingly for all survival models we
 have considered we can obtain the required density for the expert’s
 belief using a prior of the form
-$p(\theta_m) \propto \exp\left\{ -\frac{1}{2}\left(\frac{S(t^*|\theta_m) - \mu_i}{\sigma_i}\right)^2 \right\}\sum_{i = 1}^m|g_{m}^{'}(\mathbf{\theta})|$
+$p(\theta_m) \propto \exp \left\{ -\frac{1}{2}\left(\frac{S(t^*|\theta_m) - \mu_i}{\sigma_i}\right)^2 \right\}\sum_{i = 1}^m|g_{m}^{'}(\mathbf{\theta})|$
 where $|g_{m}^{'}(\mathbf{\theta})|$ is the partial derivative of the
 function $g(\mathbf{\theta})$ with respect to $\theta_m$. In some
 situations it is only necessary to include one of the $m$ elements
