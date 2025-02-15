@@ -23,6 +23,8 @@ For detailed instructions use \code{browseVignettes("expertsurv")}
 }
 \examples{
 \dontrun{
+library("dplyr")
+library("ggplot2")
 elicit_surv()
 }
 }

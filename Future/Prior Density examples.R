@@ -1,18 +1,13 @@
-expo <- "model{\n  for(i in 1:N){\n    is.censored[i]~dinterval(t[i],t.cen[i])\n    t[i] ~ dexp(lambda)\n    Like[i] <- ifelse(is.censored[i], 1- pexp(t.cen[i],lambda), dexp(t[i], lambda))\n    #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\n  for(i in 1:length(t_pred)){\n    St_pred[i] <- 1- pexp(t_pred[i],lambda)\n  }\n  lambda ~ dgamma(0.001,0.001)\n  total_LLik <- sum(log(Like))\n}"
-weibull <- "model{\n  for(i in 1:N){\n    is.censored[i]~dinterval(t[i],t.cen[i])\n    t[i] ~ dweib(v,lambda)\n    Like[i] <- ifelse(is.censored[i], 1- pweib(t.cen[i],v,lambda), dweib(t[i],v, lambda))\n    #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\nfor(i in 1:length(t_pred)){\nSt_pred[i] <- 1- pweib(t_pred[i],v,lambda)\n}\nlambda ~ dgamma(0.001,0.001)\nv ~ dgamma(0.001,0.001)\n  total_LLik <- sum(log(Like))\n}"
-gamma.jags <- "model{\n  for(i in 1:N){\n    is.censored[i]~dinterval(t[i],t.cen[i])\n    t[i] ~ dgamma(shape,lambda)\n    Like[i] <- ifelse(is.censored[i], 1- pgamma(t.cen[i],shape,lambda), dgamma(t[i],shape, lambda))\n   #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\n for(i in 1:length(t_pred)){\n    St_pred[i] <- 1- pgamma(t_pred[i],shape,lambda)\n  }\nlambda ~ dgamma(0.01,0.01)\nshape ~dgamma(0.01,0.01)\n  total_LLik <- sum(log(Like))\n}"
-lnorm.jags <- "model{\n  for(i in 1:N){\n    is.censored[i]~dinterval(t[i],t.cen[i])\n    t[i] ~ dlnorm(mu,tau)\n    Like[i] <- ifelse(is.censored[i], 1- plnorm(t.cen[i],mu,tau), dlnorm(t[i],mu, tau))\n   #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\n for(i in 1:length(t_pred)){\n    St_pred[i] <- 1- plnorm(t_pred[i],mu,tau)\n  }\nmu ~ dnorm(0,0.001)\nsd ~ dunif(0,10)\ntau <- pow(sd,-2)\n  total_LLik <- sum(log(Like))\n}"
-llogis.jags <- "\nmodel{\nfor(i in 1:N){\n    is.censored[i]~dinterval(t.log[i],t.cen.log[i])\n    t.log[i] ~ dlogis(mu,tau)\n    Like[i] <- ifelse(is.censored[i], 1/(1 + pow(exp(t.cen.log[i])/beta, alpha)),\n          (alpha/beta)*pow(exp(t.log[i])/beta, alpha-1)/pow(1 + pow(exp(t.log[i])/beta,alpha),2))\n   #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\n for(i in 1:length(t_pred)){\n    St_pred[i] <- 1/(1 + pow(t_pred[i]/beta, alpha))\n  }\nmu ~ dnorm(0,0.001)\nscale ~ dgamma(0.001,0.001)\ntau <- pow(scale,-1) # Inverse of scale which is beta on the log-logistic dist\nbeta <- exp(mu)\nalpha <- tau\n  total_LLik <- sum(log(Like))\n}"
-gompertz.jags <- "\ndata{\nfor(i in 1:N){\nzero[i] <- 0}\n}\nmodel{\nC <- 10000\nfor(i in 1:N){\nlogHaz[i] <- (log(b)+ a*time[i])*status[i]\nlogSurv[i] <- (-b/a)*(exp(a*time[i])-1)\nLL[i] <- logHaz[i]+ logSurv[i]\nLike[i] <- exp(LL[i])\n#invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\nzero[i] ~ dpois(zero.mean[i])\nzero.mean[i] <- -logHaz[i]-logSurv[i] + C\n}\nfor(i in 1:length(t_pred)){\n    St_pred[i] <- exp((-b/a)*(exp(a*t_pred[i])-1))\n  }\na ~ dnorm(0,0.001)\nb ~ dunif(0,10)\n  total_LLik <- sum(log(Like))\n}"
-gen.gamma.jags <- "model{\n    for(i in 1:N){\n    is.censored[i]~dinterval(t[i],t.cen[i])\n    t[i] ~ dgen.gamma(r,lambda,b)\n    Like[i] <- ifelse(is.censored[i], 1- pgen.gamma(t.cen[i],r,lambda,b), dgen.gamma(t[i],r,lambda,b))\n   #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)\n  }\n for(i in 1:length(t_pred)){\n    St_pred[i] <- 1- pgen.gamma(t_pred[i],r,lambda,b)\n  }\n    r ~ dgamma(0.001,0.001)\n    lambda ~ dgamma(0.001,0.001)\n    b ~ dgamma(0.001,0.001)\n     total_LLik <- sum(log(Like))\n}"
-
-
-
+if(FALSE){
+library("truncnorm")
 expo <- "
 data{
     zero_prior <- 0
-    t_expert <- 10
     C <- 10000
+    #t_expert <- 10
+    #mu_expert <- 0.1
+    #sd_expert <- 0.05
+    tau_expert <- pow(sd_expert,-2)
 }
 
 model{
@@ -27,22 +22,17 @@ model{
     St_pred[i] <- 1 - pexp(t_pred[i], lambda)
   }
   lambda ~ dunif(0, 10000)
-  
-  zero.mean_prior <- -log(t_expert*exp(-lambda*t_expert)) + C #derivative of St for exponential is just the pdf
+  St_expert <- 1 - pexp(t_expert, lambda)
+  zero.mean_prior <- -log(t_expert*exp(-lambda*t_expert)) - logdensity.norm(St_expert, mu_expert, tau_expert) +  C #derivative of St for exponential is just the pdf
   zero_prior ~ dpois(zero.mean_prior)
-  
-  
-  total_LLik <- sum(log(Like))
+  total_LLik <- 0#sum(log(Like))
 }"
 
 weibull <- "
 data{
     zero_prior <- 0
-    t_expert <- 10
     C <- 1000000
-    mu <- 0.1
-    sd <- 0.05
-    tau <- pow(sd,-2)
+    tau_expert <- pow(sd_expert,-2)
 }
 
 model{
@@ -52,29 +42,35 @@ model{
     t[i] ~ dweib(v, lambda)
     Like[i] <- ifelse(is.censored[i], 1 - pweib(t.cen[i], v, lambda), dweib(t[i], v, lambda))
     #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)
+    #x[i] <- 1
   }
   for(i in 1:length(t_pred)){
     St_pred[i] <- 1 - pweib(t_pred[i], v, lambda)
   }
-  lambda ~ dunif(0, 100000)
-  v ~  dunif(0, 100000)
   
+  lambda ~ dunif(0, 10)
+  v ~  dunif(0, 10)
+  #beta ~ dnorm(0, pow(5,-2))
+  #lambda <- exp(beta)
+  #v ~  dgamma(0.1, 0.10)
   St_expert <- 1 - pweib(t_expert, v, lambda)
   
   
   deriv1 <- abs(-pow(t_expert,v)*log(t_expert)*lambda*exp(-pow(t_expert,v)*lambda))
   deriv2 <- abs(-t_expert^v*exp(-pow(t_expert,v)*lambda))
   
-  zero.mean_prior <- -log(deriv1+deriv2) - logdensity.norm(St_expert, mu, tau) + C 
+  zero.mean_prior <- -log(deriv1+deriv2) - logdensity.norm(St_expert, mu_expert, tau_expert) + C
+  expert_log_dens <- logdensity.norm(St_expert, mu_expert, tau_expert)
   zero_prior ~ dpois(zero.mean_prior)
 
-  total_LLik <- sum(log(Like))
+  total_LLik <- 0#sum(log(Like))
 }"
 
 gamma.jags <- "data{
     zero_prior <- 0
-    t_expert <- 10
     C <- 1000000
+    tau_expert <- pow(sd_expert,-2)
+    epsilon <- 0.001
 }
 
 model{
@@ -87,19 +83,30 @@ model{
   for(i in 1:length(t_pred)){
     St_pred[i] <- 1 - pgamma(t_pred[i], shape, lambda)
   }
-  lambda ~ dunif(0, 100)
-  shape ~ dunif(0, 100)
   
-  deriv1 <- abs(-pow(t_expert,v)*log(t_expert)*lambda*exp(-pow(t_expert,v)*lambda))
-  deriv2 <- abs(-t_expert^v*exp(-pow(t_expert,v)*lambda))
+  St_expert <- 1 - pgamma(t_expert, shape, lambda)
   
-  zero.mean_prior <- -log(deriv1+deriv2) + C
+  lambda ~ dunif(epsilon*2, 100)
+  shape ~ dunif(epsilon*2, 100)
+  
+  deriv1 <- abs((1- pgamma(t_expert[1],shape+epsilon,lambda)) - (1 - pgamma(t_expert[1],shape-epsilon,lambda)))/(2*epsilon)
+  deriv2 <- abs((1- pgamma(t_expert[1],shape,lambda+epsilon)) - (1 - pgamma(t_expert[1],shape,lambda-epsilon)))/(2*epsilon)
+
+  zero.mean_prior <- -log(deriv1+deriv2) - logdensity.norm(St_expert, mu_expert, tau_expert) + C
   zero_prior ~ dpois(zero.mean_prior)
  
-  total_LLik <- sum(log(Like))
+  total_LLik <- 0#sum(log(Like))
 }"
 
-lnorm.jags <- "model{
+lnorm.jags <- "
+data{
+    zero_prior <- 0
+    C <- 1000000
+    tau_expert <- pow(sd_expert,-2)
+    epsilon <- 0.001
+}
+
+model{
   for(i in 1:N){
     is.censored[i] ~ dinterval(t[i], t.cen[i])
     t[i] ~ dlnorm(mu, tau)
@@ -109,38 +116,75 @@ lnorm.jags <- "model{
   for(i in 1:length(t_pred)){
     St_pred[i] <- 1 - plnorm(t_pred[i], mu, tau)
   }
+  St_expert <- 1 - plnorm(t_expert, mu, tau)
+  
+  deriv1 <- abs((1- plnorm(t_expert[1],mu+epsilon,tau)) - (1 - plnorm(t_expert[1],mu-epsilon,tau)))/(2*epsilon)
+  deriv2 <- abs((1- plnorm(t_expert[1],mu,tau+epsilon)) - (1 - plnorm(t_expert[1],mu,tau-epsilon)))/(2*epsilon)
+
+  zero.mean_prior <- -log(deriv1+deriv2) - logdensity.norm(St_expert, mu_expert, tau_expert) + C
+  zero_prior ~ dpois(zero.mean_prior)
+  
   mu ~ dnorm(0, 0.001)
-  sd ~ dunif(0, 10)
+  sd ~ dunif(0.01, 10)
   tau <- pow(sd, -2)
-  total_LLik <- sum(log(Like))
+
+  total_LLik <- 0#sum(log(Like))
 }"
 
-llogis.jags <- "model{
+llogis.jags <- "
+data{
+    zero_prior <- 0
+    C <- 1000000
+    tau_expert <- pow(sd_expert,-2)
+      epsilon <- 0.001
+}
+
+model{
   for(i in 1:N){
-    is.censored[i] ~ dinterval(t.log[i], t.cen.log[i])
-    t.log[i] ~ dlogis(mu, tau)
-    Like[i] <- ifelse(is.censored[i], 1 / (1 + pow(exp(t.cen.log[i]) / beta, alpha)), 
-                      (alpha / beta) * pow(exp(t.log[i]) / beta, alpha - 1) / pow(1 + pow(exp(t.log[i]) / beta, alpha), 2))
+    #is.censored[i] ~ dinterval(t.log[i], t.cen.log[i])
+    #t.log[i] ~ dlogis(mu, tau)
+    #Like[i] <- ifelse(is.censored[i], 1 / (1 + pow(exp(t.cen.log[i]) / beta, alpha)), 
+    #                  (alpha / beta) * pow(exp(t.log[i]) / beta, alpha - 1) / pow(1 + pow(exp(t.log[i]) / beta, alpha), 2))
     #invLik[i] <- 1/Like[i] Unstable for some datasets (Will calculate outside JAGS)
+    x[i] <- 1
   }
   for(i in 1:length(t_pred)){
     St_pred[i] <- 1 / (1 + pow(t_pred[i] / beta, alpha))
   }
+   #St_expert <- 1- plogis(log(t_expert),mu, tau)
+   St_expert <-  1 / (1 + pow(t_expert / beta, alpha))
+ 
+  
+	#deriv1 = (alpha*pow(t_expert[1]/beta,alpha))/(beta*pow(pow(t_expert[1]/beta,alpha)+1,2));
+	#deriv2 = -(pow(t_expert[1]/beta,alpha)*log(t_expert[1]/beta))/pow(pow(t_expert[1]/beta,alpha)+1,2);
+  # The derivative needed to be with respect to the mu and tau not the log-logistic parameters.
+  deriv1 <- ((1-plogis(log(t_expert[1]),mu+epsilon,tau)) - (1-plogis(log(t_expert[1]),mu-epsilon,tau)))/(2*epsilon)
+  deriv2 <- ((1-plogis(log(t_expert[1]),mu,tau+epsilon)) - (1-plogis(log(t_expert[1]),mu,tau-epsilon)))/(2*epsilon)
+  #deriv1 <- 1
+  #deriv2 <- 1 
+  zero.mean_prior <- -logdensity.norm(St_expert, mu_expert, tau_expert)  + C -log(abs(deriv1)+abs(deriv2))
+  zero_prior ~ dpois(zero.mean_prior)
+  
   mu ~ dnorm(0, 0.001)
-  scale ~ dgamma(0.001, 0.001)
-  tau <- pow(scale, -1) # Inverse of scale which is beta on the log-logistic dist
+  scale ~ dgamma(0.001, 0.001) # Dont use this anymore dgamma gave weird results
+  #tau <- pow(scale, -1) # Inverse of scale which is beta on the log-logistic dist
+  tau ~ dunif(0.001*3, 10) # Try the prior on the tau
   beta <- exp(mu)
   alpha <- tau
-  total_LLik <- sum(log(Like))
+  total_LLik <- 0#sum(log(Like))
 }"
 
 gompertz.jags <- "data{
   for(i in 1:N){
     zero[i] <- 0
   }
+    zero_prior <- 0
+    C <- 1000000
+    tau_expert <- pow(sd_expert,-2)
+    epsilon <- 0.001
 }
 model{
-  C <- 10000
+
   for(i in 1:N){
     logHaz[i] <- (log(b) + a * time[i]) * status[i]
     logSurv[i] <- (-b / a) * (exp(a * time[i]) - 1)
@@ -153,12 +197,29 @@ model{
   for(i in 1:length(t_pred)){
     St_pred[i] <- exp((-b / a) * (exp(a * t_pred[i]) - 1))
   }
+    St_expert <- exp((-b / a) * (exp(a * t_expert) - 1))
+ 
+  deriv1 <- abs(exp(-(b/a)*(exp(a*t_expert[1]) - 1)) * (b/(a^2)*(exp(a*t_expert[1])-1) - (b/a)*(exp(a*t_expert[1]) * t_expert[1])))
+  deriv2 <- abs(-(exp(-(b/a)*(exp(a*t_expert[1]) - 1))*((1/a)*(exp(a*t_expert[1]) - 1))))
+
+  zero.mean_prior <- -log(deriv1+deriv2) - logdensity.norm(St_expert, mu_expert, tau_expert) + C
+  zero_prior ~ dpois(zero.mean_prior)
+
   a ~ dnorm(0, 0.001)
   b ~ dunif(0, 10)
-  total_LLik <- sum(log(Like))
+  total_LLik <- 0#sum(log(Like))
 }"
 
-gen.gamma.jags <- "model{
+gen.gamma.jags <- "
+data{
+    zero_prior <- 0
+    C <- 1000000
+    tau_expert <- pow(sd_expert,-2)
+    epsilon <- 0.001
+}
+
+
+model{
   for(i in 1:N){
     is.censored[i] ~ dinterval(t[i], t.cen[i])
     t[i] ~ dgen.gamma(r, lambda, b)
@@ -168,12 +229,32 @@ gen.gamma.jags <- "model{
   for(i in 1:length(t_pred)){
     St_pred[i] <- 1 - pgen.gamma(t_pred[i], r, lambda, b)
   }
-  r ~ dgamma(0.001, 0.001)
-  lambda ~ dgamma(0.001, 0.001)
-  b ~ dgamma(0.001, 0.001)
-  total_LLik <- sum(log(Like))
+  #r ~ dgamma(0.001, 0.001)T(,10)
+  #lambda ~ dgamma(0.001, 0.001)T(,10)
+  #b ~ dgamma(0.001, 0.001)T(,10)
+  
+  r ~ dunif(0.01, 10)
+  lambda ~ dunif(0.01, 10)
+  b ~ dunif(0.01, 10)
+
+
+  total_LLik <- 0#sum(log(Like))
+  
+  St_expert <-  1 - pgen.gamma(t_expert, r, lambda, b)
+ 
+  deriv1 <- ((1-pgen.gamma(t_expert[1],r+epsilon,lambda,b)) - (1-pgen.gamma(t_expert[1],r-epsilon,lambda,b)))/(2*epsilon)
+  deriv2 <- ((1-pgen.gamma(t_expert[1],r,lambda+epsilon,b)) - (1-pgen.gamma(t_expert[1],r,lambda-epsilon,b)))/(2*epsilon)
+  deriv3 <- ((1-pgen.gamma(t_expert[1],r,lambda,b+epsilon)) - (1-pgen.gamma(t_expert[1],r,lambda,b-epsilon)))/(2*epsilon)
+
+  zero.mean_prior <- -log(abs(deriv1)+abs(deriv2)+abs(deriv3)) - logdensity.norm(St_expert, mu_expert, tau_expert) +  C
+  zero_prior ~ dpois(zero.mean_prior)
 }"
 
+
+
+t_expert <- t_pred <- 10
+mu_expert <- 0.1
+sd_expert <- 0.05
 
 inits_list <- function(mod, n.chains = 2) {
   list_return <- list()
@@ -182,7 +263,7 @@ inits_list <- function(mod, n.chains = 2) {
     list_inits$t <- tinits1 + runif(1)
     if (mod == "exp") {
       #   list_inits$lambda = 1/mean(df$time)
-      list_inits$lambda =0.5
+      list_inits$lambda =-log(mu_expert)/t_expert
     }
     if (mod == "weibull") {
       # lt <- log(df$time[df$time > 0])
@@ -194,12 +275,12 @@ inits_list <- function(mod, n.chains = 2) {
       # }
 
       list_inits$v <- 1
-      list_inits$lambda <- -log(0.5)/10
+      list_inits$lambda <- -log(mu_expert)/t_expert
 
     }
     if (mod == "gompertz") {
-      list_inits$a = 0.001
-      list_inits$b = 1/mean(df$time)
+      list_inits$a = -log(mu_expert)/t_expert
+      list_inits$b = 1
       list_inits <- list_inits[names(list_inits) %!in%
                                  c("t")]
     }
@@ -209,21 +290,21 @@ inits_list <- function(mod, n.chains = 2) {
       list_inits$sd <- sd(lt)
     }
     if (mod == "llogis") {
-      lt <- log(df$time[df$time > 0])
-      list_inits$mu <- mean(lt)
-      list_inits$scale <- 3 * var(lt)/(pi^2)
-      list_inits$t.log <- log(tinits1 + runif(1))
+      # lt <- log(df$time[df$time > 0])
+      list_inits$mu <- 1#mean(lt)
+      list_inits$scale <- 1#3 * var(lt)/(pi^2)
+      list_inits$t.log <- 1#log(tinits1 + runif(1))
       list_inits <- list_inits[names(list_inits) %!in%
                                  c("t")]
     }
     if (mod == "gengamma") {
       list_inits$r <- 1
-      list_inits$lambda <- 1/mean(df$time)
+      list_inits$lambda <-  -log(mu_expert)/t_expert #1/mean(df$time)
       list_inits$b <- 1
     }
     if (mod == "gamma") {
-      list_inits$lambda = sum(df$time)
-      list_inits$shape = sum(df$status)
+      list_inits$lambda = -log(mu_expert)/t_expert
+      list_inits$shape = 1#sum(df$status)
     }
     list_return[[i]] <- list_inits
   }
@@ -231,8 +312,8 @@ inits_list <- function(mod, n.chains = 2) {
 }
 
 
-t_pred <- 10
-df <- data.frame(time = c(0, 0), status = c(0,0))
+
+df <- data.frame(time = c(0.001, 0.0001), status = c(0,0))
 
 
 n.burnin.jags <- 100
@@ -249,6 +330,10 @@ df_jags$is.censored <- 1 - df_jags$status
 df_jags$t.cen <- df_jags$time + df_jags$status
 data_jags <- list(N = nrow(df_jags), t.cen = df_jags$t.cen,
                   is.censored = df_jags$is.censored, t = df_jags$t)
+data_jags$mu_expert <- mu_expert
+data_jags$sd_expert <- sd_expert
+data_jags$t_expert <- t_expert
+
 data_jags$t_pred <- t_pred
 data_jags_llogis <- data_jags
 data_jags_llogis$t.log <- log(data_jags$t)
@@ -259,8 +344,12 @@ data_jags_llogis <- data_jags_llogis[names(data_jags_llogis) %!in%
 data_gomp <- list()
 data_gomp$time <- df$time
 data_gomp$status <- df$status
-data_gomp$N <- nrow(df)
+data_gomp$N <- 0#nrow(df)
 data_gomp$t_pred <- data_jags$t_pred
+data_gomp$mu_expert <- mu_expert
+data_gomp$sd_expert <- sd_expert
+data_gomp$t_expert <- t_expert
+
 n.chains = 2
 cat("Exponential Model \n")
 
@@ -274,28 +363,15 @@ expo.mod <- R2jags::jags(model.file = textConnection(expo),
                                                                      "lambda", "St_pred", "total_LLik","zero.mean_prior"), n.iter = n.iter.jags,
                          n.thin = n.thin.jags, n.burnin = n.burnin.jags)
 
-head(expo.mod$BUGSoutput$sims.matrix)
-
-plot(density(expo.mod$BUGSoutput$sims.matrix[,c("St_pred")]))
-#plot(density(expo.mod$BUGSoutput$sims.matrix[,c("lambda")]))
-
-cat("Weibull Model \n")
 weib.mod <- R2jags::jags(model.file = textConnection(weibull),
                          data = data_jags, inits = inits_list("weibull", n.chains),
                          n.chains = n.chains, parameters.to.save = c("lambda",
-                                                                     "v", "Like", "St_pred", "total_LLik", "deriv1","deriv2"), n.iter = n.iter.jags,
+                                                                     "v", "Like", "St_pred", "total_LLik", "deriv1","deriv2","zero.mean_prior","expert_log_dens"), n.iter = n.iter.jags,
                          n.thin = n.thin.jags, n.burnin = n.burnin.jags)
-head(weib.mod$BUGSoutput$sims.matrix)
 
-
-plot(density(weib.mod$BUGSoutput$sims.matrix[,c("St_pred")]))
-
-
+if(FALSE){
 plot(weib.mod$BUGSoutput$sims.matrix[,"lambda"], y = weib.mod$BUGSoutput$sims.matrix[,"v"])
- df <- weib.mod$BUGSoutput$sims.matrix[,c("lambda","v")]
-
-
- 
+df <- weib.mod$BUGSoutput$sims.matrix[,c("lambda","v")]
 library(ggplot2)
  
  # Create a sample data frame
@@ -311,8 +387,7 @@ ggplot(df, aes(x = lambda, y = v)) +
   scale_fill_viridis_c() +
   labs(title = "2D Density Contour Plot", x = "X-Axis", y = "Y-Axis") +
   theme_minimal()
-
-
+}
 
 cat("Gamma Model \n")
 gamma.mod <- R2jags::jags(model.file = textConnection(gamma.jags),
@@ -320,30 +395,56 @@ gamma.mod <- R2jags::jags(model.file = textConnection(gamma.jags),
                           n.chains = n.chains, parameters.to.save = c("lambda",
                                                                       "shape", "Like", "St_pred", "total_LLik"), n.iter = n.iter.jags,
                           n.thin = n.thin.jags, n.burnin = n.burnin.jags)
+
 cat("LogNormal Model \n")
 lnorm.mod <- R2jags::jags(model.file = textConnection(lnorm.jags),
                           data = data_jags, inits = inits_list("lnorm", n.chains),
                           n.chains = n.chains, parameters.to.save = c("mu", "sd",
                                                                       "Like", "St_pred", "total_LLik"), n.iter = n.iter.jags,
                           n.thin = n.thin.jags, n.burnin = n.burnin.jags)
+
 cat("LogLogistic Model \n")
 llogis.mod <- R2jags::jags(model.file = textConnection(llogis.jags),
-                           data = data_jags_llogis, inits = inits_list("llogis",
-                                                                       n.chains), n.chains = n.chains, parameters.to.save = c("alpha",
-                                                                                                                              "beta", "Like", "St_pred", "total_LLik"), n.iter = n.iter.jags,
+                           data = data_jags_llogis, #inits = inits_list("llogis",n.chains), 
+                           n.chains = n.chains, parameters.to.save = c("alpha","beta", "Like", "St_pred", "total_LLik","deriv1","deriv2"), n.iter = n.iter.jags,
                            n.thin = n.thin.jags, n.burnin = n.burnin.jags)
+
+
 cat("Gompertz Model \n")
 gomp.mod <- R2jags::jags(model.file = textConnection(gompertz.jags),
                          data = data_gomp, inits = inits_list("gompertz", n.chains),
                          n.chains = n.chains, parameters.to.save = c("a", "b",
                                                                      "Like", "St_pred", "total_LLik"), n.iter = n.iter.jags,
                          n.thin = n.thin.jags, n.burnin = n.burnin.jags)
+
 cat("Generalized Gamma Model \n")
 gen.gamma.mod <- R2jags::jags(model.file = textConnection(gen.gamma.jags),
                               data = data_jags, inits = inits_list("gengamma", n.chains),
                               n.chains = n.chains, parameters.to.save = c("r", "lambda",
                                                                           "b", "Like", "St_pred", "total_LLik"), n.iter = n.iter.jags,
                               n.thin = n.thin.jags, n.burnin = n.burnin.jags)
+
+
+# Define parameters
+
+a <- 0
+b <- 1
+
+# Generate random samples
+dtrunc <-dtruncnorm(seq(0,1, by = 0.001), a = a, b = b, mean = mu_expert, sd = sd_expert)
+# Estimate and plot the density
+
+St_expert_expo <- expo.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_weib <- weib.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_gamma <- gamma.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_lnorm <- lnorm.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_llogis <- llogis.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_gomp <- gomp.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+St_expert_gengam<- gen.gamma.mod$BUGSoutput$sims.matrix[,c("St_pred")]
+
+plot(density(St_expert_llogis))
+lines(y = dtrunc, x=seq(0,1, by = 0.001),  main = "Density of Truncated Normal Distribution",
+      xlab = "Value", ylab = "Density", col = "red")
 
 
 # Install and load the required package
@@ -454,6 +555,6 @@ print(derivative_weibull_aft)
 print(derivative_loglogistic)
 
 
-
+}
 
 

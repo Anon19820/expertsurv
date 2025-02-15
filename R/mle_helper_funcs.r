@@ -98,7 +98,6 @@ get_k_norm <- function(opinion_list, St_indic = 1){ # Only required if log-pooli
 #' @references Baio (2020). survHE
 #' @keywords Parametric survival models Maximum likelihood estimation
 #' @noRd 
-
 runMLE <- function (x, exArgs){
   formula <- exArgs$formula
   data = exArgs$data
@@ -107,30 +106,51 @@ runMLE <- function (x, exArgs){
   x <- manipulate_distributions(x)$distr
   expert_opinion_flex <- list()
   
- 
+  if (exists("mle_vague", where = exArgs)) {
+    mle_vague <- exArgs$mle_vague
+  }else{
+    mle_vague <- FALSE
+  }
+  
+  if (exists("init", where = exArgs)) {
+  names_init   <- names(exArgs$init)
+  names_d3 <- rep(NA, length(names_init))
+  names_init_list <- sapply(names_init,FUN = manipulate_distributions)
+  for(i in 1:length(names_d3)){
+    names_d3[i] <-  names_init_list[,i]$distr3
+  }
+  names(exArgs$init) <- names_d3
+  if(d3%in% names(exArgs$init) ){
+      init <- exArgs$init[[d3]] 
+    }else{
+	init <- NULL
+	}
+   }else{
+	init <- NULL
+   }	
+  
   if (exArgs$opinion_type != "survival") {
     times <- 99999
     expert_opinion_flex$St_indic <- 0
   }
-  
   if (exArgs$opinion_type == "survival") {
     expert_opinion_flex$St_indic <- 1
     times <- exArgs$times_expert
-    if(is.null(exArgs$id_St)){
+    if (is.null(exArgs$id_St)) {
       expert_opinion_flex$id_St <- 1
-    }else{
+    }
+    else {
       expert_opinion_flex$id_St <- exArgs$id_St
     }
   }
-  if(exArgs$opinion_type == "mean"){
-  if(is.null(exArgs$id_trt|exArgs$id_comp)){
-    message("You need to supply the location within the dataframe row number of a treatment and a comparator arm to arguments id_trt and id_comp")
-    stop()
+  if (exArgs$opinion_type == "mean") {
+    if (is.null(exArgs$id_trt | exArgs$id_comp)) {
+      message("You need to supply the location within the dataframe row number of a treatment and a comparator arm to arguments id_trt and id_comp")
+      stop()
+    }
+    expert_opinion_flex$id_trt <- exArgs$id_trt
+    expert_opinion_flex$id_comp <- exArgs$id_comp
   }
-  expert_opinion_flex$id_trt <- exArgs$id_trt
-  expert_opinion_flex$id_comp <- exArgs$id_comp
-  }
-  
   expert_opinion_flex$param_expert <- make_data_expert(exArgs$param_expert, 
                                                        times)
   expert_opinion_flex$times <- times
@@ -152,10 +172,7 @@ runMLE <- function (x, exArgs){
   else {
     method_mle <- "BFGS"
   }
-  
-  
   expert_opinion_param_save <- expert_opinion_flex
-  
   tic <- proc.time()
   if (x == "survspline") {
     if (exists("bhazard", where = exArgs)) {
@@ -207,24 +224,39 @@ runMLE <- function (x, exArgs){
       timescale <- "log"
     }
     suppressWarnings({
-      #browser()
       model_mle <- flexsurvspline(formula = formula, data = data, 
                                   k = k, knots = knots, bknots = bknots, scale = scale, 
                                   timescale = timescale, expert_opinion = NULL, 
                                   method = method_mle)
-      model <- flexsurvspline(formula = formula, data = data, 
-                              k = k, knots = knots, bknots = bknots, scale = scale, 
-                              timescale = timescale, expert_opinion = expert_opinion_flex, 
-                              method = method_mle, inits = model_mle$res[,1])
+
+      if(mle_vague){
+        model <- model_mle
+      }else{
+        model <- flexsurvspline(formula = formula, data = data, 
+                                k = k, knots = knots, bknots = bknots, scale = scale, 
+                                timescale = timescale, expert_opinion = expert_opinion_flex, 
+                                method = method_mle)
+      }
+      
+
     })
   }
   else {
     suppressWarnings({
       model_mle <- flexsurvreg(formula = formula, data = data, 
-                               dist = x, expert_opinion = NULL, method = method_mle)
+                               dist = x, expert_opinion = NULL, method = method_mle, inits = init)
+							   
+		if(is.null(init)){
+			init <- model_mle$res[,1]
+		}					   
+      
+      if(mle_vague){
+        model <- model_mle
+      }else{
       model <- flexsurvreg(formula = formula, data = data, 
                            dist = x, expert_opinion = expert_opinion_flex, 
-                           method = method_mle, inits = model_mle$res[,1])
+                           method = method_mle, inits =init)
+      }
     })
   }
   toc <- proc.time() - tic

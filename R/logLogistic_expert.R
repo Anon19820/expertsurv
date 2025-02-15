@@ -45,6 +45,21 @@ functions {
     prob = dot_product(log_lik,a0);
     return prob;
   }
+  
+  
+  // Defines the analytical derivatives
+  real derivative(real x,  real shape, real scale, int param) {
+    real derivs;
+	
+    if(param==1){//scale
+		derivs = (shape*pow(x/scale,shape))/(scale*pow(pow(x/scale,shape)+1,2));
+    }else{
+		derivs = -(pow(x/scale,shape)*log(x/scale))/pow(pow(x/scale,shape)+1,2);
+    }
+    
+    return (abs(derivs));
+  }
+  
 
 
    real log_density_dist(array[ , ] real params,
@@ -130,6 +145,7 @@ data {
 
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
+  int expert_only;
 
 
 }
@@ -164,8 +180,10 @@ transformed parameters {
 model {
   alpha ~ gamma(a_alpha,b_alpha);
   beta ~ normal(mu_beta,sigma_beta);
+  
+  if(expert_only == 0){
   t ~ surv_loglogistic(d,alpha,mu, a0);
-
+}
   for (i in 1:n_time_expert){
 
      target += log_density_dist(param_expert[,,i],
@@ -173,6 +191,10 @@ model {
                                  n_experts[i],
                                  pool_type);
   }
+      //if(St_indic == 1){
+		//target += log(derivative(St_expert[1],alpha,mu[id_St],1)+ derivative(St_expert[1],alpha,mu[id_St],2));
+	  //}
+
 
 }
 

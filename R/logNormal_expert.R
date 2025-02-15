@@ -50,6 +50,27 @@ functions {
     prob = dot_product(log_lik, a0);
     return prob;
   }
+// Defines the numerical derivative
+  real derivative(real x,  real mean, real sd, int param) {
+    real f_plus;
+    real f_minus;
+    real epsilon;
+	
+	epsilon = 0.001;
+	
+    if(param==1){
+    f_plus = exp(log_Sind(x, mean+ epsilon, sd));
+    f_minus = exp(log_Sind(x , mean- epsilon, sd));
+    }else{
+        f_plus = exp(log_Sind(x, mean, sd + epsilon));
+        f_minus = exp(log_Sind(x , mean, sd- epsilon));
+    }
+    
+    return abs((f_plus - f_minus) / (2 * epsilon));
+  }
+
+
+
 
   real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
@@ -138,7 +159,7 @@ data {
 
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
-
+  int expert_only;
 }
 
 parameters {
@@ -171,9 +192,10 @@ transformed parameters {
 model {
   alpha ~ uniform(a_alpha,b_alpha);
   beta ~ normal(mu_beta,sigma_beta);
+  if(expert_only == 0){
   t ~ surv_lognormal(d,X*beta,alpha, a0);
-
-  for (i in 1:n_time_expert){
+  }
+    for (i in 1:n_time_expert){
 
 
      target += log_density_dist(param_expert[,,i],
@@ -181,7 +203,13 @@ model {
                                  n_experts[i],
                                  pool_type);
 
-  }
+	}
+      //if(St_indic == 1){
+		//target += log(derivative(St_expert[1],mu[id_St],alpha,1)+ derivative(St_expert[1],mu[id_St],alpha,2));
+	  //}
+
+
+
 
 }
 

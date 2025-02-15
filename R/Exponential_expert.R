@@ -38,6 +38,15 @@ functions {
     return prob;
   }
 
+	// Defines the numerical derivatives
+	
+  real derivative(real x,  real rate ) {
+    real derivs;
+	derivs = abs(x*exp(-rate*x));
+    return (derivs);
+  }
+
+
 
    real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
@@ -123,6 +132,7 @@ data {
 
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
+  int expert_only;
 
 
 }
@@ -154,9 +164,12 @@ transformed parameters {
 }
 
 model {
-  beta ~ normal(mu_beta,sigma_beta);
-  t ~ surv_exponential(d,mu, a0);
-
+  
+ beta ~ normal(mu_beta,sigma_beta);
+ 
+if(expert_only == 0){
+ t ~ surv_exponential(d,mu, a0);
+} 
 
   for (i in 1:n_time_expert){
 
@@ -166,6 +179,9 @@ model {
                                  pool_type);
   }
 
+ //if(St_indic == 1){
+	//target += log(derivative(St_expert[1],mu[id_St]));
+ //}
 
 }
 

@@ -366,9 +366,7 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
     }else{
       like[i] <- like[i]^df[i,2] 
     }
-    
-    
-    
+ 
   }  
   if(pool_type == 1){
     return(log(sum(like)))
@@ -376,18 +374,252 @@ expert_log_dens <- function(x, df, pool_type, k_norm = NULL, St_indic){
     return(log(prod(like)/k_norm))
   }
   
-  
-  
-  
 }
 
 
-
+# 
+# 
+# 
+# fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1, 
+#                          tdf = 3, expertnames = NULL, excludelog.mirror = TRUE, mode = NULL, trunc = FALSE){
+#     if (is.matrix(vals) == F) {
+#     vals <- matrix(vals, nrow = length(vals), ncol = 1)
+#   }
+#   if (is.matrix(probs) == F) {
+#     probs <- matrix(probs, nrow = nrow(vals), ncol = ncol(vals))
+#   }
+#   if (is.matrix(weights) == F) {
+#     weights <- matrix(weights, nrow = nrow(vals), ncol = ncol(vals))
+#   }
+#   if (length(lower) == 1) {
+#     lower <- rep(lower, ncol(vals))
+#   }
+#   if (length(upper) == 1) {
+#     upper <- rep(upper, ncol(vals))
+#   }
+#   if (length(tdf) == 1) {
+#     tdf <- rep(tdf, ncol(vals))
+#   }
+#   n.experts <- ncol(vals)
+#   normal.parameters <- matrix(NA, n.experts, 2)
+#   t.parameters <- matrix(NA, n.experts, 3)
+#   mirrorgamma.parameters <- gamma.parameters <- matrix(NA, 
+#                                                        n.experts, 2)
+#   mirrorlognormal.parameters <- lognormal.parameters <- matrix(NA, 
+#                                                                n.experts, 2)
+#   mirrorlogt.parameters <- logt.parameters <- matrix(NA, n.experts, 
+#                                                      3)
+#   beta.parameters <- matrix(NA, n.experts, 2)
+#   ssq <- matrix(NA, n.experts, 9)
+#   colnames(ssq) <- c("normal", "t", "gamma", "lognormal", "logt", 
+#                      "beta", "mirrorgamma", "mirrorlognormal", "mirrorlogt")
+#   if (n.experts > 1 & n.experts < 27 & is.null(expertnames)) {
+#     expertnames <- paste("expert.", LETTERS[1:n.experts], 
+#                          sep = "")
+#   }
+#   if (n.experts > 27 & is.null(expertnames)) {
+#     expertnames <- paste("expert.", 1:n.experts, sep = "")
+#   }
+#  for (i in 1:n.experts) {
+#     # if (min(probs[, i]) > 0.4) {
+#     #  stop("smallest elicited probability must be less than 0.4")
+#     # }
+#     if (min(probs[, i]) < 0 | max(probs[, i]) > 1) {
+#       stop("probabilities must be between 0 and 1")
+#     }
+#     #  if (max(probs[, i]) < 0.6) {
+#     #    stop("largest elicited probability must be greater than 0.6")
+#     #  }
+#     if (min(vals[, i]) < lower[i]) {
+#       stop("elicited parameter values cannot be smaller than lower parameter limit")
+#     }
+#     if (max(vals[, i]) > upper[i]) {
+#       stop("elicited parameter values cannot be greater than upper parameter limit")
+#     }
+#     if (tdf[i] <= 0) {
+#       stop("Student-t degrees of freedom must be greater than 0")
+#     }
+#     if (min(probs[-1, i] - probs[-nrow(probs), i]) < 0) {
+#       stop("probabilities must be specified in ascending order")
+#     }
+#     if (min(vals[-1, i] - vals[-nrow(vals), i]) <= 0) {
+#       stop("parameter values must be specified in ascending order")
+#     }
+#     inc <- (probs[, i] > 0) & (probs[, i] < 1)
+#     minprob <- min(probs[inc, i])
+#     maxprob <- max(probs[inc, i])
+#     minvals <- min(vals[inc, i])
+#     maxvals <- max(vals[inc, i])
+#     
+#     q.fit <- stats::approx(x = probs[inc, i], y = vals[inc, 
+#                                                        i], xout = c(0.4, 0.5, 0.6))$y
+#     l <- q.fit[1]
+#     u <- q.fit[3]
+#     minq <- stats::qnorm(minprob)
+#     maxq <- stats::qnorm(maxprob)
+#     
+#     m <- (minvals * maxq - maxvals * minq)/(maxq - minq)
+#     v <- ((maxvals - minvals)/(maxq - minq))^2
+#     #browser()
+#     normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal.error_mod, 
+#                                values = vals[inc, i], probabilities = probs[inc, 
+#                                                                             i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
+#     normal.parameters[i, ] <- c(normal.fit$par[1], exp(normal.fit$par[2]))
+#     ssq[i, "normal"] <- normal.fit$value
+#     
+#     lprob <- 0.000001
+#     if(is.infinite(lower[i])){
+#       lower[i] <- stats::qnorm(lprob, normal.parameters[i,1],normal.parameters[i,2])
+#       upper[i] <- stats::qnorm(1-lprob, normal.parameters[i,1],normal.parameters[i,2])
+#     }
+#     
+#     
+#     t.fit <- stats::optim(c(m, 0.5 * log(v)), t_error_mod, 
+#                           values = vals[inc, i], probabilities = probs[inc, 
+#                                                                        i], weights = weights[inc, i], degreesfreedom = tdf[i], 
+#                           mode = mode[i],trunc = trunc)
+#     t.parameters[i, 1:2] <- c(t.fit$par[1], exp(t.fit$par[2]))
+#     t.parameters[i, 3] <- tdf[i]
+#     ssq[i, "t"] <- t.fit$value
+#     if (lower[i] == 0) { #Can't use the distribtuions as they are shifted distributions if lower not equal to 0
+#       vals.scaled1 <- vals[inc, i] - lower[i]
+#       m.scaled1 <- m - lower[i]
+#      # browser()
+#       gamma.fit <- stats::optim(c(log(m.scaled1^2/v), log(m.scaled1/v)), 
+#                                 gamma.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+#                                                                                               i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
+#       gamma.parameters[i, ] <- exp(gamma.fit$par)
+#       ssq[i, "gamma"] <- gamma.fit$value
+#       std <- ((log(u - lower[i]) - log(l - lower[i]))/1.35)
+#       mlog <- (log(minvals - lower[i]) * maxq - log(maxvals - 
+#                                                       lower[i]) * minq)/(maxq - minq)
+#       lognormal.fit <- stats::optim(c(mlog, log(std)), 
+#                                     lognormal.error_mod, values = vals.scaled1, probabilities = probs[inc, 
+#                                                                                                       i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
+#       lognormal.parameters[i, 1:2] <- c(lognormal.fit$par[1], 
+#                                         exp(lognormal.fit$par[2]))
+#       ssq[i, "lognormal"] <- lognormal.fit$value
+#       logt.fit <- stats::optim(c(log(m.scaled1), log(std)), 
+#                                logt.error, values = vals.scaled1, probabilities = probs[inc, 
+#                                                                                         i], weights = weights[inc, i], degreesfreedom = tdf[i])
+#       logt.parameters[i, 1:2] <- c(logt.fit$par[1], exp(logt.fit$par[2]))
+#       logt.parameters[i, 3] <- tdf[i]
+#       ssq[i, "logt"] <- Inf#logt.fit$value
+#     }
+#     if ((lower[i] ==0) & (upper[i] < Inf)) {#Can't use the distribtuions as they are shifted distributions if lower not equal to 0
+#       vals.scaled2 <- (vals[inc, i] - lower[i])/(upper[i] - 
+#                                                    lower[i])
+#       m.scaled2 <- (m - lower[i])/(upper[i] - lower[i])
+#       v.scaled2 <- v/(upper[i] - lower[i])^2
+#       alp <- abs(m.scaled2^3/v.scaled2 * (1/m.scaled2 - 
+#                                             1) - m.scaled2)
+#       bet <- abs(alp/m.scaled2 - alp)
+#       if (identical(probs[inc, i], (vals[inc, i] - lower[i])/(upper[i] - 
+#                                                               lower[i]))) {
+#         alp <- bet <- 1
+#       }
+#       beta.fit <- stats::optim(c(log(alp), log(bet)), beta.error_mod, 
+#                                values = vals.scaled2, probabilities = probs[inc, 
+#                                                                             i], weights = weights[inc, i], mode = mode[i], lower = lower[i], upper = upper[i])
+#       beta.parameters[i, ] <- exp(beta.fit$par)
+#       
+# 
+#       ssq[i, "beta"] <- beta.fit$value
+# 
+#     }
+#     if (upper[i] < Inf) {
+#       valsMirrored <- upper[i] - vals[inc, i]
+#       probsMirrored <- 1 - probs[inc, i]
+#       mMirrored <- upper[i] - m
+#       mirrorgamma.fit <- stats::optim(c(log(mMirrored^2/v), 
+#                                         log(mMirrored/v)), gamma.error, values = valsMirrored, 
+#                                       probabilities = probsMirrored, weights = weights[inc, 
+#                                                                                        i])
+#       mirrorgamma.parameters[i, ] <- exp(mirrorgamma.fit$par)
+#       ssq[i, "mirrorgamma"] <- Inf #mirrorgamma.fit$value
+#       mlogMirror <- (log(upper[i] - maxvals) * (1 - minq) - 
+#                        log(upper[i] - minvals) * (1 - maxq))/(maxq - 
+#                                                                 minq)
+#       stdMirror <- ((log(upper[i] - l) - log(upper[i] - 
+#                                                u))/1.35)
+#       mirrorlognormal.fit <- optim(c(mlogMirror, log(stdMirror)), 
+#                                    lognormal.error, values = valsMirrored, probabilities = probsMirrored, 
+#                                    weights = weights[inc, i])
+#       mirrorlognormal.parameters[i, 1:2] <- c(mirrorlognormal.fit$par[1], 
+#                                               exp(mirrorlognormal.fit$par[2]))
+#       ssq[i, "mirrorlognormal"] <- mirrorlognormal.fit$value
+#       mirrorlogt.fit <- stats::optim(c(log(mMirrored), 
+#                                        log(stdMirror)), logt.error, values = valsMirrored, 
+#                                      probabilities = probsMirrored, weights = weights[inc, 
+#                                                                                       i], degreesfreedom = tdf[i])
+#       mirrorlogt.parameters[i, 1:2] <- c(mirrorlogt.fit$par[1], 
+#                                          exp(mirrorlogt.fit$par[2]))
+#       mirrorlogt.parameters[i, 3] <- tdf[i]
+#       ssq[i, "mirrorlogt"] <- Inf#mirrorlogt.fit$value
+#     }
+#  }
+#   
+#   limits <- data.frame(lower = lower, upper = upper)
+#   row.names(limits) <- expertnames
+#   
+#   dfn <- data.frame(normal.parameters)
+#   names(dfn) <- c("mean", "sd")
+#   row.names(dfn) <- expertnames
+#   dft <- data.frame(t.parameters)
+#   names(dft) <- c("location", "scale", "df")
+#   row.names(dft) <- expertnames
+#   dfg <- data.frame(gamma.parameters)
+#   names(dfg) <- c("shape", "rate")
+#   row.names(dfg) <- expertnames
+#   dfmirrorg <- data.frame(mirrorgamma.parameters)
+#   names(dfmirrorg) <- c("shape", "rate")
+#   row.names(dfmirrorg) <- expertnames
+#   dfln <- data.frame(lognormal.parameters)
+#   names(dfln) <- c("mean.log.X", "sd.log.X")
+#   row.names(dfln) <- expertnames
+#   dfmirrorln <- data.frame(mirrorlognormal.parameters)
+#   names(dfmirrorln) <- c("mean.log.X", "sd.log.X")
+#   row.names(dfmirrorln) <- expertnames
+#   dflt <- data.frame(logt.parameters)
+#   names(dflt) <- c("location.log.X", "scale.log.X", "df.log.X")
+#   row.names(dflt) <- expertnames
+#   dfmirrorlt <- data.frame(mirrorlogt.parameters)
+#   names(dfmirrorlt) <- c("location.log.X", "scale.log.X", "df.log.X")
+#   row.names(dfmirrorlt) <- expertnames
+#   dfb <- data.frame(beta.parameters)
+#   names(dfb) <- c("shape1", "shape2")
+#   row.names(dfb) <- expertnames
+#   ssq <- data.frame(ssq)
+#   row.names(ssq) <- expertnames
+#   if (excludelog.mirror) {
+#     reducedssq <- ssq[, c("normal", "t", "gamma", "lognormal", 
+#                           "beta")]
+#     index <- apply(reducedssq, 1, which.min)
+#     best.fitting <- data.frame(best.fit = names(reducedssq)[index])
+#   }
+#   else {
+#     index <- apply(ssq, 1, which.min)
+#     best.fitting <- data.frame(best.fit = names(ssq)[index])
+#   }
+#   row.names(best.fitting) <- expertnames
+#   vals <- data.frame(vals)
+#   names(vals) <- expertnames
+#   probs <- data.frame(probs)
+#   names(probs) <- expertnames
+#   fit <- list(Normal = dfn, Student.t = dft, Gamma = dfg, Log.normal = dfln, 
+#               Log.Student.t = dflt, Beta = dfb, mirrorgamma = dfmirrorg, 
+#               mirrorlognormal = dfmirrorln, mirrorlogt = dfmirrorlt, 
+#               ssq = ssq, best.fitting = best.fitting, vals = t(vals), 
+#               probs = t(probs), limits = limits)
+#   class(fit) <- "elicitation"
+#   fit
+# }
+# 
 
 
 fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1, 
-                         tdf = 3, expertnames = NULL, excludelog.mirror = TRUE, mode = NULL, trunc = FALSE){
-    if (is.matrix(vals) == F) {
+                         tdf = 3, expertnames = NULL, mode = NULL, trunc = FALSE){
+  if (is.matrix(vals) == F) {
     vals <- matrix(vals, nrow = length(vals), ncol = 1)
   }
   if (is.matrix(probs) == F) {
@@ -408,16 +640,14 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
   n.experts <- ncol(vals)
   normal.parameters <- matrix(NA, n.experts, 2)
   t.parameters <- matrix(NA, n.experts, 3)
-  mirrorgamma.parameters <- gamma.parameters <- matrix(NA, 
-                                                       n.experts, 2)
-  mirrorlognormal.parameters <- lognormal.parameters <- matrix(NA, 
-                                                               n.experts, 2)
-  mirrorlogt.parameters <- logt.parameters <- matrix(NA, n.experts, 
-                                                     3)
+  #mirrorgamma.parameters <- gamma.parameters <- matrix(NA,n.experts, 2)
+  gamma.parameters <- matrix(NA,n.experts, 2)
+  #mirrorlognormal.parameters <- lognormal.parameters <- matrix(NA,n.experts, 2)
+  lognormal.parameters <- matrix(NA,n.experts, 2)
+  #mirrorlogt.parameters <- logt.parameters <- matrix(NA, n.experts,3)
   beta.parameters <- matrix(NA, n.experts, 2)
-  ssq <- matrix(NA, n.experts, 9)
-  colnames(ssq) <- c("normal", "t", "gamma", "lognormal", "logt", 
-                     "beta", "mirrorgamma", "mirrorlognormal", "mirrorlogt")
+  ssq <- matrix(NA, n.experts, 5)
+  colnames(ssq) <- c("normal", "t", "gamma", "lognormal", "beta" )
   if (n.experts > 1 & n.experts < 27 & is.null(expertnames)) {
     expertnames <- paste("expert.", LETTERS[1:n.experts], 
                          sep = "")
@@ -425,7 +655,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
   if (n.experts > 27 & is.null(expertnames)) {
     expertnames <- paste("expert.", 1:n.experts, sep = "")
   }
- for (i in 1:n.experts) {
+  for (i in 1:n.experts) {
     # if (min(probs[, i]) > 0.4) {
     #  stop("smallest elicited probability must be less than 0.4")
     # }
@@ -435,12 +665,12 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     #  if (max(probs[, i]) < 0.6) {
     #    stop("largest elicited probability must be greater than 0.6")
     #  }
-    if (min(vals[, i]) < lower[i]) {
-      stop("elicited parameter values cannot be smaller than lower parameter limit")
-    }
-    if (max(vals[, i]) > upper[i]) {
-      stop("elicited parameter values cannot be greater than upper parameter limit")
-    }
+    # if (min(vals[, i]) < lower[i]) {
+    #   stop("elicited parameter values cannot be smaller than lower parameter limit")
+    # }
+    # if (max(vals[, i]) > upper[i]) {
+    #   stop("elicited parameter values cannot be greater than upper parameter limit")
+    # }
     if (tdf[i] <= 0) {
       stop("Student-t degrees of freedom must be greater than 0")
     }
@@ -456,8 +686,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     minvals <- min(vals[inc, i])
     maxvals <- max(vals[inc, i])
     
-    q.fit <- stats::approx(x = probs[inc, i], y = vals[inc, 
-                                                       i], xout = c(0.4, 0.5, 0.6))$y
+    q.fit <- stats::approx(x = probs[inc, i], y = vals[inc,i], xout = c(0.4, 0.5, 0.6))$y
     l <- q.fit[1]
     u <- q.fit[3]
     minq <- stats::qnorm(minprob)
@@ -465,10 +694,9 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     
     m <- (minvals * maxq - maxvals * minq)/(maxq - minq)
     v <- ((maxvals - minvals)/(maxq - minq))^2
-    #browser()
+    
     normal.fit <- stats::optim(c(m, 0.5 * log(v)), normal.error_mod, 
-                               values = vals[inc, i], probabilities = probs[inc, 
-                                                                            i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
+                               values = vals[inc, i], probabilities = probs[inc,i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
     normal.parameters[i, ] <- c(normal.fit$par[1], exp(normal.fit$par[2]))
     ssq[i, "normal"] <- normal.fit$value
     
@@ -489,7 +717,7 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
     if (lower[i] == 0) { #Can't use the distribtuions as they are shifted distributions if lower not equal to 0
       vals.scaled1 <- vals[inc, i] - lower[i]
       m.scaled1 <- m - lower[i]
-     # browser()
+      # browser()
       gamma.fit <- stats::optim(c(log(m.scaled1^2/v), log(m.scaled1/v)), 
                                 gamma.error_mod, values = vals.scaled1, probabilities = probs[inc, 
                                                                                               i], weights = weights[inc, i], mode = mode[i],trunc = trunc)
@@ -504,12 +732,12 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
       lognormal.parameters[i, 1:2] <- c(lognormal.fit$par[1], 
                                         exp(lognormal.fit$par[2]))
       ssq[i, "lognormal"] <- lognormal.fit$value
-      logt.fit <- stats::optim(c(log(m.scaled1), log(std)), 
-                               logt.error, values = vals.scaled1, probabilities = probs[inc, 
-                                                                                        i], weights = weights[inc, i], degreesfreedom = tdf[i])
-      logt.parameters[i, 1:2] <- c(logt.fit$par[1], exp(logt.fit$par[2]))
-      logt.parameters[i, 3] <- tdf[i]
-      ssq[i, "logt"] <- Inf#logt.fit$value
+      # logt.fit <- stats::optim(c(log(m.scaled1), log(std)), 
+      #                          logt.error, values = vals.scaled1, probabilities = probs[inc, 
+      #                                                                                   i], weights = weights[inc, i], degreesfreedom = tdf[i])
+      # logt.parameters[i, 1:2] <- c(logt.fit$par[1], exp(logt.fit$par[2]))
+      # logt.parameters[i, 3] <- tdf[i]
+      # ssq[i, "logt"] <- Inf#logt.fit$value
     }
     if ((lower[i] ==0) & (upper[i] < Inf)) {#Can't use the distribtuions as they are shifted distributions if lower not equal to 0
       vals.scaled2 <- (vals[inc, i] - lower[i])/(upper[i] - 
@@ -528,41 +756,41 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
                                                                             i], weights = weights[inc, i], mode = mode[i], lower = lower[i], upper = upper[i])
       beta.parameters[i, ] <- exp(beta.fit$par)
       
-
+      
       ssq[i, "beta"] <- beta.fit$value
-
+      
     }
-    if (upper[i] < Inf) {
-      valsMirrored <- upper[i] - vals[inc, i]
-      probsMirrored <- 1 - probs[inc, i]
-      mMirrored <- upper[i] - m
-      mirrorgamma.fit <- stats::optim(c(log(mMirrored^2/v), 
-                                        log(mMirrored/v)), gamma.error, values = valsMirrored, 
-                                      probabilities = probsMirrored, weights = weights[inc, 
-                                                                                       i])
-      mirrorgamma.parameters[i, ] <- exp(mirrorgamma.fit$par)
-      ssq[i, "mirrorgamma"] <- Inf #mirrorgamma.fit$value
-      mlogMirror <- (log(upper[i] - maxvals) * (1 - minq) - 
-                       log(upper[i] - minvals) * (1 - maxq))/(maxq - 
-                                                                minq)
-      stdMirror <- ((log(upper[i] - l) - log(upper[i] - 
-                                               u))/1.35)
-      mirrorlognormal.fit <- optim(c(mlogMirror, log(stdMirror)), 
-                                   lognormal.error, values = valsMirrored, probabilities = probsMirrored, 
-                                   weights = weights[inc, i])
-      mirrorlognormal.parameters[i, 1:2] <- c(mirrorlognormal.fit$par[1], 
-                                              exp(mirrorlognormal.fit$par[2]))
-      ssq[i, "mirrorlognormal"] <- mirrorlognormal.fit$value
-      mirrorlogt.fit <- stats::optim(c(log(mMirrored), 
-                                       log(stdMirror)), logt.error, values = valsMirrored, 
-                                     probabilities = probsMirrored, weights = weights[inc, 
-                                                                                      i], degreesfreedom = tdf[i])
-      mirrorlogt.parameters[i, 1:2] <- c(mirrorlogt.fit$par[1], 
-                                         exp(mirrorlogt.fit$par[2]))
-      mirrorlogt.parameters[i, 3] <- tdf[i]
-      ssq[i, "mirrorlogt"] <- Inf#mirrorlogt.fit$value
-    }
- }
+    # if (upper[i] < Inf) {
+    #   valsMirrored <- upper[i] - vals[inc, i]
+    #   probsMirrored <- 1 - probs[inc, i]
+    #   mMirrored <- upper[i] - m
+    #   mirrorgamma.fit <- stats::optim(c(log(mMirrored^2/v), 
+    #                                     log(mMirrored/v)), gamma.error, values = valsMirrored, 
+    #                                   probabilities = probsMirrored, weights = weights[inc, 
+    #                                                                                    i])
+    #   mirrorgamma.parameters[i, ] <- exp(mirrorgamma.fit$par)
+    #   ssq[i, "mirrorgamma"] <- Inf #mirrorgamma.fit$value
+    #   mlogMirror <- (log(upper[i] - maxvals) * (1 - minq) - 
+    #                    log(upper[i] - minvals) * (1 - maxq))/(maxq - 
+    #                                                             minq)
+    #   stdMirror <- ((log(upper[i] - l) - log(upper[i] - 
+    #                                            u))/1.35)
+    #   mirrorlognormal.fit <- optim(c(mlogMirror, log(stdMirror)), 
+    #                                lognormal.error, values = valsMirrored, probabilities = probsMirrored, 
+    #                                weights = weights[inc, i])
+    #   mirrorlognormal.parameters[i, 1:2] <- c(mirrorlognormal.fit$par[1], 
+    #                                           exp(mirrorlognormal.fit$par[2]))
+    #   ssq[i, "mirrorlognormal"] <- mirrorlognormal.fit$value
+    #   mirrorlogt.fit <- stats::optim(c(log(mMirrored), 
+    #                                    log(stdMirror)), logt.error, values = valsMirrored, 
+    #                                  probabilities = probsMirrored, weights = weights[inc, 
+    #                                                                                   i], degreesfreedom = tdf[i])
+    #   mirrorlogt.parameters[i, 1:2] <- c(mirrorlogt.fit$par[1], 
+    #                                      exp(mirrorlogt.fit$par[2]))
+    #   mirrorlogt.parameters[i, 3] <- tdf[i]
+    #   ssq[i, "mirrorlogt"] <- Inf#mirrorlogt.fit$value
+    # }
+  }
   
   limits <- data.frame(lower = lower, upper = upper)
   row.names(limits) <- expertnames
@@ -576,49 +804,59 @@ fitdist_mod <- function (vals, probs, lower = -Inf, upper = Inf, weights = 1,
   dfg <- data.frame(gamma.parameters)
   names(dfg) <- c("shape", "rate")
   row.names(dfg) <- expertnames
-  dfmirrorg <- data.frame(mirrorgamma.parameters)
-  names(dfmirrorg) <- c("shape", "rate")
-  row.names(dfmirrorg) <- expertnames
+  # dfmirrorg <- data.frame(mirrorgamma.parameters)
+  # names(dfmirrorg) <- c("shape", "rate")
+  # row.names(dfmirrorg) <- expertnames
   dfln <- data.frame(lognormal.parameters)
   names(dfln) <- c("mean.log.X", "sd.log.X")
   row.names(dfln) <- expertnames
-  dfmirrorln <- data.frame(mirrorlognormal.parameters)
-  names(dfmirrorln) <- c("mean.log.X", "sd.log.X")
-  row.names(dfmirrorln) <- expertnames
-  dflt <- data.frame(logt.parameters)
-  names(dflt) <- c("location.log.X", "scale.log.X", "df.log.X")
-  row.names(dflt) <- expertnames
-  dfmirrorlt <- data.frame(mirrorlogt.parameters)
-  names(dfmirrorlt) <- c("location.log.X", "scale.log.X", "df.log.X")
-  row.names(dfmirrorlt) <- expertnames
+  # dfmirrorln <- data.frame(mirrorlognormal.parameters)
+  # names(dfmirrorln) <- c("mean.log.X", "sd.log.X")
+  # row.names(dfmirrorln) <- expertnames
+  # dflt <- data.frame(logt.parameters)
+  # names(dflt) <- c("location.log.X", "scale.log.X", "df.log.X")
+  # row.names(dflt) <- expertnames
+  # dfmirrorlt <- data.frame(mirrorlogt.parameters)
+  # names(dfmirrorlt) <- c("location.log.X", "scale.log.X", "df.log.X")
+  # row.names(dfmirrorlt) <- expertnames
   dfb <- data.frame(beta.parameters)
   names(dfb) <- c("shape1", "shape2")
   row.names(dfb) <- expertnames
   ssq <- data.frame(ssq)
   row.names(ssq) <- expertnames
-  if (excludelog.mirror) {
-    reducedssq <- ssq[, c("normal", "t", "gamma", "lognormal", 
-                          "beta")]
-    index <- apply(reducedssq, 1, which.min)
-    best.fitting <- data.frame(best.fit = names(reducedssq)[index])
-  }
-  else {
+  # if (excludelog.mirror) {
+  #   reducedssq <- ssq[, c("normal", "t", "gamma", "lognormal","beta")]
+  #   index <- apply(reducedssq, 1, which.min)
+  #   best.fitting <- data.frame(best.fit = names(reducedssq)[index])
+  # }
+  # else {
     index <- apply(ssq, 1, which.min)
     best.fitting <- data.frame(best.fit = names(ssq)[index])
-  }
+  # }
   row.names(best.fitting) <- expertnames
   vals <- data.frame(vals)
   names(vals) <- expertnames
   probs <- data.frame(probs)
   names(probs) <- expertnames
-  fit <- list(Normal = dfn, Student.t = dft, Gamma = dfg, Log.normal = dfln, 
-              Log.Student.t = dflt, Beta = dfb, mirrorgamma = dfmirrorg, 
-              mirrorlognormal = dfmirrorln, mirrorlogt = dfmirrorlt, 
-              ssq = ssq, best.fitting = best.fitting, vals = t(vals), 
-              probs = t(probs), limits = limits)
+  fit <- list(Normal = dfn,
+              Student.t = dft,
+              Gamma = dfg, 
+              Log.normal = dfln, 
+              #Log.Student.t = dflt,
+              Beta = dfb,
+              # mirrorgamma = dfmirrorg, 
+              # mirrorlognormal = dfmirrorln,
+              # mirrorlogt = dfmirrorlt, 
+              ssq = ssq,
+              best.fitting = best.fitting, 
+              vals = t(vals), 
+              probs = t(probs),
+              limits = limits)
   class(fit) <- "elicitation"
   fit
 }
+
+
 
 
 
@@ -637,9 +875,9 @@ plotfit <- function (fit, d = "best", xl = -Inf, xu = Inf, ql = NA, qu = NA,
   if (d == "lognormal" & min(fit$limits) == -Inf) {
     stop("Lower parameter limit must be finite to fit a (shifted) log normal distribution")
   }
-  if (d == "logt" & min(fit$limits) == -Inf) {
-    stop("Lower parameter limit must be finite to fit a (shifted) log t distribution")
-  }
+  # if (d == "logt" & min(fit$limits) == -Inf) {
+  #   stop("Lower parameter limit must be finite to fit a (shifted) log t distribution")
+  # }
   if (is.na(ql) == F & (ql < 0 | ql > 1)) {
     stop("Lower feedback quantile must be between 0 and 1")
   }

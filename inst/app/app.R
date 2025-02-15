@@ -37,7 +37,7 @@
                      p("Data should have the following columns: time and status. If your data has two treatment arms please include an arm column."),
                      numericInput("n_expert", "Number of Experts", value = 1, min = 1),
                      numericInput("n_timepoint", "Number of Timepoints", value = 1,min = 1,  max = 2),
-                     numericInput("xlim", "Limit of x-axis on Kaplan-Meier curve", value = round(10,digits = 0)),
+                     numericInput("xlim", "Limit of x-axis on Survival Plot", value = round(10,digits = 0)),
                      checkboxInput(inputId ="expert_opt", label = "Show Advanced options for expert opinion", value = FALSE),
                      checkboxInput(inputId ="MLV_opt", label = "Include Most Likely Values (MLV)", value = FALSE),
                      selectInput(inputId ="pool_type_eval", label = "Pooling approach for experts", 
@@ -242,7 +242,7 @@
     
     observeEvent({input$update_expert},{
       if(length(input$variables) >= 2 ){
-        df_work <- value$df_upload %>% dplyr::select(!!!input$variables)
+        df_work <- dplyr::select(value$df_upload, !!!input$variables)
         
         #browser()    
         if(length(input$variables) == 2){
@@ -283,7 +283,7 @@
           
           km.data <- NULL
           for(i in unique(df_work$arm)){
-            df_temp <- df_work %>% filter(arm == i)
+            df_temp <-  filter(df_work, arm == i)
             result.km_temp <- survfit(Surv(time, status) ~ 1, data = df_temp, conf.type="log-log")
             km.data_temp <- data.frame(cbind(result.km_temp[[c("time")]],
                                              result.km_temp[[c("surv")]],
@@ -303,13 +303,13 @@
         }
         
         colnames(km.data) <- c("Time", "Survival", "upper", "lower", "arm")
-        
+        #browser()
         value$km.data <- km.data
         value$df_work <- df_work
         value$id_trt <- input$id_trt
         #Need to adjust for arm
         
-        plot_fit <- ggplot(value$km.data, aes(x = Time,y =Survival, col = factor(arm)))+
+        plot_fit <- ggplot2::ggplot(value$km.data, aes(x = Time,y =Survival, col = factor(arm)))+
           geom_step()+
           ylim(0,1)+
           xlim(0, input$xlim)+
@@ -349,7 +349,8 @@
             value[[paste0("expert_plot",i)]] <- output_pool[[2]]
             times_expert = input[[paste0("time",i)]]
             times_expert_vec <- c(times_expert_vec, times_expert)
-            df.curr <-  subset(output_pool[[2]]$data, ftype == input$pool_type_eval) %>% rename(y = x)
+            df.curr <-  subset(output_pool[[2]]$data, ftype == input$pool_type_eval)
+            df.curr <- rename(df.curr,y = x)
             
             scale_vec <- c(scale_vec,final_scale*(input$xlim-times_expert)/max(df.curr$fx))
             df.linear[[i]] <- df.curr
@@ -358,8 +359,7 @@
           }
           
           for(i in 1:input$n_timepoint){
-            df.linear[[i]] <- df.linear[[i]] %>% 
-              mutate(x = times_expert_vec[i] + fx*min(scale_vec), 
+            df.linear[[i]] <- mutate(df.linear[[i]],x = times_expert_vec[i] + fx*min(scale_vec), 
                      times_expert = times_expert_vec[i])
             df.linear_all <- rbind(df.linear_all, df.linear[[i]])
           }

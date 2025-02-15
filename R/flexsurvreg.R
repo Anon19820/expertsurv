@@ -923,9 +923,10 @@ compress.model.matrices <- function(mml){
 ##' ## should give same answer
 ##' @noRd
 flexsurvreg <- function(formula, anc=NULL, data, weights, bhazard, rtrunc, subset, na.action, dist,
-                        inits, fixedpars=NULL, dfns=NULL, aux=NULL, cl=0.95,
+                        inits= NULL, fixedpars=NULL, dfns=NULL, aux=NULL, cl=0.95,
                         integ.opts=NULL, sr.control=survreg.control(), hessian=TRUE, hess.control=NULL,expert_opinion = NULL, ...)
 {
+
     call <- match.call()
     if (missing(data)) data <- NULL
     if (missing(dist)) stop("Distribution \"dist\" not specified")
@@ -982,6 +983,10 @@ flexsurvreg <- function(formula, anc=NULL, data, weights, bhazard, rtrunc, subse
     ncoveffs <- ncol(X)
     nbpars <- length(parnames) # number of baseline parameters
     npars <- nbpars + ncoveffs
+	if (is.null(inits)) {
+	inits <- rep(NA,npars)
+	}
+
 
     if (missing(inits) && is.null(dlist$inits))
         stop("\"inits\" not supplied, and no function to estimate them found in the custom distribution list")

@@ -37,6 +37,37 @@ functions {
   }
 
 
+// Defines the numerical derivative
+  real derivative(vector gamma, row_vector B, real linpred) {
+	vector[num_elements(gamma) + 1] f_plus;
+	vector[num_elements(gamma) + 1] f_minus;
+	vector[num_elements(gamma) + 1] deriv_vec;
+    vector[num_elements(gamma)] gamma_temp1;
+	vector[num_elements(gamma)] gamma_temp2;
+	int n_param;
+	real epsilon;
+	n_param = num_elements(gamma)+1;
+	epsilon = 0.001;
+	
+	
+	 for (i in 1:(n_param-1)){
+		gamma_temp1 = gamma;
+		gamma_temp2 = gamma;
+		gamma_temp1[i] = gamma_temp1[i]+epsilon;
+		gamma_temp2[i] = gamma_temp2[i]-epsilon;
+		f_plus[i] = Sind(gamma_temp1, B, linpred); 
+		f_minus[i] = Sind(gamma_temp2, B, linpred); 
+		deriv_vec[i] = abs((f_plus[i] - f_minus[i]) / (2 * epsilon));
+	 }
+		f_plus[n_param] = Sind(gamma, B,linpred+epsilon); 
+		f_minus[n_param] = Sind(gamma, B,linpred-epsilon); 
+		deriv_vec[n_param] = abs((f_plus[n_param] - f_minus[n_param]) / (2 * epsilon));
+	
+    
+    return sum(deriv_vec);
+  }
+
+
   real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
 
@@ -126,6 +157,7 @@ data {
 
   matrix[n_time_expert,M+2] B_expert;                  // matrix with basis for experts times
   vector[n] a0; //Power prior for the observations
+  int expert_only;
 }
 
 
@@ -155,9 +187,10 @@ model {
   // Priors
   gamma ~ normal(mu_gamma,sigma_gamma);
   beta ~ normal(mu_beta,sigma_beta);
-
+if(expert_only == 0){
   // Data model
   t ~ rps(d,gamma,B,DB,X*beta, a0);
+}
 
   for (i in 1:n_time_expert){
 
@@ -165,7 +198,12 @@ model {
                                  St_expert[i],
                                  n_experts[i],
                                  pool_type);
-  }
+  }  
+    //if(St_indic == 1){
+		//target += log(derivative(gamma, row(B_expert,1),mu[id_St]));
+	 //}
+
+  
 }
 
 "

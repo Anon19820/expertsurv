@@ -16,36 +16,43 @@
 #' @references Baio (2020). survHE
 #' @keywords MLE
 #' @noRd 
-make_sim_mle <- function(m,t,X,nsim,newdata,dist,summary_stat,...) {
-  # Simulates from the distribution of the model parameters - takes 100000 bootstrap samples
-  nboot=100000
-  B=ifelse(nsim<nboot,nboot,nsim)
-  if(is.null(newdata)) {
-    #####X=X %>% as_tibble()
-    # NB: 'flexsurv' needs to exclude the intercept
-    if(grep("Intercept",colnames(X))>0) {
-      # If the intercept is part of the design matrix X then remove it (to make normboot work!)
-      X=matrix(X[,-grep("Intercept",colnames(X))],nrow=nrow(X))
-    } 
-    # If X has only one row, needs to create a list, with length equal to the number of profiles (=nrow(X))
-    if(nrow(X)==1) {
-      sim=list(normboot.flexsurvreg(m,B=B,X=as.matrix(X)))
-    } else {
-      # Otherwise normboot will take care of it with the proper length for the automatically created list
-      sim=normboot.flexsurvreg(m,B=B,X=as.matrix(X))
-    }
-  } else {
-    # If there are newdata, then create the list of sims using it
-    sim <- lapply(1:nrow(X),function(i) normboot.flexsurvreg(m,B=B,newdata=newdata[[i]]))
+make_sim_mle <- function (m, t, X, nsim, newdata, dist, summary_stat, ...){
+  nboot = 1e+05
+  B = ifelse(nsim < nboot, nboot, nsim)
+  if(nsim == 1){
+    mle_val = TRUE
+  }else{
+    mle_val = FALSE
+    
   }
-  # Then if 'nsim'=1, then take the average over the bootstrap samples. 
-  if(nsim==1) {
-    sim=lapply(sim,function(x) x %>% tibble::as_tibble() %>% dplyr::summarise_all(summary_stat) %>% as.matrix(.,ncol=ncol(X)))
-  } 
-  # If nsim<=5000 (number of bootstrap samples), then samples only 'nsim' of them
-  if(nsim>1 & nsim<nboot) {
-    sim=lapply(sim,function(x) x %>% tibble::as_tibble() %>% dplyr::sample_n(ifelse(nsim<nboot,nsim,B),replace=FALSE) %>% 
-                 as.matrix(.,nrow=nsim,ncol=ncol(X)))
+  if (is.null(newdata)) {
+    if (grep("Intercept", colnames(X)) > 0) {
+      X = matrix(X[, -grep("Intercept", colnames(X))], 
+                 nrow = nrow(X))
+    }
+    if (nrow(X) == 1) {
+      # mat_eval <- matrix(m$res[,"est"],nrow = 1)
+      # colnames(mat_eval) <- rownames(m$res)
+      # sim = list(mat_eval)
+      sim=list(normboot.flexsurvreg(m,B=B,X=as.matrix(X), MLE = mle_val))
+    }
+    else {
+      sim = normboot.flexsurvreg(m, B = B, X = as.matrix(X), MLE = mle_val)
+    }
+  }
+  else {
+    sim <- lapply(1:nrow(X), function(i) normboot.flexsurvreg(m, 
+                                                              B = B, newdata = newdata[[i]]))
+  }
+  if (nsim == 1) {
+    sim = lapply(sim, function(x) x %>% tibble::as_tibble() %>% 
+                   dplyr::summarise_all(summary_stat) %>% as.matrix(., 
+                                                                    ncol = ncol(X)))
+  }
+  if (nsim > 1 & nsim < nboot) {
+    sim = lapply(sim, function(x) x %>% tibble::as_tibble() %>% 
+                   dplyr::sample_n(ifelse(nsim < nboot, nsim, B), replace = FALSE) %>% 
+                   as.matrix(., nrow = nsim, ncol = ncol(X)))
   }
   return(sim)
 }

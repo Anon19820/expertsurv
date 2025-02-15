@@ -11,11 +11,11 @@ inst/doc
 ^NAMESPACE_backup
 ^references-remove\.bib$
 ^Makefile$
-^Hexsticker.*\.png$
-^Hexsticker.*\.pptx$
-^hexsticker.*\.png$
-^hexsticker.*\.pptx$
-^hexsticker.*\.xcf
+^Hex/Hexsticker.*\.png$
+^Hex/Hexsticker.*\.pptx$
+^Hex/hexsticker.*\.png$
+^Hex/hexsticker.*\.pptx$
+^Hex/hexsticker.*\.xcf
 inst/app/www/hexsticker-large.png
 File-Size-Optimization.R
 /README_files/
@@ -34,4 +34,6 @@ inst/image/backup/Vignette_Example_1_DIC.png
 inst/image/backup/Vignette_Example_1_Expert_Opinion.png
 inst/image/backup/Vignette_Example_2.png
 inst/image/backup/Vignette_Example_3.png
+^Hex$
+^Future$
 

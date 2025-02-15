@@ -467,52 +467,67 @@ add.covs <- function(x, pars, beta, X, transform=FALSE){  ## TODO option to tran
 ##'     expertsurv:::normboot.flexsurvreg(fite, B=10, newdata=list(age=0))  ## closer to...
 ##'     fite$res
 ##' @noRd
-normboot.flexsurvreg <- function(x, B, newdata=NULL, X=NULL, transform=FALSE, raw=FALSE, tidy=FALSE, rawsim=NULL){
-    if (x$ncovs > 0 && !raw) {
-        if (is.null(X)) {
-            if (is.null(newdata)) stop("neither \"newdata\" nor \"X\" supplied")
-            X <- form.model.matrix(x, as.data.frame(newdata))
-        }
-    } else X <- as.matrix(0, nrow=1, ncol=1)
-    sim <- matrix(nrow=B, ncol=nrow(x$res))
-    colnames(sim) <- rownames(x$res)
-    if (is.na(x$cov[1])) stop("Covariance matrix not available from non-converged model")
-    if (is.null(rawsim)){
-      sim[,x$optpars] <- rmvnorm(B, x$opt$par, x$cov)
-      sim[,x$fixedpars] <- rep(x$res.t[x$fixedpars,"est"],each=B)
-      rawsim <- sim
-    } else {
-      sim <- rawsim
+normboot.flexsurvreg <- function (x, B, newdata = NULL, X = NULL, transform = FALSE, 
+          raw = FALSE, tidy = FALSE, rawsim = NULL,MLE = FALSE){
+  if (x$ncovs > 0 && !raw) {
+    if (is.null(X)) {
+      if (is.null(newdata)) 
+        stop("neither \"newdata\" nor \"X\" supplied")
+      X <- form.model.matrix(x, as.data.frame(newdata))
     }
-    if (x$ncovs > 0 && !raw){
-        beta <- sim[, x$covpars, drop=FALSE]
-        if (nrow(X)==1){
-            res <- sim[,x$dlist$pars,drop=FALSE]
-            res <- add.covs(x=x, pars=res, beta=beta, X=X, transform=transform)
-        }  else {
-            res <- vector(nrow(X), mode="list")
-            for (i in 1:nrow(X)) {
-                res[[i]] <- sim[,x$dlist$pars,drop=FALSE]
-                res[[i]] <- add.covs(x=x, pars=res[[i]], beta=beta, X=X[i,,drop=FALSE], transform=transform)
-            }
-        }
-    } else {
-        res <- sim
-        if (!transform){
-            for (j in seq_along(x$dlist$pars)){
-                res[,j] <- x$dlist$inv.transforms[[j]](res[,j])
-            }
-        }
+  }
+  else X <- as.matrix(0, nrow = 1, ncol = 1)
+  sim <- matrix(nrow = B, ncol = nrow(x$res))
+  colnames(sim) <- rownames(x$res)
+  if (is.na(x$cov[1])) 
+    stop("Covariance matrix not available from non-converged model")
+  if (is.null(rawsim)) {
+    
+    if(MLE){
+      sim[, x$optpars] <- matrix(rep(x$opt$par, B),nrow = B, byrow = TRUE)  
+    }else{
+      sim[, x$optpars] <- rmvnorm(B, x$opt$par, x$cov) 
     }
-    if (tidy && is.list(res)){
-        res <- cbind(covno = rep(1:nrow(X), each=B),
-                     repno = rep(1:B, nrow(X)),
-                     do.call("rbind", res))
-        res <- as.data.frame(res)
+    sim[, x$fixedpars] <- rep(x$res.t[x$fixedpars, "est"], 
+                              each = B)
+    rawsim <- sim
+  }
+  else {
+    sim <- rawsim
+  }
+  if (x$ncovs > 0 && !raw) {
+    beta <- sim[, x$covpars, drop = FALSE]
+    if (nrow(X) == 1) {
+      res <- sim[, x$dlist$pars, drop = FALSE]
+      res <- add.covs(x = x, pars = res, beta = beta, X = X, 
+                      transform = transform)
     }
-    attr(res, "X") <- X
-    attr(res, "rawsim") <- rawsim
-    res
+    else {
+      res <- vector(nrow(X), mode = "list")
+      for (i in 1:nrow(X)) {
+        res[[i]] <- sim[, x$dlist$pars, drop = FALSE]
+        res[[i]] <- add.covs(x = x, pars = res[[i]], 
+                             beta = beta, X = X[i, , drop = FALSE], transform = transform)
+      }
+    }
+  }
+  else {
+    res <- sim
+    if (!transform) {
+      for (j in seq_along(x$dlist$pars)) {
+        res[, j] <- x$dlist$inv.transforms[[j]](res[, 
+                                                    j])
+      }
+    }
+  }
+  if (tidy && is.list(res)) {
+    res <- cbind(covno = rep(1:nrow(X), each = B), repno = rep(1:B, 
+                                                               nrow(X)), do.call("rbind", res))
+    res <- as.data.frame(res)
+  }
+  attr(res, "X") <- X
+  attr(res, "rawsim") <- rawsim
+  res
 }
 
 ### Compute CIs for survival, cumulative hazard, hazard, or user

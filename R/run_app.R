@@ -15,6 +15,8 @@
 #' @author Philip Cooney <phcooney@@tcd.ie>
 #' @examples
 #' \dontrun{
+#' library("dplyr")
+#' library("ggplot2")
 #' elicit_surv()
 #' }
 elicit_surv <- function (compile_mods = compiled_models_saved){

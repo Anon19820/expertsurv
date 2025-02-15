@@ -59,57 +59,48 @@
 #'							iter = 50, 
 #'							compile_mods = expertsurv::compiled_models_saved)
 #'                               
-fit.models.expert <- function(formula = NULL, data, distr = NULL, method = "bayes", 
-                              expert_type = "survival", param_expert = NULL, ...){
+fit.models.expert <- function (formula = NULL, data, distr = NULL, method = "bayes", 
+          expert_type = "survival", param_expert = NULL, ...){
   exArgs <- list(...)
-  
-
-  #will need to be modified
   exArgs$formula <- formula
   exArgs$data = data
   exArgs$param_expert <- param_expert
-  if(!is.null(expert_type) && method == "inla"){
+  if (!is.null(expert_type) && method == "inla") {
     warning("Expert Opinion is not implemented with the inla method")
     stop()
   }
-  
-  if(!is.null(expert_type) && is.null(param_expert)){
+  if (!is.null(expert_type) && is.null(param_expert)) {
     warning("You have not specified any expert opinions using the param_expert argument - Evaluating survival model without expert opinion")
     exArgs$times_expert <- 1
     param_expert_vague <- list()
-    param_expert_vague[[1]] <- data.frame(dist = "beta", wi = 1, param1 = 1, param2 = 1, param2 = NA)
+    param_expert_vague[[1]] <- data.frame(dist = "beta", 
+                                          wi = 1, param1 = 1, param2 = 1, param2 = NA)
     param_expert <- param_expert_vague
     exArgs$param_expert <- param_expert
     exArgs$opinion_type <- "survival"
+    exArgs$mle_vague <- TRUE
   }
-  
-  if(!is.null(expert_type) && expert_type != "survival" && any(distr == "rps")){
+  if (!is.null(expert_type) && expert_type != "survival" && 
+      any(distr == "rps")) {
     warning("Mean Difference is not implemented for RPS models")
     stop()
   }
-  
-  if(method == "bayes" && any(distr == "genf")){
+  if (method == "bayes" && any(distr == "genf")) {
     warning("Generalized F models are implemented")
     stop()
   }
-  
-  
-  if(is.null(exArgs$pool_type)){
-    nrow_vec <- rep(NA,length(param_expert))
-    for(i in 1:length(param_expert)){
+  if (is.null(exArgs$pool_type)) {
+    nrow_vec <- rep(NA, length(param_expert))
+    for (i in 1:length(param_expert)) {
       nrow_vec[i] <- nrow(param_expert[[i]])
     }
-    
-    if(any(nrow_vec>1)){
+    if (any(nrow_vec > 1)) {
       warning("Assuming Linear pooling for the multiple expert opinions")
     }
-    exArgs$pool_type <-"linear pool"
+    exArgs$pool_type <- "linear pool"
   }
-  
-  
-  
-  
-  fit.models(formula = formula, data = data, distr = distr, method = method, exArgs = exArgs)
+  fit.models(formula = formula, data = data, distr = distr, 
+             method = method, exArgs = exArgs)
 }
 
 
@@ -178,10 +169,15 @@ runBAYES <- function (x, exArgs){
   availables <- load_availables()
   d3 <- manipulate_distributions(x)$distr3
   method <- "bayes"
+    if (exists("expert_only", where = exArgs)) {
+    expert_only <- as.numeric(exArgs$expert_only)
+	}else{
+	expert_only <- 0
+	}
+  
   if (exists("chains", where = exArgs)) {
     chains <- exArgs$chains
-  }
-  else {
+  }  else {
     chains <- 2
   }
   if (exists("iter", where = exArgs)) {
@@ -249,7 +245,15 @@ runBAYES <- function (x, exArgs){
     iter_jags <- iter*5
   }
   if (exists("init", where = exArgs)) {
-    if(d3%in% names(exArgs$init) ){
+  names_init   <- names(exArgs$init)
+  names_d3 <- rep(NA, length(names_init))
+  names_init_list <- sapply(names_init,FUN = manipulate_distributions)
+  
+  for(i in 1:length(names_d3)){
+    names_d3[i] <-  names_init_list[,i]$distr3
+  }
+  names(exArgs$init) <- names_d3
+  if(d3%in% names(exArgs$init) ){
       init <- exArgs$init[[d3]] 
     }else{
       init = "random"
@@ -291,17 +295,32 @@ runBAYES <- function (x, exArgs){
   if (d3 %in% c("gam", "gga", "gom")){
     data.jags <- data.stan
     if(d3 %in% c( "gom")){
-      parameters.to.save_jags = c("alpha","beta", "rate")
-      
-      
-      if(class(init) != "character"){
-        modelinits <- init
+      parameters.to.save_jags = c("alpha","beta", "rate") 
+      #if(class(init) != "character"){
+	  if(!inherits(init, "character")){
+	     modelinits <- init
       }else{
-      #Inits as per flexsurvreg (reparameterized)
-      modelinits <- function(){
-        beta = c(log(1/mean(data.jags$t)*stats::runif(1,0.8,1.5)),rep(0,data.jags$H -1))
-        list(alpha1 = stats::runif(1,0.001,0.003),alpha2 = stats::runif(1,0.001,0.003), beta = beta) 
+      mle_model  <- runMLE(x, exArgs)
+      param_names <- rownames(mle_model$model$res)
+      alpha <- as.numeric(mle_model$model$res[,1]["shape"])
+      beta <- as.numeric(mle_model$model$res.t[,1][!(param_names %in% "shape")])
+    
+      if(data.jags$H > length(beta)){
+        beta <- c(beta, rep(0,data.jags$H-length(beta)))
+      }
+      
+      alpha1 <- alpha
+      alpha2 <- ifelse(alpha < 0, stats::runif(1,0.001,0.003),alpha)
+      
+       modelinits <- function(){
+         list(alpha1 = alpha1,alpha2 = alpha2, beta = beta) 
         }
+      #Inits as per flexsurvreg (reparameterized) - Gompertz
+      # modelinits <- function(){
+      #   beta = c(log(1/mean(data.jags$t)*stats::runif(1,0.8,1.5)),rep(0,data.jags$H -1))
+      #   list(alpha1 = stats::runif(1,0.001,0.003),alpha2 = stats::runif(1,0.001,0.003), beta = beta) 
+      #   }
+      
       }
       
     }else if(d3 == "gga"){ #(d3 == "gga")
@@ -312,7 +331,8 @@ runBAYES <- function (x, exArgs){
       data.jags$t_jags <- ifelse(data.jags$is.censored ==1, NA, data.jags$t) 
       data.jags$t_cen <- data.jags$t+data.jags$d
       
-      if(class(init) != "character"){
+      #if(class(init) != "character"){
+	  if(!inherits(init, "character")){
         modelinits <- init
       }else{
         modelinits <- function(){list(t_jags = tinits1)}
@@ -324,7 +344,8 @@ runBAYES <- function (x, exArgs){
     }else{ #"gam",
       parameters.to.save_jags = c("alpha","beta", "rate")
       
-      if(class(init) != "character"){
+      #if(class(init) != "character"){
+	  if(!inherits(init, "character")){
         modelinits <- init
       }else{
         modelinits <- NULL
@@ -348,19 +369,15 @@ runBAYES <- function (x, exArgs){
     
     
   }else{
-    # dso <- textConnection(get(paste0(d, "_expert")))
-    # model <- rstan::sampling(dso, data.stan, chains = chains, 
-    #                          iter = iter, warmup = warmup, thin = thin, seed = seed, 
-    #                          control = control, pars = pars, include = include, cores = cores, 
-    #                          init = init, refresh = refresh)
-    #browser()
+
     if(is.na(match(paste0(d, "_expert"), names(compile_mods)))){
       stan_code <- get(paste0(d, "_expert"))
       stan_model <- rstan::stan_model(model_code = stan_code, model_name  = paste0(d, "_expert"))
     }else{
       stan_model <- compile_mods[[paste0(d, "_expert")]]
     }
-
+	data.stan$expert_only <- expert_only
+	
     model <- rstan::sampling(stan_model, data.stan, chains = chains, 
                              iter = iter, warmup = warmup, thin = thin, seed = seed, 
                              control = control, pars = pars, include = include, cores = cores, 
@@ -467,8 +484,17 @@ make_data_stan <- function (formula, data, distr3, exArgs = globalenv()){
     else {
       k <- 0
     }
-    knots <- quantile(log((mf %>% filter(event == 1))$time), 
-                      seq(0, 1, length = k + 2))
+    
+    if (exists("knots", where = exArgs)) {
+      
+      knots <- exArgs$knots
+    }
+    else {
+      knots <- quantile(log((mf %>% filter(event == 1))$time), 
+                        seq(0, 1, length = k + 2))
+      
+    }
+    
     B <- basis(knots, log(mf$time))
     B_expert <- basis(knots, log(exArgs$times_expert))
     DB <- dbasis(knots, log(mf$time))

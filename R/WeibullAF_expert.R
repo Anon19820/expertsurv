@@ -42,26 +42,23 @@ functions {
     return prob;
   }
 
-  // real log_mixnorm_dens(real[ ] mu, real[ ] sd, real[ ] prob,  real x) {
-  //
-  //   // Evaluates the log-density based on a mixture normal
-  //   // x refers to the Survival or expected difference in survival
-  //
-  //   //real log_dens;
-  //   int n;
-  //   vector[num_elements(mu)] log_dens_i;
-  //
-  //   n = num_elements(mu);
-  //   for(i in 1:n){
-  //     log_dens_i[i]= normal_lpdf(x| mu[i], sd[i]) + log(prob[i]);
-  //   }
-  //
-  //   return log(sum(exp(log_dens_i)));
-  // }
-  //
+
+  real derivative(real x,  real shape, real scale, int param) {
+    real derivs;
+	
+    if(param==1){//scale
+		derivs = (shape*pow(x/scale,shape)*exp(-pow(x/scale,shape)))/scale;
+    }else{
+		derivs = -log(x/scale)*pow(x/scale,shape)*exp(-pow(x/scale,shape));
+    }
+    
+    return (abs(derivs));
+  }
+  
 
 
-     // Evaluates the log density for a range of distributions
+
+  // Evaluates the log density for a range of distributions
   real log_density_dist(array[ , ] real params,
                         real x,int num_expert, int pool_type){
 
@@ -147,6 +144,7 @@ data {
 
 
    vector[n] a0; //Power prior for the observations
+ int expert_only;
 
 }
 
@@ -182,14 +180,19 @@ transformed parameters {
 model {
   alpha ~ gamma(a_alpha,b_alpha);
   beta ~ normal(mu_beta,sigma_beta);
-  t ~ surv_weibullAF(d,alpha,mu, a0);
 
+if(expert_only == 0){
+	  t ~ surv_weibullAF(d,alpha,mu, a0);
+}
 for (i in 1:n_time_expert){
      target += log_density_dist(param_expert[,,i],
                                  St_expert[i],
                                  n_experts[i],
                                  pool_type);
-    }
+}
+	//if(St_indic == 1){
+		//target += log(derivative(St_expert[1],alpha,mu[id_St],1)+ derivative(St_expert[1],alpha,mu[id_St],2));
+	//}
 }
 generated quantities {
   real scale;                // scale parameter

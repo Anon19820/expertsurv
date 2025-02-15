@@ -7,9 +7,9 @@
 
 The goal of `expertsurv` is to incorporate expert opinion into an
 analysis of time to event data. `expertsurv` uses many of the core
-functions of the `survHE` package (Baio 2020) and also the `flexsurv`
-package (Jackson 2016). Technical details of the implementation are
-detailed in (Cooney and White 2023) and will not be repeated here.
+functions of the `survHE` package \[@Baio.2020\] and also the `flexsurv`
+package \[@flexsurv\]. Technical details of the implementation are
+detailed in \[@Cooney.2023\] and will not be repeated here.
 
 The key function is `fit.models.expert` and operates almost identically
 to the `fit.models` function of `survHE`.
@@ -77,11 +77,12 @@ parameters) and specify `timepoint_expert` as a vector of length 2 with
 the second element being the second timepoint.
 
 For details on assigning distributions to elicited probabilities and
-quantiles see the `SHELF` package (Oakley 2021) and for an overview on
-methodological approaches to eliciting expert opinion see (O’Hagan
-2019). We can see both the individual and pooled distributions using the
-following code (note that we could have used the output of the `fitdist`
-function from `SHELF` if we actually elicited quantiles from an expert):
+quantiles see the `SHELF` package \[@SHELF.2021\] and for an overview on
+methodological approaches to eliciting expert opinion see
+\[@OHagan.2019\]. We can see both the individual and pooled
+distributions using the following code (note that we could have used the
+output of the `fitdist` function from `SHELF` if we actually elicited
+quantiles from an expert):
 
     plot_opinion1 <- plot_expert_opinion(param_expert_example1[[1]], 
                         weights = param_expert_example1[[1]]$wi)
@@ -178,7 +179,7 @@ Survival function with Expert prior
 ## Expert Opinion using Penalized Maximum Likelihood
 
 We can also fit the model by Penalized Maximum Likelihood approaches
-based on code taken from the `flexsurv` package (Jackson 2016). All that
+based on code taken from the `flexsurv` package \[@flexsurv\]. All that
 is required that the `method="bayes"` is changed to `method="mle"` with
 the `iter` argument now redundant. One argument that maybe of interest
 is the `method_mle` which is the optimization procedure that `flexsurv`
@@ -291,12 +292,12 @@ Survival difference
 ## Compatability with underlying packages survHE and flexsurv
 
 As stated in the introduction this package relies on many of the core
-functions of the `survHE, flexsurv` packages (Baio 2020) and (Jackson
-2016). Because future versions of `survHE` and `flexsurv` may introduce
-conflicts with the current implementation, we have directly ported the
-key functions from these packages into the package so that `expertsurv`
-no longer imports `survHE,flexsurv` (of course all credit for those
-functions goes to Jackson (2016)).
+functions of the `survHE, flexsurv` packages \[@Baio.2020\] and
+\[@flexsurv\]. Because future versions of `survHE` and `flexsurv` may
+introduce conflicts with the current implementation, we have directly
+ported the key functions from these packages into the package so that
+`expertsurv` no longer imports `survHE,flexsurv` (of course all credit
+for those functions goes to \[@Baio.2020,@flexsurv\]).
 
 If you run in issues, bugs or just features which you feel would be
 useful, please let me know (<phcooney@tcd.ie>) and I will investigate
@@ -345,26 +346,30 @@ considerable differences are present the prior distributions should be
 investigated.
 
 Because the analysis is done in JAGS and Stan we can leverage the
-`ggmcmc` package (Fernández-i-Marín 2016):
+`ggmcmc` package \[@ggmcmc.2016\]:
 
+    library(ggmcmc)
     #For Stan Models # Log-Normal, RP, Exponential, Weibull
-    ggmcmc(ggs(example1$models$`Exponential`), file = "Exponential.pdf")
+    ggmcmc(ggs(rstan::As.mcmc.list(example1$models$`Exponential`)), file = "Exponential.pdf")
 
     #For JAGS Models # Gamma, Gompertz, Generalized Gamma
     ggmcmc(ggs(as.mcmc(example1$models$`Gamma`)), file = "Gamma.pdf")
 
 ## General Population Mortality
 
+*Please note that this functionality is still in an experimental stage*
+
 Because `expertsurv` uses `flexsurv` functions internally the models fit
 by penalized maximum likelihood `method = "mle"` inherit the
 `flexsurvreg` class. This means that we can leverage advanced approaches
 such as the inclusion of general population mortality. This is discussed
 in more detail in the package documentation of the `flexsurv` package
-and more specifically the `standsurv` vignette (Sweeting 2023), however,
-the key point to note is that the parameter estimates obtained from the
-survival models are for the *relative* survival model and therefore are
-not representative of the all-cause survival (which typically considers
-the disease specific and general population mortality hazards).
+and more specifically the `standsurv` vignette \[@Sweeting2023\],
+however, the key point to note is that the parameter estimates obtained
+from the survival models are for the *relative* survival model and
+therefore are not representative of the all-cause survival (which
+typically considers the disease specific and general population
+mortality hazards).
 
 After making the modifications to the `bc` dataset as in the `standsurv`
 vignette, we assume a the expert believes that the expected survival for
@@ -418,7 +423,7 @@ of the “Good” group.
                                          anc = list(shape = ~ as.factor(group2)),
                                          bhazard=exprate,expert_opinion = expert_opinion_flex)
 
-Using the `standsurv` functions (as documented by (Sweeting 2023)) we
+Using the `standsurv` functions (as documented by \[@Sweeting2023\]) we
 can generate the all-cause hazards and survival. While the all cause
 survival is broadly similar to the predicted survival for the “Good”
 group without general population mortality adjustment at the timepoint
@@ -448,67 +453,169 @@ All-cause Hazard Functions including General Population Mortality
 
 </div>
 
+## Setting Initial values to estimate models (Particularly Gompertz)
+
+In most cases, the models are estimated successfully. However, there are
+instances where the choice of initial values is crucial. This is
+especially significant for the Gompertz model when using Bayesian
+methods. The Gompertz model is fit using the *zero’s* trick (since it is
+not available as a probability distribution in JAGS). To mitigate these
+issues, `expertsurv` fits the Gompertz model using penalized maximum
+likelihood and then uses these penalized maximum likelihood estimates as
+initial values for the Bayesian approach.
+
+If this approach also fails, user-defined initial values can be provided
+as shown below.
+
+    #alpha is the same as the shape parameter in the flexsurv Gompertz model
+    #beta is the same as the log(rate) parameter flexsurv Gompertz model.
+    #beta can also include the log(HR) for any covariates
+    alpha <- 1
+    beta <- 1
+
+    #beta needs to be a vector of length equal to H
+    #H is 2 whether or not one covariate has been included, however,
+    #if more than one covariate is included it is the number of covariates +1.
+    #It can also be accessed from a successfully fit Bayesian model.
+    #example1_bayes[["misc"]][["data.stan"]][[1]]["H"]
+
+    H <- 2
+    if(data.jags$H > length(beta)){
+      beta <- c(beta, rep(0,H-length(beta)))
+    }
+          
+    modelinits <- function(){
+      list(alpha1 = alpha1,alpha2 = alpha2, beta = beta) 
+    }
+    #Finally create a function supplying these initial values and then supply 
+    #them as a list with the name of the sublist being the model (i.e. gom)
+
+    example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                                         distr=c("wei", "gom", "lno","llo","gam","wph","exp", "rps"),
+                                         method="bayes",
+                                         opinion_type = "survival",
+                                         times_expert = timepoint_expert, 
+                                         param_expert = param_expert_example1,
+                                         iter = 10000, 
+                                         k = 1,
+                                         knots = c(-1,0,0.5),
+                                         a0 = rep(0.0001, 3),
+                                         init = list(gom = modelinits),
+                                         compile_mods = compiled_models_saved,
+                                         expert_only = F)
+
+Supplying initial values for models fit by penalized maximum likelihood
+is straightforward. By default, initial values for the model with expert
+opinion are taken from a model fit without data (this happens
+internally). However, there may be situations where the user wants to
+supply their own initial values.
+
+For example, if you wish to include expert opinion that is both strong
+(i.e., the distribution represents the belief with low variance) and
+significantly different from the survival generated based on data alone,
+setting the initial values to be equal to the maximum likelihood
+estimates may result in optimization failure.
+
+In such cases, it may make sense to first fit the model to the data with
+an expert opinion having the same expected value (i.e., mean of the
+distribution representing their belief) but a larger variance. The
+values obtained from this model could then be used as initial values for
+the model with the stronger expert opinion. Note that setting initial
+values (`inits`) is not implemented for the spline-based models.
+
+    require("dplyr")
+    #Expert Opinion as a normal distribution centered on 0.1 with sd 0.005
+    param_expert_example1 <- list()
+    param_expert_example1[[1]] <- data.frame(dist = c("norm"),
+                                             wi = c(1), # Ensure Weights sum to 1
+                                             param1 = c(0.1),
+                                             param2 = c(0.01),
+                                            param3 = c(NA))
+    timepoint_expert <- 14 # Expert opinion at t = 14
+
+    data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10, 10, time),
+    status2 = ifelse(time> 10, 0, status))
+
+    #Set the expert opinion to be less strong... i.e. greater variance
+    param_expert_example1_vague <- param_expert_example1
+    param_expert_example1_vague[[1]][,4] <- 0.1
+
+    example1_vague  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                                  distr=c("wei", "gom"),
+                                  method="mle",
+                                  opinion_type = "survival",
+                                  times_expert = timepoint_expert, 
+                                  param_expert = param_expert_example1_vague)
+                                  
+
+    example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                                   distr=c("gom","wei"),
+                                   method="mle",
+                                   opinion_type = "survival",
+                                   times_expert = timepoint_expert, 
+                                   param_expert = param_expert_example1,
+                                   init = list(gomp = example1_vague$models$Gompertz$res[,1],
+                                               wei = example1_vague$models$`Weibull (AFT)`$res[,1]))
+                                
+
+## Technical note on the impact of priors
+
+The approach of \[@Cooney.2023\] integrates the expert opinion by
+considering inclusion of the expert opinion in terms of a loss function,
+however, the information could also be formulated as a valid prior
+distribution.
+
+Consider an expert who has a belief that expected survival of a
+population at 10 years ($t^*$) is normally distributed with a mean of
+0.1 ($\mu_{expert}$) and standard deviation of 0.05 $\sigma_{expert}$.
+To implement this as a prior density we treat the parameters of the
+expert’s opinion as hyperpriors.
+
+The density of this prior is specific to the survival model that we are
+estimating and we will first consider the exponential model with
+parameter $\theta$ and survival at the expert’s elicited time of
+$S(t^*) = \exp\{{-\theta t^*\}}$. Setting the density of the prior to be
+$\pi(\theta|\mu_{expert},\sigma_{expert}) \propto \exp\left\{ -\frac{1}{2}\left(\frac{\exp(-\theta t^*) - \mu_i}{\sigma_i}\right)^2 \right\}$.
+This prior provides the the same density as including the information as
+a loss function and setting the prior on $\theta$ to uniform over the
+support of $\theta$ (i.e. $[0,\infty)$).
+
+It is important to recognize that a uniform density on a parameter will
+not imply a uniform density on a transformation of that parameter. For
+the one parameter model this is straightforward to calculate via the
+change of variables technique. Defining $g(\theta)$ as the survival
+function of the exponential model, the inverse function of $g(\theta)$
+is $g^{-1}(\theta) = \frac{-\log(S(t))}{t^*}$, we see that the density
+of $S(t^*)$ implied by a uniform prior is $|g^{-1}(\theta)|$ which is
+clearly non-uniform (with $|x|$ denoting the absolute value of $x$). For
+the model with the expert opinion as a normal distribution we can use
+the change-of-variables technique but in the opposite direction,
+i.e. given a normal density of the survival what is associated density
+for the parameter ($\theta$). We see that the density of this function
+is
+$\exp\left\{ -\frac{1}{2}\left(\frac{\exp(-\theta t^*) - \mu_i}{\sigma_i}\right)^2 \right\}|g'(\theta)|$
+where $g'(\theta)$ is the derivative of the survival function with
+respect to $\theta$.
+
+In the case of a multiparameter model (e.g. Weibull), with parameter
+vector $\mathbf{\theta_m}$ of dimension $m$, $g(\mathbf{\theta_m})$ will
+not be invertible and obtaining a density for $p(\mathbf{\theta_m})$
+will not be strictly possible. Interestingly for all survival models we
+have considered we can obtain the required density for the expert’s
+belief using a prior of the form
+$p(\theta_m) \propto \exp\left\{ -\frac{1}{2}\left(\frac{S(t^*|\theta_m) - \mu_i}{\sigma_i}\right)^2 \right\}\sum_{i = 1}^m|g_{m}^{'}(\mathbf{\theta})|$
+where $|g_{m}^{'}(\mathbf{\theta})|$ is the partial derivative of the
+function $g(\mathbf{\theta})$ with respect to $\theta_m$. In some
+situations it is only necessary to include one of the $m$ elements
+$|g_{m}^{'}(\mathbf{\theta})|$ (typically the largest element). It is
+important, however, to verify the prior density generates the
+appropriate density at the particular survival. For example with the
+log-logistic the density matched perfectly if the expert’s opinion was
+near zero, however, if the opinion was near 0.5 the density had an
+unusal bimodal shape.
+
+This approach is not considered in the `expertsurv` package as the
+impact of the prior (either uniform or vague), typically is very minor
+\[@Cooney.2023\].
+
 ## References
-
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
-
-<div id="ref-Baio.2020" class="csl-entry">
-
-Baio, Gianluca. 2020. “<span class="nocase">survHE</span>: Survival
-Analysis for Health Economic Evaluation and Cost-Effectiveness
-Modeling.” *Journal of Statistical Software* 95 (14): 1–47.
-<https://doi.org/10.18637/jss.v095.i14>.
-
-</div>
-
-<div id="ref-Cooney.2023" class="csl-entry">
-
-Cooney, Philip, and Arthur White. 2023. “Direct Incorporation of Expert
-Opinion into Parametric Survival Models to Inform Survival
-Extrapolation.” *Medical Decision Making* 1 (1): 0272989X221150212.
-<https://doi.org/10.1177/0272989X221150212>.
-
-</div>
-
-<div id="ref-ggmcmc.2016" class="csl-entry">
-
-Fernández-i-Marín, Xavier. 2016. “<span class="nocase">ggmcmc</span>:
-Analysis of MCMC Samples and Bayesian Inference.” *Journal of
-Statistical Software* 70 (9): 1–20.
-<https://doi.org/10.18637/jss.v070.i09>.
-
-</div>
-
-<div id="ref-flexsurv" class="csl-entry">
-
-Jackson, Christopher. 2016. “<span class="nocase">flexsurv</span>: A
-Platform for Parametric Survival Modeling in R.” *Journal of Statistical
-Software* 70 (8): 1–33. <https://doi.org/10.18637/jss.v070.i08>.
-
-</div>
-
-<div id="ref-OHagan.2019" class="csl-entry">
-
-O’Hagan, Anthony. 2019. “Expert Knowledge Elicitation: Subjective but
-Scientific.” *The American Statistician* 73 (sup1): 69–81.
-<https://doi.org/10.1080/00031305.2018.1518265>.
-
-</div>
-
-<div id="ref-SHELF.2021" class="csl-entry">
-
-Oakley, Jeremy. 2021. *SHELF: Tools to Support the Sheffield Elicitation
-Framework*. <https://CRAN.R-project.org/package=SHELF>.
-
-</div>
-
-<div id="ref-Sweeting2023" class="csl-entry">
-
-Sweeting, Michael. 2023. “Standsurv: Marginal Survival and Hazards of
-Fitted Flexsurvreg Models.”
-<https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html>.
-
-</div>
-
-</div>

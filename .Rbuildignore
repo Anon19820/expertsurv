@@ -19,9 +19,9 @@
 ^build_vignette.R$
 ^Hexsticker.*\.png$
 ^Hexsticker.*\.pptx$
-^hexsticker.*\.png$
-^hexsticker.*\.pptx$
-^hexsticker.*\.xcf
+^Hex/^hexsticker.*\.png$
+^Hex/^hexsticker.*\.pptx$
+^Hex/hexsticker.*\.xcf
 inst/app/www/hexsticker-large.png
 inst/image/backup/Expert_Opinion.png
 inst/image/backup/Expert_Opinion_Posterior.png
@@ -40,7 +40,9 @@ inst/image/backup/Vignette_Example_2.png
 inst/image/backup/Vignette_Example_3.png
 File-Size-Optimization.R
 /README_files/
-
-^/R/GenF implementation Jags.R$
-
-^/R/Prior Density examples.R$
+^Future/Prior Density examples.R$
+^Future/GenF implementation Jags.R$
+^Future/Prior Density examples.R$
+^Future/Further Gompertz work.R
+^Future/QC-test.r
+^Hex$

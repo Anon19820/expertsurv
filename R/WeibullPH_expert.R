@@ -26,15 +26,14 @@ functions {
     return log_Sind_rtn;
   }
   
-	// Defines the numerical derivatives
-	
-    real derivative(real x,  real shape, real scale, int param) {
+// Defines the analytical derivatives
+  real derivative(real x,  real shape, real scale, int param) {
     real derivs;
 	
     if(param==1){//scale
 		derivs = abs(-(exp(-scale*(x^shape))*(x^shape)));
     }else{
-		derivs = abs(-(exp(-scale*(x^shape))*(scale*((x^shape)*log(x)))));
+		derivs = abs(-(exp(-scale*(x^shape))*(scale*(x^shape)*log(x))));
     }
     
     return (derivs);
@@ -141,7 +140,7 @@ data {
 
   array[max(n_experts),5,n_time_expert] real param_expert;
   vector[St_indic ? n_time_expert : 0] time_expert;
-
+  int expert_only;
 
 
 
@@ -178,8 +177,9 @@ transformed parameters {
 model {
   alpha ~ gamma(a_alpha,b_alpha);
   beta ~ normal(mu_beta,sigma_beta);
+  if(expert_only == 0){
   t ~ surv_weibullAF(d,alpha,mu, a0);
-
+	}
   for (i in 1:n_time_expert){
 
       target += log_density_dist(param_expert[,,i],
@@ -190,8 +190,9 @@ model {
 
   }
   
-    target += log(derivative(St_expert[1],alpha,mu[id_St],1)+ derivative(St_expert[1],alpha,mu[id_St],2));
-
+      //if(St_indic == 1){
+		//target += log(derivative(St_expert[1],alpha,mu[id_St],1)+ derivative(St_expert[1],alpha,mu[id_St],2));
+	  //}
 }
 
 generated quantities {
