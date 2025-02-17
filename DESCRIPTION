@@ -1,7 +1,7 @@
 Package: expertsurv
 Title: Incorporate Expert Opinion with Parametric Survival Models
 Version: 1.4.0
-Date: 2024-10-26
+Date: 2025-02-17
 Authors@R: 
     c(person(given = "Philip",
            family = "Cooney",
@@ -87,5 +87,4 @@ Suggests:
 	eha
 VignetteBuilder: knitr
 RdMacros: Rdpack
-Logo: inst/figures/hexsticker.png
 Config/testthat/edition: 3

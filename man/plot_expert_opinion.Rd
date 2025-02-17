@@ -35,7 +35,7 @@ Returns a ggplot with the individual expert opinions along with the pooled distr
                          param1 = c(0.3,0.40), #Parameter 1
                          param2 = c(0.05,0.05),# Parameter 2
                          param3 = c(NA,3)) #Parameter 3: Only t-distribution
- plot_expert_opinion(expert_df , weights = expert_df$wi)
+ #plot_expert_opinion(expert_df , weights = expert_df$wi)
 
                                                         
 }

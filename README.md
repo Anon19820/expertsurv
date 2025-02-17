@@ -112,6 +112,18 @@ saved objects from the `inst` folder. Therefore, it is much quicker to
 include the extra argument `compile_mods = compiled_models_saved` than
 requiring stan to recompile the model at each evaluation.
 
+Because of CRAN’s package size limitations (\< 5Mb) it is not possible
+to include this in the data folder, therefore, this should be compiled
+when the package is first installed.
+
+    # After installation
+     compiled_models_saved <- expertsurv:::compile_stan()
+     path_all <- system.file("data",package = "expertsurv")
+     save(compiled_models_saved, file = paste0(path_all,"/compiled_stan.RData"), compress = "xz")
+
+    # At start of session
+    load(paste0(paste0(path_all,"/compiled_stan.RData")))
+
 
     data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10, 10, time),
                                                                   status2 = ifelse(time> 10, 0, status))
@@ -681,7 +693,7 @@ Framework*. <https://CRAN.R-project.org/package=SHELF>.
 
 Sweeting, Michael. 2023. “Standsurv: Marginal Survival and Hazards of
 Fitted Flexsurvreg Models.”
-<https://cran.r-project.org/web/packages/flexsurv/vignettes/standsurv.html>.
+<https://CRAN.R-project.org/package=flexsurv/vignettes/standsurv.html>.
 
 </div>
 

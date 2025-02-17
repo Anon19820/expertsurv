@@ -4,14 +4,8 @@
 \name{compiled_models_saved}
 \alias{compiled_models_saved}
 \title{Object with Compiled Stan Code}
-\format{
-An object of class \code{list} of length 6.
-}
 \source{
 Generated from \code{expertsurv::compile_stan()}
-}
-\usage{
-compiled_models_saved
 }
 \description{
 Pre-compiled stan models that can be accessed by \code{expertsurv::compiled_models_saved}. These compiled stan models can be supplied to the \code{fit.models.expert} function with the argument \code{compile_mods}. This greatly facilitates the estimation of the parametric survival models run by stan.

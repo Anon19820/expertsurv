@@ -6,6 +6,7 @@ vignette: >
   %\VignetteIndexEntry{Introduction to Expertsurv}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -22,9 +23,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-<br clear='all'/>
-
-# Overview
+# expertsurv
 
 <br clear="all"/>
 <!-- badges: start -->
@@ -115,6 +114,19 @@ knitr::include_graphics(system.file(paste0("image/",img_temp), package = "expert
 
 
 We load and fit the data as follows (in this example considering just the Weibull and Gompertz models), with `pool_type = "log pool"` specifying that we want to use the  logarithmic pooling (rather than default "linear pool"). We do this as we wish to compare the results to the penalized maximum likelihood estimates in the next section. The stan models are not compiled at installation, in fact, they are accessed as saved objects from the `inst` folder. Therefore, it is much quicker to include the extra argument `compile_mods = compiled_models_saved` than requiring stan to recompile the model at each evaluation.
+
+Because of CRAN's package size limitations (< 5Mb) it is not possible to include this in the data folder, therefore, this should be compiled when the package is first installed.
+
+```
+# After installation
+ compiled_models_saved <- expertsurv:::compile_stan()
+ path_all <- system.file("data",package = "expertsurv")
+ save(compiled_models_saved, file = paste0(path_all,"/compiled_stan.RData"), compress = "xz")
+
+# At start of session
+load(paste0(paste0(path_all,"/compiled_stan.RData")))
+```
+
 
 ```
 

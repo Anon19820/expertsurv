@@ -1402,9 +1402,9 @@ get_density <- function(dist, param1, param2, param3 = NULL, x = seq(0.01, 0.98,
 #'     param1 = c(0.1,0.12),
 #'     param2 = c(0.005,0.005),
 #'     param3 = c(NA,3))
-#' plot_opinion1<- plot_expert_opinion(param_expert_example1[[1]], 
-#'               weights = param_expert_example1[[1]]$wi)
-#' cred_int(plot_opinion1,val = "linear pool", interval = c(0.025, 0.975))
+#' #plot_opinion1<- plot_expert_opinion(param_expert_example1[[1]], 
+#' #              weights = param_expert_example1[[1]]$wi)
+#' #cred_int(plot_opinion1,val = "linear pool", interval = c(0.025, 0.975))
 #' 
 #' 
 cred_int <- function(plt_obj, val = "linear pool",interval = c(0.025, 0.975)){
@@ -2029,7 +2029,7 @@ makeSingleExpertPlot <- function(fit, d = "best", pl = -Inf, pu = Inf,
 #'                          param1 = c(0.3,0.40), #Parameter 1
 #'                          param2 = c(0.05,0.05),# Parameter 2
 #'                          param3 = c(NA,3)) #Parameter 3: Only t-distribution
-#'  plot_expert_opinion(expert_df , weights = expert_df$wi)
+#'  #plot_expert_opinion(expert_df , weights = expert_df$wi)
 #'
 #'                                                         
 plot_expert_opinion <- function(object, xl_plt = NULL, xu_plt = NULL, weights = NULL, St_indic =0){

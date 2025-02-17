@@ -46,3 +46,11 @@ File-Size-Optimization.R
 ^Future/Further Gompertz work.R
 ^Future/QC-test.r
 ^Hex$
+^\\.git$
+^\\.github$
+^Future
+^[.].*$
+^.*/[.].*$
+^\\.git$
+^\\.github$
+^data/compiled_stan\\.RData$

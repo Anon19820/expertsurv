@@ -40,12 +40,12 @@
 #'                                   distr=c("wph", "exp"),
 #'                                   method="mle",
 #'                                   pool_type = "log pool",
-#'                                  opinion_type = "survival",
+#'                                   opinion_type = "survival",
 #'                                   times_expert = timepoint_expert,
 #'                                   param_expert = param_expert_example1)
 #' 
 #' 
-#' plot(example1_mle, add.km = TRUE, t = 0:30,plot_opinion = TRUE)
+#' #plot(example1_mle, add.km = TRUE, t = 0:30,plot_opinion = TRUE)
 #'
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}
