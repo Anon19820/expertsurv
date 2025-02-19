@@ -45,7 +45,7 @@ Creates the survival curves for the fitted model(s) - Original code from \code{s
 \insertRef{Baio.2020}{expertsurv}
 }
 \seealso{
-\code{psa.plot} (for example)
+\code{\link{psa.plot}}(for example)
 }
 \author{
 Gianluca Baio

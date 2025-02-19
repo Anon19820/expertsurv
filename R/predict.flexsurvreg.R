@@ -97,9 +97,6 @@
 #' @importFrom stats predict
 #'
 #' @md
-#'
-#' 
-#'
 #' @examples
 #'
 #' fitg <- flexsurvreg(formula = Surv(futime, fustat) ~ age, data = ovarian, dist = "gengamma")

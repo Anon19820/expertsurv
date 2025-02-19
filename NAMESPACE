@@ -3,6 +3,7 @@
 S3method(plot,expertsurv)
 S3method(print,expertsurv)
 S3method(summary,expertsurv)
+export(compile_stan)
 export(cred_int)
 export(elicit_surv)
 export(fit.models.expert)

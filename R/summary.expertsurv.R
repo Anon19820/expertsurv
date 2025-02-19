@@ -4,10 +4,7 @@
 #' Calculates the mean survival time as the area under the survival curve -
 #' ported from ``survHE``
 #' 
-#' A list comprising of the following elements
-#' 
-#' @param object a \code{survHE} object (resulting from the call to
-#' \code{fit.models}
+#' @param object a \code{expertsurv} object (resulting from the call to \code{fit.models})
 #' @param mod the model to be analysed (default = 1)
 #' @param t the vector of times to be used in the computation. Default = NULL,
 #' which means the observed times will be used. NB: the vector of times should
@@ -16,14 +13,24 @@
 #' @param nsim the number of simulations from the survival curve distributions
 #' to be used (to compute interval estimates)
 #' @param \dots Additional options
-#' @return \item{mean.surv}{ A matrix with the simulated values for the mean
+#' @return 
+#' A list comprising of the following elements:
+#' \item{mean.surv}{ A matrix with the simulated values for the mean
 #' survival times } \item{tab}{ A summary table }
 #' @author Gianluca Baio
-#' @seealso \code{fit.models.expert}, \code{make.surv}
+#' @seealso \code{\link{fit.models.expert}}, \code{\link{make.surv}}
 #' @keywords Parametric survival models Mean survival time
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}
 #' @export
+#' @examples
+#' require("dplyr")
+#' data2 <- data %>% rename(status = censored) %>% mutate(time2 = ifelse(time > 10, 10, time),
+#'                                                        status2 = ifelse(time> 10, 0, status))
+#' mle = example1 <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+#'                    distr=c("wph", "gomp"),
+#'                    method="mle")
+#' summary(mle)
 summary.expertsurv <- function(object,mod=1,t=NULL,nsim=1000,...) {
   # Computes the estimated mean survival as the area under the survival curve
   # This is obtained using the trapezoidal method by taking the average of the "left" and "right" y-values.

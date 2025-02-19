@@ -2,101 +2,148 @@
 % Please edit documentation in R/survHE_funcs.R
 \name{fit.models.expert}
 \alias{fit.models.expert}
-\title{Fitting Parametric Survival models with Expert Opinion}
+\title{Fit Parametric Survival Models Incorporating Expert Opinion}
 \usage{
 fit.models.expert(
   formula = NULL,
   data,
   distr = NULL,
   method = "bayes",
-  expert_type = "survival",
+  opinion_type = "survival",
   param_expert = NULL,
   ...
 )
 }
 \arguments{
-\item{formula}{As per \code{fit.models} in \code{survHE}}
+\item{formula}{An object of class \code{\link{formula}} specifying the survival model to be fitted, as per \code{fit.models} in the \pkg{survHE} package. The left-hand side must be a \code{\link[survival]{Surv}} object, and the right-hand side specifies the covariates.}
 
-\item{data}{As per \code{fit.models} in \code{survHE}}
+\item{data}{A data frame containing the variables specified in the \code{formula}, as per \code{fit.models}.}
 
-\item{distr}{As per \code{fit.models} in \code{survHE}. Note Generalized F model is not available for method = "bayes" nor Royston-Parmar available with opinion on the mean survival.}
-
-\item{method}{As per \code{fit.models} in \code{survHE}. (except for the inla method). It should be noted that serval models are fit using stan and others by JAGS, therefore the method argument for a Bayesian analysis is "bayes" and not "hmc" as in survHE.}
-
-\item{expert_type}{Either "survival", which indicates expert opinion on the survival function or "mean" (actually anything that does not contain "survival") which represents a belief on difference in survival.}
-
-\item{param_expert}{A list containing a dataframe for each timepoint (if applicable). Each dataframe should have columns with the following names and each row representing an expert:
+\item{distr}{A character vector specifying the distribution(s) to be used for the survival model(s), as per \code{fit.models}. Options include, but are not limited to:
 \itemize{
-\item \strong{dist}: Names of the distribution assigned to each expert which may be "norm", "t", "lnorm", "gamma", "beta".
-\item \strong{wi}: Weight of the expert, must sum to 1.
-\item \strong{param1}: First parameter of the distribution (e.g. mean for norm distribution). Parameters as per \code{SHELF} package.
-\item \strong{param2}: Second parameter of the distribution.
-\item \strong{param3}: Third parameter of the distribution (NA expect for degrees of freedom for t distribution)
+\item \code{"exp"}: Exponential distribution
+\item \code{"wei"}: Weibull distribution
+\item \code{"gom"}: Gompertz distribution
+\item \code{"gengamma"}: Generalized Gamma distribution
+\item \code{"genf"}: Generalized F distribution (not available for \code{method = "bayes"})
+\item \code{"rps"}: Royston-Parmar spline model (not available with \code{opinion_type = "mean"})
+}
+Note: The Generalized F model is not available when \code{method = "bayes"}, and the Royston-Parmar model is not available with expert opinion on the mean survival.}
+
+\item{method}{The estimation method to be used. Options are:
+\itemize{
+\item \code{"mle"}: Maximum Likelihood Estimation
+\item \code{"bayes"}: Bayesian estimation using either Stan or JAGS
+}
+Note: The \code{"inla"} method is not included. For Bayesian analysis, specify \code{method = "bayes"} (do not use \code{"hmc"} as in \pkg{survHE}).}
+
+\item{opinion_type}{A character string specifying the type of expert opinion provided:
+\itemize{
+\item \code{"survival"}: Expert opinion on the survival function at specific time points
+\item Other values (e.g., \code{"mean"}): Expert opinion on differences in expected survival (area under the survival curve)
 }}
 
-\item{...}{Other arguments may be required depending on the example. See \href{../README.md}{README} for details and further examples. The most important are \code{id_St}, \code{id_trt}, and \code{id_comp}. \code{id_St} is necessary if the model includes covariates (usually treatments) and expert opinion on survival probabilities. \code{id_trt} and \code{id_comp} are necessary if including expert opinion about differences in expected survival (i.e. area under the curve). Each specifies the row number in the data frame, indicating that the covariate pattern for this row represents the group for which the expert opinion is provided.
-If conducting the Bayesian analysis it is much quicker to use the pre-compiled models by adding compile_mods = compiled_models_saved. However, you will have to compile the models using \code{expertsurv::compile_stan()}. You can then save the models in data folder of the installed package. This should then allow you to access the correct models (without recompiling every session).}
+\item{param_expert}{A list where each element corresponds to a time point (if applicable) and contains a data frame of expert opinions. Each data frame should have the following columns, with each row representing an expert:
+\describe{
+\item{\code{dist}}{Name of the distribution assigned to each expert's opinion. Options include \code{"norm"}, \code{"t"}, \code{"lnorm"}, \code{"gamma"}, \code{"beta"}.}
+\item{\code{wi}}{Weight of the expert's opinion. Weights must sum to 1 across all experts for each time point.}
+\item{\code{param1}}{First parameter of the specified distribution (e.g., mean for normal distribution). Parameters follow the conventions of the \pkg{SHELF} package.}
+\item{\code{param2}}{Second parameter of the specified distribution (e.g., standard deviation for normal distribution).}
+\item{\code{param3}}{Third parameter of the distribution, if applicable (e.g., degrees of freedom for the t-distribution); otherwise, set to \code{NA}.}
+}}
+
+\item{...}{Other arguments required depending on the analysis. Important ones include:
+\describe{
+\item{\code{id_St}}{Required if the model includes covariates (e.g., treatments) and expert opinion on survival probabilities. Specifies the row number in the data frame representing the covariate pattern for which the expert opinion is provided.}
+\item{\code{id_trt}}{Required if including expert opinion about differences in expected survival. Specifies the row number representing the treatment group.}
+\item{\code{id_comp}}{Required if including expert opinion about differences in expected survival. Specifies the row number representing the comparator group.}
+\item{\code{times_expert}}{A numeric vector of time points at which expert opinion on survival probabilities is provided.}
+\item{\code{compile_mods}}{For Bayesian analysis, a list of pre-compiled Stan models can be supplied to speed up computation. Pre-compiling models is recommended and can be done using \code{\link{compile_stan}}.}
+}}
 }
 \value{
-An object of class \code{expertsurv} which contains the parameters of the models estimated with expert opinion.
+An object of class \code{expertsurv} containing the fitted models, parameter estimates, and other relevant information. This object can be used with plotting and summary functions for further analysis.
 }
 \description{
-Implementation of survival models with expert opinion on the survival probabilities or expected difference in survival.
-Function is equivalent to the \code{fit.models} in \code{survHE} except for the inclusion of the "expert_type" and "param_expert" arguments.
-Worked examples can be found in the README.
-Note that the default method is "bayes", however, the user may use "mle"  (method "inla" is not included).
+The \code{fit.models.expert} function extends the capabilities of the \code{survHE} package by allowing users to fit parametric survival models that incorporate expert opinion. Expert opinions can be on survival probabilities at specific time points or on expected differences in survival between groups. This function is particularly useful when empirical data is scarce or incomplete, and expert knowledge can help inform the analysis.
+}
+\details{
+This function enables the integration of expert opinion into parametric survival models. Expert opinion can be particularly valuable when data is limited or censored, as it allows for informed estimates of survival functions or differences between treatment groups.
+
+The function supports both Maximum Likelihood Estimation (MLE) and Bayesian methods. For Bayesian estimation, models are fitted using Stan or JAGS, depending on the distribution. Pre-compiling Stan models using \code{\link{compile_stan}} is highly recommended to reduce computation time.
 }
 \examples{
-require("dplyr")
-#Expert Opinion as a normal distribution centered on 0.1 with sd 0.005
+\dontrun{
+library(dplyr)
+
+# Example 1: Incorporating Expert Opinion on Survival Probabilities Using MLE
+
+# Define expert opinion as a normal distribution centered at 0.1 with sd 0.05
 param_expert_example1 <- list()
-param_expert_example1[[1]] <- data.frame(dist = c("norm"),
-                                         wi = c(1), # Ensure Weights sum to 1
-                                         param1 = c(0.1),
-                                         param2 = c(0.05),
-                                        param3 = c(NA))
-timepoint_expert <- 14 # Expert opinion at t = 14
+param_expert_example1[[1]] <- data.frame(
+  dist = "norm",
+  wi = 1,  # Ensure weights sum to 1 across experts
+  param1 = 0.1,
+  param2 = 0.05,
+  param3 = NA
+)
 
-data2 <- data \%>\% rename(status = censored) \%>\% mutate(time2 = ifelse(time > 10, 10, time),
-status2 = ifelse(time> 10, 0, status))
+# Time point at which expert opinion is provided
+timepoint_expert <- 14  # For example, 14 months
 
-example1  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-                              distr=c("wei", "gomp"),
-                              method="mle",
-                              opinion_type = "survival",
-                              times_expert = timepoint_expert, 
-                              param_expert = param_expert_example1)
-                              
-plot(example1, add.km = TRUE, t = seq(0:20)) #Plot Survival
-model.fit.plot(example1, type = "aic")  #Plot AIC 
+# Prepare the data
+# Assume 'data' is your dataset containing 'time' and 'censored' variables
+data2 <- data \%>\%
+  rename(status = censored) \%>\%
+  mutate(
+    time2 = ifelse(time > 10, 10, time),
+    status2 = ifelse(time > 10, 0, status)
+  )
 
-# Running Bayesian approach - `iter` should be much higher, only for illustration
-# It is best to set compile_mods = compiled_models_saved, however,
-# you need to should compile all the models using (ideally after installation)
-# compiled_models_saved <- expertsurv:::compile_stan()
-# path_inst <- system.file("data",package = "expertsurv")
-# save(compiled_models_saved, file = paste0(path_inst,"/compiled_stan.RData"), compress = "xz")
-# You will then have access to the models from compiled_models_saved once you run
-# the following code at start of session (ensuring that path_inst exists)
-# load(paste0(paste0(path_inst,"/compiled_stan.RData")))
-#
-#
-#
-#
-#
-#
-#
-#example1_bayes  <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
-#               			distr=c("wei", "gomp"),
-#               			method="bayes",
-#               			opinion_type = "survival",
-#                  		times_expert = timepoint_expert, 
-#                   		param_expert = param_expert_example1,
-#						iter = 50, 
-#						compile_mods = expertsurv:::compile_stan("wei")) 
-#
-#Above we compile the stan model at evalulation (not recommended),however,
-#once compiled models are available in environment we can use
-#compile_mods = compiled_models_saved
+# Fit the survival models using MLE, incorporating expert opinion
+example1 <- fit.models.expert(
+  formula = Surv(time2, status2) ~ 1,
+  data = data2,
+  distr = c("wei", "gom"),  # Weibull and Gompertz distributions
+  method = "mle",
+  opinion_type = "survival",
+  times_expert = timepoint_expert,
+  param_expert = param_expert_example1
+)
+
+# Plot the fitted survival curves along with the Kaplan-Meier estimate
+plot(example1, add.km = TRUE, t = 0:20)
+
+# Compare models using Akaike Information Criterion (AIC)
+model.fit.plot(example1, type = "aic")
+
+# Example 2: Incorporating Expert Opinion Using Bayesian Estimation
+
+# Pre-compile Stan models (ideally after installing the package)
+# This step can be time-consuming but only needs to be done once per session
+compiled_models_saved <- compile_stan()
+
+# Fit the survival models using Bayesian estimation with expert opinion
+example1_bayes <- fit.models.expert(
+  formula = Surv(time2, status2) ~ 1,
+  data = data2,
+  distr = c("wei", "gom"),
+  method = "bayes",
+  opinion_type = "survival",
+  times_expert = timepoint_expert,
+  param_expert = param_expert_example1,
+  iter = 2000,  # Set to a high number for convergence (e.g., 2000 or more)
+  compile_mods = compiled_models_saved
+)
+
+# Summarize the Bayesian model results
+summary(example1_bayes)
+
+# Plot the Bayesian fitted survival curves
+plot(example1_bayes, add.km = TRUE, t = 0:20)
 }
+}
+\keyword{Bayesian}
+\keyword{expert-opinion}
 \keyword{models}
+\keyword{survival}

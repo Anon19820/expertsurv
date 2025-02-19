@@ -17,7 +17,7 @@ subsequently develop BOS or die.
 Papworth Hospital, U.K.
 }
 \description{
-See \pkg{flexsurv} for details.
+See \code{\link[flexsurv]{flexsurv}} for details.
 }
 \references{
 Heng. D. et al. (1998).  Bronchiolitis Obliterans Syndrome:

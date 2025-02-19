@@ -756,8 +756,7 @@
       # rmarkdown::render(tempReport, output_file = file, #File Name
       #                   params = params, output_format = input$outFormat,
       #                   envir = new.env(parent = globalenv()))
-      
-      
+          
       
       template <- use_parameters(tempReport, names(list_output),
                                  is.file = TRUE)

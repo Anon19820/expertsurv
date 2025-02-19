@@ -3,7 +3,7 @@
 #' Tests the linear assumptions for the parametric model
 #' 
 #' 
-#' @param fit an object of class survHE
+#' @param fit an object of class expertsurv
 #' @param mod index or name of a model in fit. Defaults to 1.
 #' @param label_plot if TRUE, labels assumptions. Defaults to FALSE.
 #' @param \dots further arguments, passed on to points()

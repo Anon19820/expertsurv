@@ -8,8 +8,7 @@ given model and data}
 \method{summary}{expertsurv}(object, mod = 1, t = NULL, nsim = 1000, ...)
 }
 \arguments{
-\item{object}{a \code{survHE} object (resulting from the call to
-\code{fit.models}}
+\item{object}{a \code{expertsurv} object (resulting from the call to \code{fit.models})}
 
 \item{mod}{the model to be analysed (default = 1)}
 
@@ -24,6 +23,7 @@ to be used (to compute interval estimates)}
 \item{\dots}{Additional options}
 }
 \value{
+A list comprising of the following elements:
 \item{mean.surv}{ A matrix with the simulated values for the mean
 survival times } \item{tab}{ A summary table }
 }
@@ -31,14 +31,20 @@ survival times } \item{tab}{ A summary table }
 Calculates the mean survival time as the area under the survival curve -
 ported from \code{survHE}
 }
-\details{
-A list comprising of the following elements
+\examples{
+require("dplyr")
+data2 <- data \%>\% rename(status = censored) \%>\% mutate(time2 = ifelse(time > 10, 10, time),
+                                                       status2 = ifelse(time> 10, 0, status))
+mle = example1 <- fit.models.expert(formula=Surv(time2,status2)~1,data=data2,
+                   distr=c("wph", "gomp"),
+                   method="mle")
+summary(mle)
 }
 \references{
 \insertRef{Baio.2020}{expertsurv}
 }
 \seealso{
-\code{fit.models.expert}, \code{make.surv}
+\code{\link{fit.models.expert}}, \code{\link{make.surv}}
 }
 \author{
 Gianluca Baio

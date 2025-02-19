@@ -22,7 +22,7 @@
 #' * \code{nsim}: Even if statistical uncertainty is not required in the plots, it is recommended that \code{nsim} is set to a reasonable number. If \code{nsim = 1} by default, the maximum likelihood estimates or the posterior mean of the parameters will be used to plot the results. In most cases, this should suffice (particularly for maximum likelihood). However, the expected survival estimated by the full sampling distribution may be different from the estimate at its expectation/maximum likelihood estimate.
 #' @return A ggplot2 object of the survival curves.
 #' @author Gianluca Baio
-#' @seealso \code{fit.models}, \code{write.surv}
+#' @seealso \code{\link{fit.models.expert}}
 #' @keywords Parametric survival models
 #' @examples
 #' require("dplyr")
@@ -44,9 +44,9 @@
 #'                                   times_expert = timepoint_expert,
 #'                                   param_expert = param_expert_example1)
 #' 
-#' 
-#' #plot(example1_mle, add.km = TRUE, t = 0:30,plot_opinion = TRUE)
-#'
+#' \donttest{
+#' plot(example1_mle, add.km = TRUE, t = 0:30,plot_opinion = TRUE)
+#' }
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}
 #' 

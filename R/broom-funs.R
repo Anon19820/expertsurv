@@ -31,9 +31,6 @@
 #' \code{statistic} and \code{p.value} are only provided for covariate effects (\code{NA} for baseline distribution parameters). These are computed as Wald-type test statistics with p-values from a standard normal distribution.
 #'
 #' @importFrom purrr map2_dbl
-#'
-#'
-#'
 #' @examples
 #'
 #' fitg <- expertsurv:::flexsurvreg(formula = Surv(futime, fustat) ~ age,

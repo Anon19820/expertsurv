@@ -27,7 +27,7 @@
 #' @param ...  Additional options
 #' @return A list with survival times for the fitted models
 #' @author Gianluca Baio
-#' @seealso  \code{psa.plot} (for example)
+#' @seealso  \code{\link{psa.plot}}(for example)
 #' @keywords Survival models Bootstrap Probabilistic sensitivity analysis
 #' @references 
 #' \insertRef{Baio.2020}{expertsurv}
